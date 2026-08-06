@@ -66,6 +66,15 @@ CLONES = {"Ze-cy": "three"}
 # noise. The two faults that prompted the check were 4.3% and 21% out.
 BOWL_END = 0.02
 BOWL_WEIGHT = 0.02
+# ...and never tighter than this many units, whatever the percentage works out
+# to. The comment above says the tolerance is here to absorb outline rounding,
+# "a unit or so", and 2 per cent of a 29-unit stroke is 0.58 -- too tight to
+# do what it claims. в reads 0.7 light against ь and ъ at every master purely
+# because its elliptical arcs reach their widest by a different route, so the
+# probe lands on a sample where the counter's bezier has already begun to
+# turn. All four are drawn with the identical stroke. The faults this check
+# exists for were 22 and 35 units out at ExtraBold.
+BOWL_UNIT = 1.5
 # The band the lower bowl lives in, and how finely to walk it. Wide enough to
 # contain the widest point at every master and to stay clear of both the
 # baseline corner and the waist.
@@ -277,6 +286,36 @@ TAILED = set("ДЦЩЏдцщџ")
 # one depth for both cases, see recipes.descent. The fault it replaces sat at
 # 1.333, outside all sixty.
 TAIL_PAIRS = (("ц", "Ц"), ("щ", "Щ"), ("д", "Д"), ("џ", "Џ"))
+
+# A lowercase must be its capital's SHAPE, size aside. Sampling each letter's
+# right edge up its own height and dividing by its own width strips out the
+# size, the weight and the sidebearings and leaves the silhouette, so the two
+# cases become directly comparable. Every pair here agrees to within 0.053.
+#
+# Only the MEAN difference is checked, never the worst. A bar or a tail is a
+# fixed number of units in both cases -- rightly so, the panel says the same
+# -- and therefore occupies a bigger fraction of a shorter letter, so a single
+# sample can land above the arm in Г and inside it in г and jump by 0.8 on its
+# own. That is physical, not a defect.
+PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЬьЪъЫы"
+PROFILE_TOL = 0.08
+
+
+def profile(gs, gname):
+    """The letter's right edge up its own height, over its own width."""
+    polys = contours(gs, gname)
+    if not polys:
+        return None
+    ys = [q[1] for po in polys for q in po]
+    xs = [q[0] for po in polys for q in po]
+    top, bot, left, right = max(ys), min(ys), min(xs), max(xs)
+    if right <= left or top <= bot:
+        return None
+    out = []
+    for j in range(5, 100, 5):
+        cr = runs(polys, bot + (top - bot) * j / 100.0 + 0.13)
+        out.append((max(cr) - left) / (right - left) if len(cr) >= 2 else None)
+    return out
 
 
 def corner_set(paths):
@@ -849,6 +888,19 @@ def main():
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
 
+        for i in range(0, len(PROFILE_PAIRS), 2):
+            up, low = PROFILE_PAIRS[i], PROFILE_PAIRS[i + 1]
+            if ord(up) not in cmap or ord(low) not in cmap:
+                continue
+            pu, pl = profile(gs, cmap[ord(up)]), profile(gs, cmap[ord(low)])
+            if not pu or not pl:
+                continue
+            d = [abs(a - b) for a, b in zip(pu, pl) if a and b]
+            if d and sum(d) / len(d) > PROFILE_TOL:
+                findings.append(
+                    f"{weight:9} {low} is not {up}'s shape: silhouettes "
+                    f"differ by {sum(d) / len(d):.3f} on average")
+
         for low, up in TAIL_PAIRS:
             if ord(low) not in cmap or ord(up) not in cmap:
                 continue
@@ -870,11 +922,12 @@ def main():
                 got = _bowl(gs, cmap[ord(ch)], top)
                 if not ref or not got:
                     continue
-                if abs(got[0] / ref[0] - 1.0) > BOWL_END:
+                if abs(got[0] - ref[0]) > max(BOWL_END * ref[0], BOWL_UNIT):
                     findings.append(
                         f"{weight:9} {ch} bowl ends at {got[0]:.0f} where "
                         f"{host} ends at {ref[0]:.0f}")
-                if abs(got[1] / ref[1] - 1.0) > BOWL_WEIGHT:
+                if abs(got[1] - ref[1]) > max(BOWL_WEIGHT * ref[1],
+                                              BOWL_UNIT):
                     findings.append(
                         f"{weight:9} {ch} bowl stroke {got[1]:.0f} against "
                         f"{host}'s own {ref[1]:.0f}")
