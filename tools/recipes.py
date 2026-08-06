@@ -1089,7 +1089,13 @@ def E_rev(pr, top=None):
     while Thin got a flat cut. The two masters described different terminals
     and every weight between them interpolated one into the other.
     """
-    body = mirror_x(clone_all(pr.paths("C")), 300.0)
+    # Э reverses the face's own C, so the donor follows the case: C above and
+    # c below. Cloned outlines do not re-size through Lower the way measured
+    # geometry does -- run at x-height with C still named, э came out at the
+    # CAP height, 710 units tall, and matching node counts across the masters
+    # said nothing about it.
+    body = mirror_x(clone_all(pr.paths(
+        "c" if getattr(pr, "lower", False) else "C")), 300.0)
     ns = list(body[0].nodes)
     xs = [n.position.x for n in ns]
     ys = [n.position.y for n in ns]
@@ -1315,8 +1321,20 @@ def Ya(pr, top=None, bottom=0.0):
     # growing out of it.
     rleg = pr.paths("R")[1]
     ys = [n.position.y for n in rleg.nodes]
-    waist = max(ys)
-    r_top = [n.position.x for n in rleg.nodes if n.position.y == waist]
+    # R's leg springs at an absolute height in CAP space, so it carries across
+    # as a FRACTION of the letter and not as raw units. Handed to Lower as it
+    # stood it left я's bowl 193 units tall where the capital's is 400, and
+    # the leg met it at a 42-degree spike against the face's own sharpest 46.
+    # Same trap as Э cloning the Latin C: a number or an outline read off a
+    # capital does not re-size just because the recipe is run at x-height.
+    # Two heights, and they live in different spaces: r_waist reads R's own
+    # outline and must stay in R's units, while waist draws THIS letter and
+    # must be in its own. Rescaling the one variable that served both left the
+    # node filter below matching nothing at all.
+    base = getattr(pr, "_pr", pr)
+    r_waist = max(ys)
+    waist = r_waist / float(base.cap) * top
+    r_top = [n.position.x for n in rleg.nodes if n.position.y == r_waist]
     r_stem = bbox([pr.paths("R")[0]])[0] + pr.stem / 2.0
     reach = ((sum(r_top) / len(r_top)) - r_stem) / (bbox(pr.paths("R"))[2]
                                                     - r_stem)
@@ -1324,7 +1342,12 @@ def Ya(pr, top=None, bottom=0.0):
     # Я's bowl bulges LEFT against the right stem, so the shared d_shape --
     # which is drawn flat-left -- is flipped about this glyph's own centre.
     # That is mirroring my own construction, not deriving Я from a Latin R.
-    bowl = mirror_x(bowl_pair(x0, waist, x1, top, t), mid)
+    # Я's bowl is half the letter, so it is short at x-height in exactly the
+    # way в's lobes are: without the face's own sweep it flattens, and without
+    # a floor its counter's corner collapses onto itself. See bowl_arc.
+    rx, ry = bowl_arc(pr, x0, x1, waist, top)
+    bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, r=rx, ry=ry,
+                              rmin=inner_radius(pr)), mid)
 
     stem_c = x1 - s / 2.0
     leg_top = stem_c - reach * (stem_c - x0)
@@ -1488,6 +1511,11 @@ RECIPES = {
     # construction driven through Lower.
     "ge-cy": lc(Ghe_lc), "en-cy": lc(En_lc), "te-cy": lc(Te_lc),
     "ve-cy": lc(Ve), "softsign-cy": lc(Soft), "hardsign-cy": lc(Hard),
+    # the capital's own construction at x-height. These six need no donor
+    # swap: they are built from measured parameters and geometry rather than
+    # from spliced Latin outlines, so Lower alone re-sizes them.
+    "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El),
+    "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
     "yeru-cy": lc(Yeru),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),

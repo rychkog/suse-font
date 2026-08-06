@@ -134,8 +134,8 @@ def main():
     # Ukrainian alone never sets Ы Ъ Э, so those three had only ever been
     # reviewed as isolated glyphs. Both scripts from here on.
     russian = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРЫ, ЭХО"
-    ua = ok("вість, тінь, сотні гори")
-    ru = ok("высоты, сыпь, отсыпи")
+    ua = ok("ця дівчина ще жде лист")
+    ru = ok("для лыжни, эхо, счёты")
 
     parts = [grid(chars)]
 
@@ -144,12 +144,12 @@ def main():
     parts.append(line_block(
         "Each new lowercase against its own capital, and against the Latin "
         "lowercase it shares a line with",
-        [("pairs", FONT % "Regular", 44, ok("Вв Ьь Ъъ Ыы Гг Нн Тт Пп Шш Щщ Цц Ии")),
-         ("pairs bold", FONT % "Bold", 44, ok("Вв Ьь Ъъ Ыы Гг Нн Тт Пп Шш Щщ Цц Ии")),
-         ("vs Latin", FONT % "Regular", 44, ok("bв bь bъ nн mш rг tт pп uц iи")),
-         ("JetBrains", JB % "Regular", 44, ok("Вв Ьь Ъъ Ыы Гг Нн Тт Пп Шш Щщ Цц Ии"))]))
+        [("pairs", FONT % "Regular", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы")),
+         ("pairs bold", FONT % "Bold", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы")),
+         ("vs Latin", FONT % "Regular", 44, ok("aя oэ bв xж nл vд")),
+         ("JetBrains", JB % "Regular", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы"))]))
 
-    parts.append(matched(ok("ВвЬьЪъЫыГгНнТтПпШшЩщЦцИи")))
+    parts.append(matched(ok("ВвДдЖжЛлЧчЭэЯя")))
 
     parts.append(line_block(
         "Same text, this font above JetBrains Mono below (professionally drawn Cyrillic)",
@@ -159,7 +159,7 @@ def main():
          ("JetBrains Bold", JB % "Bold", 40, ru)]))
 
     parts.append(line_block(
-        "Real sizes (stem-and-bar lowercase plus the bowl family в ь ъ ы)",
+        "Real sizes (eighteen lowercase; б ґ є з к м ф ю still to come)",
         [("14px UA", FONT % "Regular", 14, ua),
          ("14px RU", FONT % "Regular", 14, ru),
          ("12px UA", FONT % "Regular", 12, ua),
@@ -170,11 +170,11 @@ def main():
     parts.append(line_block(
         "Mixed Latin and Cyrillic in one line -- where a bolted-on script shows",
         [("18px", FONT % "Regular", 18,
-          ok("git commit -m 'высоты сыпь' v2.1 build/вість-тінь.log")),
+          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
          ("14px", FONT % "Regular", 14,
-          ok("git commit -m 'высоты сыпь' v2.1 build/вість-тінь.log")),
+          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
          ("JetBrains 18px", JB % "Regular", 18,
-          ok("git commit -m 'высоты сыпь' v2.1 build/вість-тінь.log")),
+          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
          ("18px caps", FONT % "Regular", 18,
           "git commit -m ПОЛЕ FIXED ЦВІТЕ v2.1 ВІТЕР build/ДМЕ.log")]))
 
