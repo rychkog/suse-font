@@ -677,8 +677,26 @@ def d_shape(left, bot, right, up, r, ry=None):
     return path(ns)
 
 
+def bowl_arc(pr, left, right, bot, up):
+    """How far a bowl's outer arc reaches, horizontally and vertically.
+
+    The horizontal comes from how far this face sweeps a bowl -- 0.49 of its
+    width at Thin and 0.41 at ExtraBold, the same figure in B as in b -- and
+    the vertical from the bowl's own half-height. Deriving both from a single
+    radius makes the arc a quarter-circle, which is only right while the bowl
+    is about as tall as it is wide. Ь Ъ Б Ы hang one tall bowl at cap height
+    and very nearly get away with it; at x-height the same bowl is 250 units
+    tall against 413 wide, the height binds, and the sweep collapses to 0.29.
+    That is what made в read as a rectangle with rounded corners next to В.
+    """
+    m = L(pr)
+    sweep = m.lcBowlSweep if getattr(pr, "lower", False) else m.bowlSweep
+    rx = min(sweep * (right - left), (right - left) * 0.5)
+    return rx, min((up - bot) / 2.0 * 0.97, rx)
+
+
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
-              th_bot=None, th_top=None, r=None):
+              th_bot=None, th_top=None, r=None, ry=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -722,11 +740,12 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
     # -- which differed between the masters for Я, so the two layers ended up
     # with different node counts and the font would not build at all.
     r = (min((up - bot) / 2.0 * 0.97, (right - left) * 0.5) if r is None
-         else min(r, (up - bot) / 2.0 * 0.97, (right - left) * 0.5))
-    outer = d_shape(left, bot, right, up, r)
+         else min(r, (right - left) * 0.5))
+    ry = min((up - bot) / 2.0 * 0.97, r) if ry is None else ry
+    outer = d_shape(left, bot, right, up, r, ry)
     inner = d_shape(left + t, bot + th_bot, right - t, up - th_top,
                     max(r - t, rmin),
-                    max(r - (th_bot + th_top) / 2.0, rmin))
+                    max(ry - (th_bot + th_top) / 2.0, rmin))
     if area(outer) < 0:
         outer = reverse(outer)
     if area(inner) > 0:
@@ -759,15 +778,17 @@ def Be(pr):
     x0 = min(n.position.x for n in arm[0].nodes)
     # The bowl reaches where B's does -- Б, Ь and Ъ all hang the same bowl,
     # and the face already draws it.
-    x1 = m.bowlRight
+    x1 = bowl_of(pr)[1]
     top = 0.59 * pr.cap
     # B's own bowl stroke, not the stem and not the three-stem reduction. Б is
     # a spine and a bowl -- two strokes -- and the face draws that bowl
     # slightly heavier than its stem, 166 against 161 at ExtraBold. Carrying
     # m's crowding reduction here made Б lighter than all sixty panel faces.
-    t = m.bowlStroke
+    t = bowl_of(pr)[2]
 
-    body = bowl_pair(x0, 0.0, x1, top, t, th=pr.bar)
+    rx, ry = bowl_arc(pr, x0, x1, 0.0, top)
+    body = bowl_pair(x0, 0.0, x1, top, t, th=pr.bar, r=rx, ry=ry,
+                     rmin=inner_radius(pr))
 
     arm_right = max(n.position.x for n in arm[0].nodes)
     for n in arm[0].nodes:
@@ -848,10 +869,8 @@ def Ve(pr, top=None):
     # like В -- a lobe is half the letter tall, so the height bound the radius
     # and the arc swept only 0.24 of the width where b and B both sweep about
     # 0.5. The lobes came out as rectangles with rounded corners.
-    rx = m.lcBowlSweep * (right - x0) if getattr(pr, "lower", False) \
-        else m.bowlSweep * (right - x0)
-    ry1 = min(wl / 2.0 * 0.97, rx)
-    xs = right - min(rx, (right - x0) * 0.5)
+    rx, ry1 = bowl_arc(pr, x0, right, 0.0, wl)
+    xs = right - rx
     rx2 = max(upper - xs, 4.0)
     ry2 = min((top - wu) / 2.0 * 0.97, rx2)
 
@@ -893,7 +912,7 @@ def soft_bowl(pr, top=None):
     # Ы does have three strokes and does shave, but it shaves its own stem
     # first and then scaled THIS by the result, so its bowl was reduced twice
     # over. With the double reduction gone it lands on the panel's median.
-    t = L(pr).bowlStroke
+    t = bowl_of(pr)[2]
     # The bowl's TOP is not a fixed height -- its COUNTER's top is. Every face
     # measured holds Ь's and Ы's counter top between 0.45 and 0.53 of the cap
     # and barely moves it across the weight axis; the bowl's outer top then
@@ -935,16 +954,19 @@ def shoulder_spine(pr, sx, xs, s, top):
 def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     """Ь -- stem the full height, bowl on the lower half."""
     top = pr.cap if top is None else top
-    m = L(pr)
-    x0 = m.bowlLeft if x0 is None else x0
-    right = m.bowlRight if right is None else right
+    bl, br, _ = bowl_of(pr)
+    x0 = bl if x0 is None else x0
+    right = br if right is None else right
     s = pr.stem if stem is None else stem
     t0, bt = soft_bowl(pr, top)
+    tt = t0 if t is None else t
+    rx, ry = bowl_arc(pr, x0, right, 0.0, bt)
     spine = (rect(x0, 0.0, x0 + s, top) if shoulder is None
              else shoulder_spine(pr, shoulder, x0, s, top))
     return ([spine]
-            + bowl_pair(x0, 0.0, right, bt, t0 if t is None else t,
-                        th=(t0 if t is None else t) * pr.bar / pr.stem))
+            + bowl_pair(x0, 0.0, right, bt, tt,
+                        th=tt * pr.bar / pr.stem, r=rx, ry=ry,
+                        rmin=inner_radius(pr)))
 
 
 def Hard(pr, top=None):
@@ -969,9 +991,12 @@ def Hard(pr, top=None):
     """
     top = pr.cap if top is None else top
     x0 = 300.0 - 267.0 + HARD_SHOULDER * 600.0
-    # the bowl is Ь's, so it ends where Ь's ends -- B's own. Only the stem
-    # moves right, to leave the shoulder its room.
-    return Soft(pr, top, x0=x0, right=L(pr).bowlRight,
+    # the bowl is Ь's, so it ends where Ь's ends -- B's own above and b's own
+    # below. Only the stem moves right, to leave the shoulder its room, and
+    # the shoulder's own length is a share of the CELL rather than of the
+    # letter, so it carries across the case unchanged: the panel puts the
+    # lowercase ъ's at 0.203 of the advance against this file's 0.20.
+    return Soft(pr, top, x0=x0, right=bowl_of(pr)[1],
                 shoulder=300.0 - 267.0)
 
 
@@ -1462,7 +1487,8 @@ RECIPES = {
     # Latin counterpart to donate. The other five are their capital's own
     # construction driven through Lower.
     "ge-cy": lc(Ghe_lc), "en-cy": lc(En_lc), "te-cy": lc(Te_lc),
-    "ve-cy": lc(Ve),
+    "ve-cy": lc(Ve), "softsign-cy": lc(Soft), "hardsign-cy": lc(Hard),
+    "yeru-cy": lc(Yeru),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }
