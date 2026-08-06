@@ -382,9 +382,48 @@ Every one of these was announced as a defect before being caught:
   the bowl, so the wall came out at twice the stem in the light faces.
   **Corrected** to read both edges off the same run.
 
+- `signature.py`'s terminal census took any straight segment about as long as
+  the stroke is wide, with the outline turning away at both ends, for a stroke
+  **end**. At ExtraBold the stroke is 161 units, so Ж's upper arms — 295 units
+  of straight *side* — landed inside that window and were reported as two
+  oblique terminals in a letter whose every real terminal is cut flat.
+  **Corrected**: a cut is shorter than what it cuts across, so a terminal's
+  neighbours are the stroke's two long sides while a side's neighbours are its
+  own two short terminals.
+- The same file's horizontal census took the shortest ink run up a vertical
+  line for a bar, and read the tip of a diagonal or the sliver above a corner
+  instead. It flagged **forty-three of the face's own letters**. **Corrected**
+  to require a run that persists across a fifth of the width at one height —
+  after which Ж still had a phantom horizontal, because near the stem its
+  upper and lower arm pairs each cut a short run out of the line. That one was
+  caught by its own numbers: it swung from 1.61 of the face's bar at Regular
+  to 0.72 at Bold, which no drawn stroke does. **Corrected** by requiring the
+  run to hold its height as well as its position.
+
 **Tell:** a reading of exactly 0.000, an empty result set, or one wildly out
 of family with its neighbours. Reproduce it with an independent probe before
-reporting it.
+reporting it. **And a reading that jumps around between the interpolated
+weights is a probe, not a glyph** — the two masters interpolate linearly, so a
+drawn quantity moves monotonically between them and one that does not is
+measuring different features at different weights.
+
+### F6b · A reference set that cannot express the answer
+
+A subtler relative of F6: the probe reads correctly, the reference is honestly
+measured, and the comparison is still meaningless because the reference has no
+entry the right answer could match.
+
+`signature.py` collected the angles the face cuts its terminals at and
+compared the Cyrillic against them. The Latin has no left-opening round
+lowercase, so its chamfers are all recorded on one side — and э's chamfer,
+which is c's own treatment appearing on the side э opens on, came out as its
+mirror and was reported as a foreign terminal. The face's answer is "square,
+or chamfered by up to 45 degrees"; which *side* is not part of it.
+
+**Tell:** the finding is a single letter whose construction has no counterpart
+in the reference set. Ask what the face would have had to draw for the right
+answer to be in the reference at all. If it never draws that thing, the
+reference is the wrong shape and not the letter.
 
 ### F7 · Silent failure
 
@@ -452,6 +491,7 @@ Two smaller traps in the same act of reading a donor:
 | `strokes.py` | lightest stroke ÷ own stem vs 49 faces | yes |
 | `probe.py` | scanline runs on **built** fonts + panel comparison and fitting | no |
 | `harmony.py` | the bowl family read as a family — reach, wall, counter, each against our own median *and* the panel | no |
+| `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers; `--selftest` puts the Latin through both | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
@@ -833,6 +873,50 @@ donor's own margin, at both masters, so there is nothing to drift.
 
 This applies to every diagonal still to be assembled — к, ж, у, х and the
 Serbian џ all put a stroke across a gap that is not the stroke's own run.
+
+### The face ends a stroke two ways, and the side is not one of them
+
+Measured over its own alphabet and digits, both cases, both masters: **213 of
+its 242 terminals are cut at exactly 0 or 90 degrees**, and every exception is
+a diagonal's end — the letters that have no square way to stop. An oblique
+terminal is therefore not forbidden, it is *earned by a diagonal*. And the
+ceiling is exact rather than approximate: **no chamfer in the face exceeds 45
+degrees**, at either master, in either case.
+
+Which side it faces is not part of the answer. The lowercase chamfers where
+its capital does not — c does and C does not, э does and Э does not, and the
+two pairs agree with each other — so a chamfer appearing on the side a letter
+opens on is the face's own treatment, not a mirrored one.
+
+All forty-five glyphs this project draws pass this at both masters.
+
+### The lowercase horizontal is a different stroke from the capital's
+
+The face draws 106 units at ExtraBold where its capitals draw 135, and the two
+are the same 28 at Thin. So the relation is not a ratio to carry — it is two
+separate measurements, `bar` from H's crossbar and `lcBar` from t's, and
+`params.py` reads them apart for that reason.
+
+Against those two figures, **every Latin letter that carries a horizontal sits
+between 0.89 and 1.12 of its own case's bar**, across four weights. That range
+is tight enough to be a usable bracket without picking a tolerance, and three
+drawn letters sit outside it, each for a reason the drawing already gives: в
+takes B's own falling figures, Ы and ы are shaved because three strokes have
+to fit across one cell, and Ф and ф miss by a unit at Thin.
+
+### A corner census across every case pair cannot be made honest
+
+"A lowercase turn is never tighter than its capital's" is the most
+characteristic item on the list, and asking it of every pair rather than the
+six in `audit.py` looks like free coverage. It is not. `corner_set` cannot
+tell a corner from a bowl, and a bowl is genuinely a different size in the two
+cases — O sweeps 361 where o sweeps 140 and 261 — so the check reports ten of
+the face's own pairs. Separating the two needs a cutoff between "corner" and
+"bowl" that the face does not state anywhere.
+
+The six pairs in `audit.py` are the six whose letters are made of corners.
+That is why they are the six, and the list should not be grown without a
+figure the face itself supplies.
 
 ---
 
