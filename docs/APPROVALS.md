@@ -36,21 +36,22 @@ round.
 | **Ъ ъ** | 2026-08-06 | The left edge falls with the weight — 0.035 of the advance at Thin to 0.013 at ExtraBold for the capital — where it used to sit flat at 0.055. The shoulder's length is a share of the cell and does not move, so that edge is what decides the bowl's width, and the bowl pays for its wall twice. Counter against Ь's runs 0.86, 0.79, 0.72, 0.67 against a panel holding 0.78–0.86. Going that far left is the face's own habit: Y starts at 18 units at Thin and −1 at ExtraBold, w at 32 and 20. |
 | **Ж** | 2026-08-06 | The centre stem is the arms' own weight, `ZHE_STEM` 1.033. The old 0.86 was read off JetBrains Mono alone, which draws it at 0.95 falling to 0.87 — right about that face and wrong as a rule: across the 49 panel faces that draw Ж the ratio is flat at 1.00, and this face never lightens a diagonal at all, its X running 0.97 to 1.02 of H's stem at every weight. Built measurement 1.01–1.03, inside the panel at all four weights. **Recorded as still outside at approval:** the arm is heavier than the panel wants at Bold and ExtraBold — 0.85 and 0.83 of the face's own stem against brackets ending at 0.82 and 0.79. That is the face, not the letter; its own X is outside in the same direction at the same weights and its K sits at 0.86 where the arm sits at 0.85. Do not chase it. Re-read any of this with `tools/diagonals.py`. |
 | **ж** | 2026-08-06 | The same change as Ж, approved separately on the same day. One constant serves both cases through `lc()`, so the lowercase is a redrawing at lowercase weight rather than a squashed capital — 150 against 161 for the stem at ExtraBold. Built measurement 1.02–1.04 of an arm, inside the panel at all four weights. **Recorded as still outside at approval:** the arm at 0.85 and 0.84 of n's stem at Bold and ExtraBold, against brackets ending at 0.83 and 0.82 — the same reason as the capital's, and not to be chased. |
+| **К** | 2026-08-06 | A tier-1 donor: it **is** the Latin K, unchanged, so approving it approves the mapping rather than a drawing. The consequence is the one worth writing down — К cannot now be altered without altering the Latin, and any future change to K silently changes an approved Cyrillic glyph. `audit.py` already checks that a donor still matches the Latin it names. |
+| **к** | 2026-08-06 | The face's own **k** with the stem cut to the x-height, the arm and leg taken unchanged. The 51 panel faces that draw both agree the two letters are one drawing — к is 1.000 of k's width with the middle half of the population inside a thousandth, the same left edge to the em, the same leg lean. Tier 2, not the tier 3 it had been listed as. The three contours are told apart by which one reaches above the x-height, never by their order: a donor's path indices are what F8 is about. Carries the same tie as К — it is k's outline, so a change to k changes it. |
 | **я** | 2026-08-06 | Bowl floor is R's bowl floor, taken from node 11 of R's outline as a fraction of cap — not R's leg top, which is buried inside that floor. Roof and floor inset at the lowercase bar. Leg solved over R's own leg height and standing off the stem by R's own figure. Approved with three readings still marginally outside the panel at the heavy end — counter aspect 0.689 against 0.710, counter height 0.225 against 0.230, wedge 0.524 against 0.581. No Latin lowercase hangs a bowl over a leg, so the capital's fraction is the only donor there is; do not chase these three. |
 
 ## In review — changed and shown, no verdict recorded
 
 | glyph | shown | change |
 | --- | --- | --- |
-| **к** | 2026-08-06 | Newly drawn, and barely drawn at all: it is the face's own **k** with the stem cut to the x-height, the arm and leg taken unchanged. The 51 panel faces that draw both agree the two letters are one drawing — к is 1.000 of k's width, middle half inside a thousandth, same left edge to the em, same leg lean. Tier 2, not the tier 3 it was listed as. The three contours are told apart by which reaches above the x-height, never by their order. |
-| **ќ** | 2026-08-06 | Falls out of к — `ka-cy + acutecomb`, no new outline. Shown on the same sheet. |
+| **ќ** | 2026-08-06 | Falls out of к — `ka-cy + acutecomb`, no new outline of its own. Shown on the same sheet as к, which is approved; this one was not named. |
 
 ## Not recorded
 
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
-**Capitals** — А Б В Г Д Е З И Й К М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
+**Capitals** — А Б В Г Д Е З И Й М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
 Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ќ Ѝ Џ
 
 **Lowercase** — а д е и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
