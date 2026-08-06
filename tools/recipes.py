@@ -1688,25 +1688,50 @@ def Ya(pr, top=None, bottom=0.0):
     # cap -- lighter than the bowl above it and starting well below where the
     # bowl ends, so it read as a stroke laid against the letter rather than
     # growing out of it.
+    rout = pr.paths("R")[0]
     rleg = pr.paths("R")[1]
-    ys = [n.position.y for n in rleg.nodes]
-    # R's leg springs at an absolute height in CAP space, so it carries across
-    # as a FRACTION of the letter and not as raw units. Handed to Lower as it
-    # stood it left я's bowl 193 units tall where the capital's is 400, and
-    # the leg met it at a 42-degree spike against the face's own sharpest 46.
-    # Same trap as Э cloning the Latin C: a number or an outline read off a
-    # capital does not re-size just because the recipe is run at x-height.
-    # Two heights, and they live in different spaces: r_waist reads R's own
-    # outline and must stay in R's units, while waist draws THIS letter and
-    # must be in its own. Rescaling the one variable that served both left the
-    # node filter below matching nothing at all.
+    # R's bowl stops in one place and R's leg springs in another, and this
+    # recipe took the second for the first. The leg's top edge is BURIED
+    # inside the bowl's floor -- 13 units above it at Thin, 69 at ExtraBold --
+    # so the two heights very nearly coincide at the light master and are a
+    # tenth of the cap apart at the heavy one. Read as the bowl's floor, the
+    # leg's height held Я's bowl at a flat 0.44 of cap while the stroke
+    # crossing it grew five and a half times, and the counter closed from
+    # 0.445 of cap to 0.085 -- against 0.28 in the panel and 0.305 in this
+    # face's own R. F1: two figures that agree in one condition and not in
+    # another.
+    #
+    # Node 11 is where R's bowl meets the stem on its outer underside, which
+    # is what `waist` means here -- bowl_pair takes the bowl's OUTER bottom.
+    # It falls with the weight, 0.449 of cap to 0.339, exactly as the panel's
+    # own Я does and for the same reason: a bowl whose floor stays put has
+    # nowhere to put a stroke that keeps growing.
+    #
+    # Both heights are absolute in CAP space, so they carry across as a
+    # FRACTION of the letter and not as raw units. Handed to Lower as raw
+    # units they left я's bowl 193 tall where the capital's is 400, and the
+    # leg met it at a 42-degree spike against the face's own sharpest 46.
+    # Same trap as Э cloning the Latin C: a number read off a capital does not
+    # re-size because the recipe is run at x-height. And they live in two
+    # spaces at once -- r_floor and r_legtop read R's own outline and stay in
+    # R's units, while waist draws THIS letter and must be in its own.
     base = getattr(pr, "_pr", pr)
-    r_waist = max(ys)
-    waist = r_waist / float(base.cap) * top
-    r_top = [n.position.x for n in rleg.nodes if n.position.y == r_waist]
-    r_stem = bbox([pr.paths("R")[0]])[0] + pr.stem / 2.0
-    reach = ((sum(r_top) / len(r_top)) - r_stem) / (bbox(pr.paths("R"))[2]
-                                                    - r_stem)
+    r_floor = rout.nodes[11].position.y
+    waist = r_floor / float(base.cap) * top
+    r_legtop = max(n.position.y for n in rleg.nodes)
+    # ...and R's leg again, this time the whole of it. What fixes where a leg
+    # lands is how far its top edge stands off the STEM'S OWN EDGE, as a share
+    # of the letter's width. The figure this replaces measured from the stem's
+    # centre across a run that is a different length in the two letters --
+    # R's leg reaches out to the letter's right edge, Я's to its left -- and
+    # left Я's leg 29 units nearer its own stem than R's is to its. The white
+    # wedge under the bowl closed to 0.26 of a stem at ExtraBold where this
+    # face's own R holds 0.63 and the panel's Я 0.61.
+    r_bbox = bbox(pr.paths("R"))
+    r_inner = min(n.position.x for n in rleg.nodes
+                  if n.position.y == r_legtop)
+    standoff = ((r_inner - (r_bbox[0] + base.stem))
+                / (r_bbox[2] - r_bbox[0]))
 
     # Я's bowl bulges LEFT against the right stem, so the shared d_shape --
     # which is drawn flat-left -- is flipped about this glyph's own centre.
@@ -1714,25 +1739,43 @@ def Ya(pr, top=None, bottom=0.0):
     # Я's bowl is half the letter, so it is short at x-height in exactly the
     # way в's lobes are: without the face's own sweep it flattens, and without
     # a floor its counter's corner collapses onto itself. See bowl_arc.
+    # ...and the bowl's roof and floor are drawn at the BAR, not at the side
+    # stroke. This face writes its horizontals lighter than its verticals --
+    # 135 against 161 at ExtraBold -- and Б's bowl already says so. Insetting
+    # this one evenly took another 62 units out of the same counter, on top of
+    # the 69 the waist had cost it, and made Я's roof read heavier than the
+    # arm of the Г beside it.
     rx, ry = bowl_arc(pr, x0, x1, waist, top)
-    bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, r=rx, ry=ry,
+    bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, th=pr.bar, r=rx, ry=ry,
                               rmin=inner_radius(pr)), mid)
 
-    stem_c = x1 - s / 2.0
-    leg_top = stem_c - reach * (stem_c - x0)
+    # The leg spans from its top INNER edge, standing off the stem by R's own
+    # figure, to its foot's OUTER edge on the letter's left -- R's leg lands
+    # on its letter's edge and this one lands on the mirror of it. Both edges
+    # are edges and not centres, so the solve carries half the leg's own
+    # horizontal width at each end.
+    # The leg is solved over the height R's own leg has, not over the height
+    # of the bowl it hangs from. Those are two different runs -- R's leg top
+    # sits 69 units up inside the bowl's floor at ExtraBold -- and solving the
+    # slope over the shorter one made the leg meet the baseline in the same
+    # place while leaning through a third less height, so it stood closer to
+    # the stem all the way down. The wedge of white under the bowl read 0.38
+    # of a stem against 0.63 in this face's own R.
+    #
+    # It also settles the splinter that a hand-set overshoot used to: the leg
+    # ends where R's ends, which is inside the bowl at both masters -- 13
+    # units at Thin, 69 at ExtraBold -- so the two outlines never share an
+    # edge exactly, and cannot drift into one between the masters.
+    leg_top = r_legtop / float(base.cap) * top
+    leg_in = (x1 - s) - standoff * (x1 - x0)
     slope = 0.6
-    for _ in range(6):
+    for _ in range(8):
         hw = pr.stem * math.hypot(1.0, slope)
-        slope = (leg_top - x0 - hw / 2.0) / (waist - bottom)
+        slope = ((leg_in - hw / 2.0) - (x0 + hw / 2.0)) / (leg_top - bottom)
     hw = pr.stem * math.hypot(1.0, slope)
-    # and the leg runs a little way UP into the bowl rather than stopping on
-    # its edge -- an edge two outlines share exactly at both masters is not
-    # shared exactly between them, and at ExtraBold that left a splinter
-    over = 0.30 * pr.stem
     return ([rect(x1 - s, bottom, x1, top)]
             + bowl
-            + [diag(leg_top + slope * over, waist + over,
-                    x0 + hw / 2.0, bottom, hw)])
+            + [diag(leg_in - hw / 2.0, leg_top, x0 + hw / 2.0, bottom, hw)])
 
 
 # -- Ж ---------------------------------------------------------------------

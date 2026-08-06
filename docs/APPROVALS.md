@@ -34,7 +34,10 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| glyph | shown | change |
+| --- | --- | --- |
+| **Я** | 2026-08-06 | Bowl floor now R's bowl floor rather than R's leg top — the two coincide at Thin and are a tenth of the cap apart at ExtraBold. Roof and floor inset at the bar, not the side stroke. Leg solved over R's own leg height and standing off the stem by R's own figure. |
+| **я** | 2026-08-06 | The same three changes, through `Lower`. Counter and wedge both much improved; three readings still marginally outside the panel at the heavy end — counter aspect, counter height, wedge. |
 
 ## Not recorded
 
