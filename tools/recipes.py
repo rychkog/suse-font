@@ -677,7 +677,8 @@ def d_shape(left, bot, right, up, r, ry=None):
     return path(ns)
 
 
-def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None):
+def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
+              th_bot=None, th_top=None, r=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -686,6 +687,14 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None):
     orientation fix below then took the opposite branch in that master only --
     so the contour was wound one way at Thin and the other at ExtraBold, and
     the variable font would not interpolate. It looked fine at both masters.
+
+    `rmin` is the floor on the COUNTER's own corner radius. Deriving it as
+    `r - t` is fine while the lobe is tall enough to outrun its stroke, which
+    is true of Ь Ъ Б Ы, and false of в: its lobes are half the letter, so at
+    ExtraBold a 149 radius meets a 150 stroke and the corner floors at a
+    single unit, putting two nodes on top of each other. That is the same
+    subtraction that squared off г's inner corner -- see Ghe_lc. Callers whose
+    lobes can be short pass the face's own inner radius instead.
     """
     # The counter is inset by the stroke on the sides and by the BAR weight
     # top and bottom. This face draws its horizontals lighter than its
@@ -694,17 +703,30 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None):
     # down its side, which is heavier than the arm sitting directly above it,
     # and read as the letter changing width from one part to the next.
     th = t if th is None else th
+    # The two ends may be inset by different amounts. в needs it: its lobes
+    # meet at the waist and share ONE bar between their counters, so each
+    # gives half a bar to the join and a whole one to the outside. Insetting
+    # both ends equally instead forced the lobes to overlap by a full bar,
+    # and the waist barely pinched at all -- 8.5% against B's own 26.8%.
+    th_bot = th if th_bot is None else th_bot
+    th_top = th if th_top is None else th_top
     t = max(1.0, min(t, (right - left - min_counter) / 2.0))
-    th = max(1.0, min(th, (up - bot - min_counter) / 2.0))
+    room, tot = up - bot - min_counter, th_bot + th_top
+    if tot > room and tot > 0:
+        k = max(0.0, room) / tot
+        th_bot, th_top = th_bot * k, th_top * k
+    th_bot, th_top = max(1.0, th_bot), max(1.0, th_top)
     # Held just under a true semicircle so the straight run between the two
     # arcs ALWAYS has length. At exactly half the height it has none, and
     # whether that mattered depended on whether the shape was taller or wider
     # -- which differed between the masters for Я, so the two layers ended up
     # with different node counts and the font would not build at all.
-    r = min((up - bot) / 2.0 * 0.97, (right - left) * 0.5)
+    r = (min((up - bot) / 2.0 * 0.97, (right - left) * 0.5) if r is None
+         else min(r, (up - bot) / 2.0 * 0.97, (right - left) * 0.5))
     outer = d_shape(left, bot, right, up, r)
-    inner = d_shape(left + t, bot + th, right - t, up - th,
-                    max(r - t, 1.0), max(r - th, 1.0))
+    inner = d_shape(left + t, bot + th_bot, right - t, up - th_top,
+                    max(r - t, rmin),
+                    max(r - (th_bot + th_top) / 2.0, rmin))
     if area(outer) < 0:
         outer = reverse(outer)
     if area(inner) > 0:
@@ -758,6 +780,91 @@ def Be(pr):
 # ---------------------------------------------------------------------------
 # T3 capitals -- drawn, never mirrored from a Latin letter
 # ---------------------------------------------------------------------------
+
+def bowl_of(pr):
+    """The bowl this case hangs: B's for the capitals, b's for the lowercase.
+
+    Both are read off the face, and they genuinely differ -- b's reaches 526
+    where B's reaches 518 at Thin, and it is drawn at exactly the lowercase
+    stem where B's is a unit heavier than its own. Two answers from the host,
+    not one answer carried across a case boundary.
+    """
+    m = L(pr)
+    if getattr(pr, "lower", False):
+        return m.lcBowlLeft, m.lcBowlRight, m.lcBowlStroke
+    return m.bowlLeft, m.bowlRight, m.bowlStroke
+
+
+# в's upper lobe, as a fraction of the lower's width. The face's own B puts it
+# at 0.949 at Thin and 0.941 at ExtraBold; the panel's median for в is 0.946
+# across 51 faces. Host and panel agreeing to three decimals is as settled as
+# a proportion gets here.
+VE_UPPER = 0.945
+
+
+def Ve(pr, top=None):
+    """в -- two lobes on a stem, the upper a little narrower.
+
+    В is the Latin B unchanged, so B is the construction: a stem the full
+    height carrying a D-shaped lobe above and below a waist. Everything with a
+    size in it comes from the lowercase instead -- b's bowl rather than B's,
+    per bowl_of.
+
+    The waist sits at 0.51, which is B's own at all three weights and inside
+    the panel's 0.496-0.592 for в.
+
+    The two lobes share ONE bar at the waist rather than stacking a bar each,
+    which is the difference between working and not at x-height: the strokes
+    here are 93% of the capital's while the letter is 70% as tall, so two bars
+    would leave the ExtraBold counters at less than nothing. Each lobe's outer
+    therefore runs half a bar PAST the waist and its counter stops half a bar
+    short of it.
+    """
+    top = pr.cap if top is None else top
+    x0, right, t = bowl_of(pr)
+    m = L(pr)
+    th = t * pr.bar / pr.stem
+    waist, step = m.bWaist * top, m.bLobeStep
+    upper = x0 + VE_UPPER * (right - x0)
+    ri = inner_radius(pr)
+
+    # The outer is ONE contour, and the join is B's own: the lower arc arrives
+    # horizontal, the outline steps straight down, and the upper arc leaves
+    # horizontal again. Two right angles.
+    #
+    # Two separate d_shapes cannot do this and both ways of trying failed the
+    # sweep. Left to their own radii the arcs end at different x, so the union
+    # steps sideways between two curves each tangent to the horizontal there:
+    # a 6-degree needle at every master. Forced to end at the same x they meet
+    # tangentially instead, which is a cusp -- 12 degrees. The face's own
+    # sharpest notch is 19 at Thin and 15 at ExtraBold, so neither will do.
+    # What makes B's join square is the short vertical BETWEEN the two arcs,
+    # 12 units at Thin and 5 at ExtraBold, which is why bLobeStep is measured.
+    wl, wu = waist + step / 2.0, waist - step / 2.0
+    r1 = min(wl / 2.0 * 0.97, (right - x0) * 0.5)
+    xs = right - r1
+    r2 = max(upper - xs, 4.0)
+
+    ns = [node(x0, 0.0), node(xs, 0.0)]
+    ns += arc_to(xs, 0.0, right, r1, right, 0.0)
+    ns += [node(right, wl - r1)]
+    ns += arc_to(right, wl - r1, xs, wl, right, wl)
+    ns += [node(xs, wu)]
+    ns += arc_to(xs, wu, upper, wu + r2, upper, wu)
+    ns += [node(upper, top - r2)]
+    ns += arc_to(upper, top - r2, upper - r2, top, upper, top)
+    ns += [node(x0, top)]
+    outer = path(ns)
+    if area(outer) < 0:
+        outer = reverse(outer)
+
+    # and the two counters, one bar apart across the waist
+    lo = d_shape(x0 + t, th, right - t, waist - th / 2.0,
+                 max(r1 - t, ri), max(r1 - th, ri))
+    up = d_shape(x0 + t, waist + th / 2.0, upper - t, top - th,
+                 max(r2 - t, ri), max(r2 - th, ri))
+    return [outer] + [reverse(c) if area(c) > 0 else c for c in (lo, up)]
+
 
 def soft_bowl(pr, top=None):
     """The lower bowl shared by Ь Ъ Ы Б, and its stem left edge.
@@ -1345,6 +1452,7 @@ RECIPES = {
     # Latin counterpart to donate. The other five are their capital's own
     # construction driven through Lower.
     "ge-cy": lc(Ghe_lc), "en-cy": lc(En_lc), "te-cy": lc(Te_lc),
+    "ve-cy": lc(Ve),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }
