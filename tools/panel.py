@@ -45,11 +45,32 @@ NEEDED = [ord(c) for c in "БГДЖЗИЛПФЦШЫЯбгджзилпфцшыя"
 SKIP = ("Nerd Font", " NF", "NL", "Term", "Mono Term", "_0")
 
 
+import os
+
+
+def font_dirs():
+    """Where to look for the comparison faces.
+
+    Override with SUSE_FONT_DIRS (colon separated). The default globs the
+    per-user font directory rather than naming an account, so it works on any
+    machine and keeps no one's username in a public repo.
+    """
+    env = os.environ.get("SUSE_FONT_DIRS")
+    if env:
+        return [d for d in env.split(":") if d]
+    import glob as _glob
+    out = ["/mnt/c/Windows/Fonts"]
+    out += sorted(_glob.glob(
+        "/mnt/c/Users/*/AppData/Local/Microsoft/Windows/Fonts"))
+    out += [os.path.expanduser("~/.local/share/fonts"),
+            "/usr/share/fonts"]
+    return [d for d in out if os.path.isdir(d)]
+
+
 def families():
     """One lightest and one heaviest upright per family, auto-discovered."""
     found = {}
-    for d in ("/mnt/c/Windows/Fonts", "/mnt/c/Users/Admin/AppData/Local/"
-              "Microsoft/Windows/Fonts"):
+    for d in font_dirs():
         for p in sorted(glob.glob(d + "/*.ttf") + glob.glob(d + "/*.otf")):
             try:
                 f = TTFont(p, fontNumber=0, lazy=True)

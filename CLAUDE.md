@@ -5,7 +5,7 @@ Glyphs.app sources. Two masters (Thin 100, ExtraBold 800), sloped-roman italic
 to come. Glyphs are **generated from recipes**, not drawn by hand — see
 `tools/recipes.py`.
 
-The brief lives at `~/suse-mono-cyrillic-prompt.md` and is binding.
+The project brief is kept outside the repository and is binding.
 **`docs/METHOD.md` is how to investigate** — read it before changing any
 constant.
 
@@ -98,9 +98,14 @@ noticing it was frozen.
 
 ## Machine
 
-Memory-constrained: one heavy job at a time, stream rather than slurp, no
-background pollers. A `make build` has been OOM-killed mid-run, deleting
-`fonts/`. Use `grep`, not `rg`. Fork remote is `rychkog/suse-font` over HTTPS.
+Treat memory as scarce: one heavy job at a time, stream rather than slurp, no
+background pollers. A `make build` has been OOM-killed mid-run before now,
+which deletes `fonts/` — check for a half-removed output directory before
+assuming the tree is intact.
+
+Font discovery for the panel and the checkpoint sheet reads the host system's
+installed fonts; override the search roots with `SUSE_FONT_DIRS` (colon
+separated) if they live elsewhere.
 
 ## Design rules that are not in any gate
 

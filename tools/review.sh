@@ -7,8 +7,29 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ./venv/bin/python - <<'PY'
 from PIL import Image, ImageDraw, ImageFont
 F = "fonts/ttf/SUSEMono-%s.ttf"
-JB = "/mnt/c/Users/Admin/AppData/Local/Microsoft/Windows/Fonts/JetBrainsMono-%s.ttf"
-lab = ImageFont.truetype("/mnt/c/Windows/Fonts/segoeui.ttf", 17)
+import sys; sys.path.insert(0, 'tools')
+from panel import font_dirs
+def _jb():
+    """JetBrains Mono's path pattern, found rather than hardcoded."""
+    import glob as _g
+    for d in font_dirs():
+        hit = _g.glob(d + "/JetBrainsMono-Regular.ttf")
+        if hit:
+            return hit[0].replace("Regular", "%s")
+    raise SystemExit("JetBrains Mono not found; set SUSE_FONT_DIRS")
+
+JB = _jb()
+def _lab(sz):
+    import glob as _g
+    for d in font_dirs():
+        for n in ("segoeui.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"):
+            hit = _g.glob(d + "/" + n)
+            if hit:
+                return ImageFont.truetype(hit[0], sz)
+    return ImageFont.load_default()
+
+
+lab = _lab(17)
 
 
 def sheet(path, rows, text, size, adv):

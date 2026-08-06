@@ -17,7 +17,19 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from classify import TIERS          # noqa: E402
 
 FONT = "fonts/ttf/SUSEMono-%s.ttf"
-JB = "/mnt/c/Users/Admin/AppData/Local/Microsoft/Windows/Fonts/JetBrainsMono-%s.ttf"
+from panel import font_dirs
+
+def _jb():
+    """JetBrains Mono's path pattern, found rather than hardcoded."""
+    import glob as _g
+    for d in font_dirs():
+        hit = _g.glob(d + "/JetBrainsMono-Regular.ttf")
+        if hit:
+            return hit[0].replace("Regular", "%s")
+    raise SystemExit("JetBrains Mono not found; set SUSE_FONT_DIRS")
+
+
+JB = _jb()
 LABEL = "/mnt/c/Windows/Fonts/segoeui.ttf"
 W = 1500
 PAD = 24
