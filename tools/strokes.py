@@ -58,7 +58,30 @@ BELOW_MEDIAN = 0.97
 # face's two-lobe letter does, while the panel's median в, at 0.940, mostly
 # does not. Measured, not waved through -- see the wall profiles in the commit
 # that added this tool.
-EXEMPT = "вВ"
+EXEMPT = "вВюЮ"
+
+# ю and Ю are exempt too, and unlike в this one is a trade rather than a
+# measurement artefact -- worth stating so it can be revisited rather than
+# inherited.
+#
+# At ExtraBold this letter has 400 units left after its stem, and it must hold
+# two bowl walls, the counter, and a visible gap between stem and bowl. The
+# face's own o is 164 units thick, so a full-weight bowl needs 407 and the
+# counter goes NEGATIVE -- which is exactly what happened when the reduction
+# was lifted to satisfy this check: Ю's stroke measured 320 against O's 164
+# and the variable font stopped interpolating.
+#
+# With m's own crowding the numbers come out:
+#     crowd 1.000   bowl needs 407   gap -7    collapses
+#     crowd 0.900   bowl needs 374   gap 26    0.043 of the advance
+#     crowd 0.833   bowl needs 352   gap 48    0.079        <- m's figure
+#     crowd 0.750   bowl needs 325   gap 75    0.125
+#
+# At m's figure the built gap measures 0.141 to 0.206 across the axis, at or
+# above the panel's median of 0.173, and the lightest stroke lands at 0.749
+# against a tenth percentile of 0.769. Buying that last 2.6 per cent of stroke
+# costs most of the gap, and the gap is the thing a reader sees: at 0.085 the
+# connection was reported as "so short it is barely visible".
 
 
 def drawn_set():
