@@ -100,7 +100,7 @@ class Latin:
         # where Y's arms fork
         self.yFork = self._y_fork(pr)
         # B's waist -- the height at which a two-lobe letter divides
-        self.bWaist = self._b_waist(pr)
+        self.bWaist, self.bLobeStep = self._b_lobes(pr)
 
         # -- proportion of a stem-plus-bowl letter --------------------------
         # B: how much of the cell the stem takes and how much the bowl gets.
@@ -213,9 +213,41 @@ class Latin:
         # the fork is the lowest y shared by the two arms, above the stem foot
         return ys[1] / float(pr.cap) if len(ys) > 1 else 0.45
 
-    def _b_waist(self, pr):
-        c = list(pr.paths("B")[1].nodes)
-        return c[10].position.y / float(pr.cap)
+    def _b_lobes(self, pr):
+        """Where B's two lobes meet, and by how much the join steps.
+
+        Both come off the same feature.
+
+        B is one outer contour that traces the lower lobe, steps back across
+        the stem, and traces the upper: (307,367) to (307,355) at Thin,
+        (374,363) to (371,358) at ExtraBold. That step IS the waist, and its
+        midpoint lands on 0.516 and 0.515 -- the same figure at both masters,
+        and the same one the panel's own в reports at a median 0.520.
+
+        Two earlier readings were wrong, both by measuring something adjacent
+        to the waist rather than the waist. A node index gave 0.429 at
+        ExtraBold: that is the lower counter's top edge, which moves with the
+        stroke. A scanline hunting for where the counter shuts gave 0.416,
+        because B's counter is a single contour joined by a slit across the
+        stem, so the crossing count never drops at the waist at all.
+
+        The step's DEPTH matters as much as its height. It is what keeps the
+        join square: the lower arc arrives horizontal, the outline drops 12
+        units at Thin or 5 at ExtraBold, and the upper arc leaves horizontal
+        again -- two right angles. Without it the two arcs meet tangentially
+        and the join is a needle. See Ve.
+        """
+        ns = list(pr.paths("B")[0].nodes)
+        for a, b in zip(ns, ns[1:]):
+            if a.type == "offcurve" or b.type == "offcurve":
+                continue
+            y = (a.position.y + b.position.y) / 2.0
+            dy = abs(a.position.y - b.position.y)
+            if (abs(a.position.x - b.position.x) < 8
+                    and 0 < dy < 0.1 * pr.cap
+                    and 0.25 * pr.cap < y < 0.75 * pr.cap):
+                return y / float(pr.cap), dy
+        return 0.515, 0.017 * pr.cap
 
     def _a_splay(self, pr, name):
         """Horizontal travel of a diagonal letter's left leg over its full
