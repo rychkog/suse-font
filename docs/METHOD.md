@@ -223,6 +223,11 @@ One scanline through the middle of a letter gives most of these at once
 - **counter width ÷ counter height** — the same question of the white.
 - **symmetry** of the parts either side of a crossing stroke.
 - **the letter's width ÷ the advance** — the room the rest is competing for.
+- **the height of the band where a scanline reads ONE run** — where the letter
+  goes solid. Every assembled glyph has one somewhere and it grows with the
+  weight; what matters is how fast. Я's ran to 0.23 of the cap against a panel
+  0.17 while its counter above it closed to 0.085 against 0.28. One sweep
+  gives both, and the pair localises the fault to the join between them.
 
 ### Absolute measures can all pass while the letter is wrong
 
@@ -249,6 +254,17 @@ right strokes and the right counters for its width, and the width was frozen.
 
 In this order, because each step changes what the later ones read:
 
+0. **What is the counter cut out of, and does that grow?** Every counter is a
+   span minus the strokes that bound it. Find the span, and check it against
+   the panel *as a span* — the bowl's depth, the arm's reach, the gap between
+   two stems. A span that is a fixed fraction of the letter while the strokes
+   bounding it grow five and a half times is a counter with a countdown on it,
+   and no reading of the counter itself says which of the three terms is
+   wrong. This is the step Я needed and the one the list above did not have:
+   Я passed 1, 2 and 3 — it widened with weight at ×1.16 against the panel's
+   ×1.13, its strokes were the face's own, its bowl's aspect tracked the panel
+   — and its counter had still closed to a third of what the panel holds,
+   because the bowl's floor never moved.
 1. **Does the letter widen with weight?** Compare width ÷ advance against the
    panel *bucketed by weight*. (ф's fault: 0.863 flat against 0.832 → 0.938.)
 2. **Do the interior strokes thin?** wall ÷ stem and middle ÷ stem against the
@@ -266,7 +282,8 @@ symptom, and going straight at them treats the symptom.
 
 ## 3 · Fault catalogue
 
-Seven classes. Each has recurred at least twice.
+Eight classes. Each but the last has recurred at least twice; F8 is here
+because the one time it happened it cost the letter its counter.
 
 ### F1 · A constant measured in one condition, carried to another
 
@@ -352,8 +369,19 @@ Every one of these was announced as a defect before being caught:
   runs ascender to descender — and it will misreport б once б exists.
   **Still broken.**
 
-**Tell:** a reading of exactly 0.000, or one wildly out of family with its
-neighbours. Reproduce it with an independent probe before reporting it.
+- Я's first probe assumed a cut through the bowl gives **three** runs — wall,
+  counter, stem. Я's bowl hangs off the stem, so the stem *is* the bowl's
+  right side and the cut gives two. The probe returned **zero** faces out of
+  sixty-one, including this font's own. **Corrected.** A probe that cannot
+  read your own font is broken; it is not evidence the glyph is missing.
+- The same probe took the bowl's wall as `widest cut's first run end − the
+  letter's leftmost point`. In Я the leftmost point is the **leg's foot**, not
+  the bowl, so the wall came out at twice the stem in the light faces.
+  **Corrected** to read both edges off the same run.
+
+**Tell:** a reading of exactly 0.000, an empty result set, or one wildly out
+of family with its neighbours. Reproduce it with an independent probe before
+reporting it.
 
 ### F7 · Silent failure
 
@@ -366,6 +394,31 @@ running its entire suite on import, so importing one function runs the gate.
 
 **Rule:** run `tools/verify.sh` unfiltered and read all of it. Do not grep the
 output of a gate.
+
+### F8 · The wrong figure off the right donor
+
+F1 is the right number carried to the wrong condition. This is its mirror: the
+right condition, the right donor, and the wrong number read out of it —
+because the donor holds two figures that mean different things and happen to
+sit near each other at the light master.
+
+Я took R's **leg top** for R's **bowl floor**. R buries the leg's top edge
+inside the bowl's floor, 13 units above it at Thin and 69 at ExtraBold. At
+Thin the substitution is invisible; at ExtraBold it is a tenth of the cap, and
+it held Я's bowl at a flat 0.44 of the cap while the stroke crossing it grew
+five and a half times.
+
+The recipe's own docstring said it read "where the bowl stops", and it did
+not. A comment describing the intent is not evidence the code has it.
+
+**Tell:** a figure read off a donor outline that was never checked at *both*
+masters. A wrong read that is nearly right at the light master leaves no trace
+there at all — the letter only comes apart at the heavy end, which reads as
+"it deteriorates when bold" rather than as "this number is wrong".
+
+**Fix:** read the figure at both masters and say what each one is in units
+before using either. If the two differ by less than a stroke at Thin and more
+than a stroke at ExtraBold, they are two different quantities.
 
 ---
 
@@ -489,6 +542,17 @@ approved one, **copy the approved construction** rather than generalising it
 into a shared helper and re-deriving it — that is precisely how ґ's work
 destroyed Ґ's.
 
+Two things the ledger has to carry that are easy to leave out:
+
+- **Approval does not cross the case pair**, even when both cases come out of
+  one recipe. Я and я were shown together and share all three of their
+  constructions; я was approved on its own and the capital had no verdict for
+  another round. Record the case that was named and no other.
+- **Record what was still outside the panel when the glyph was approved.** я
+  was frozen with three readings marginally out at the heavy end. Written down
+  they are a decision; left out, the next measuring pass finds them, reports
+  them as a defect, and changes a frozen glyph to chase them.
+
 ---
 
 ## 7 · How the code is organised
@@ -609,10 +673,35 @@ ratio to the face's own counterpart, never as an absolute share of the advance
 read off the panel.** The panel says which relation holds; the host says what
 the value is, and on width this host is 9% away from the panel at Thin.
 
+The pairwise form of that test is the one to reach for. Я reads 0.803 of its
+advance at ExtraBold against a panel band starting at 0.828 — outside, and
+meaningless on its own. Against В, which is the letter it shares a bowl with,
+Я is 1.010 where the panel is 1.014. The letter is right and the face is
+narrow. **A width that is outside the panel is a finding only if the letter it
+should be measured against is inside it.**
+
 Checked at the same time, against n's stem: о, е, ь and ъ draw their bowl at
 the full lowercase stem; ы and ф take a deliberate reduction. с, э, з and ю
 cannot be read this way at all — they are open, so the widest scanline's first
 run is a terminal or the stem, not a wall (F6).
+
+### A diagonal is solved over its donor's run, not over the gap it sits in
+
+Я's leg lands on the letter's left edge at the baseline and springs from under
+the bowl. Solved over the bowl's depth — the gap it visibly occupies — it
+reached the same foot through a third less rise than R's leg does, so it stood
+nearer the stem the whole way down and closed the wedge of white to 0.26 of a
+stem where this face's own R holds 0.63.
+
+R's leg does not start at R's bowl's floor either; it starts inside it. The
+run that fixes a diagonal's slope is **the donor's own run**, and the drawn
+stroke then simply ends wherever the letter it grows out of happens to be.
+Solving it that way also removes the hand-set overshoot that used to keep the
+two outlines from sharing an edge exactly: the leg ends inside the bowl by the
+donor's own margin, at both masters, so there is nothing to drift.
+
+This applies to every diagonal still to be assembled — к, ж, у, х and the
+Serbian џ all put a stroke across a gap that is not the stroke's own run.
 
 ---
 
