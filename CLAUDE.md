@@ -37,7 +37,7 @@ Use it. Do not invent one. `python` is not on PATH; use `./venv/bin/python`.
 ```
 ./venv/bin/python tools/build_cyrillic.py sources/SUSEMono.glyphs --rebuild
 rm -f build.stamp && make build
-bash tools/verify.sh          # all five gates, in order
+bash tools/verify.sh          # all seven gates, in order
 bash tools/review.sh          # regenerate EVERY review image from this build
 ```
 

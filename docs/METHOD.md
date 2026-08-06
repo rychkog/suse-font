@@ -491,7 +491,9 @@ Two smaller traps in the same act of reading a donor:
 | `strokes.py` | lightest stroke ÷ own stem vs 49 faces | yes |
 | `probe.py` | scanline runs on **built** fonts + panel comparison and fitting | no |
 | `harmony.py` | the bowl family read as a family — reach, wall, counter, each against our own median *and* the panel | no |
-| `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers; `--selftest` puts the Latin through both | no |
+| `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
+| `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
+| `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
@@ -500,14 +502,34 @@ Two smaller traps in the same act of reading a donor:
 | `geom.py` | outline algebra over Glyphs paths (22 primitives) | — |
 | `build_cyrillic.py` | writes recipes into the Glyphs source; `--rebuild` drops and redraws | — |
 
-`verify.sh` runs all five gates in order and exits non-zero on any failure.
+`verify.sh` runs all seven gates in order and exits non-zero on any failure.
 `review.sh` regenerates **every** review image from the current build — use it
 rather than rendering one sheet, because reviewing an image made before the
 last fix wastes a round.
 
 Only `probe.py` reads built fonts and the panel through one lens, which is what
 makes "ours" and "theirs" the same quantity. Everything above it reads the
-source, one master at a time.
+source, one master at a time — except `signature.py`, which reads the source
+for terminals, where a real node is the only place a stroke's end exists, and
+the build for horizontals, where a scanline needs the overlaps removed.
+
+### A gate's known exceptions are pinned, not waved through — *`tools/signature.py: ACCEPTED`*
+
+A gate with exceptions in it decays in one of two directions. Exempt a letter
+by name and it stops being measured, so the next real drift in it passes
+silently. Leave the finding standing and the gate is red on purpose, which is
+the same as having no gate — nobody reads a report that always says the same
+thing.
+
+`ACCEPTED` does neither: it records the letter, the weight and **the figure it
+was accepted at**. A reading within two points of that figure is quiet; в
+drifting to 0.80 fails exactly as a new letter would. And an entry that stops
+firing is itself a finding, because a table nobody prunes goes on excusing a
+reading that is not there any more, and the next real drift in that letter is
+waved through under an obsolete figure.
+
+Every entry is a marginal already recorded in `docs/APPROVALS.md`. The two
+records are the same fact for the same reason — see §6.
 
 ### Ask a reading twice — *`tools/harmony.py`*
 

@@ -15,6 +15,9 @@ run "audit: the face's own Latin (thresholds must not flag it)" \
     ./venv/bin/python tools/audit.py --selftest
 run "panel: ink area"            ./venv/bin/python tools/panel.py
 run "panel: stroke weight"       ./venv/bin/python tools/strokes.py
+run "signature: the face's own Latin (both readings must not flag it)" \
+    ./venv/bin/python tools/signature.py --selftest
+run "signature: drawn glyphs"    ./venv/bin/python tools/signature.py
 printf '\n'
 if [ "$fail" -ne 0 ]; then echo "SOMETHING FAILED"; exit 1; fi
 echo "all gates pass"
