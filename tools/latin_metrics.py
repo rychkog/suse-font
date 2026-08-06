@@ -1,0 +1,268 @@
+"""Everything the Latin can tell us about how this typeface behaves.
+
+The first version of the Cyrillic composed rectangles using constants chosen
+by eye -- a 0.16 leg splay, a 0.5 junction, a 0.32 counter. Those constants
+were the defects. Ж, Ы, Л, Д and Ш were each wrong in the specific way a
+made-up number is wrong.
+
+Every question they answer badly is a question some Latin glyph in this same
+font already answers well:
+
+    how much does a crowded glyph narrow its stems?   m against n
+    ... and four crowded diagonals?                   W against V
+    at what height does a diagonal meet a stem?       K, Y
+    how far does a leg splay?                         A, V
+    how deep is a descender, and how does it end?     p, y, Q
+    how does a bowl divide a cell against a stem?     B, R, D
+
+So this module measures rather than decides. Nothing here is a design choice;
+they are all readings off the existing outlines, per master, because Thin and
+ExtraBold answer these questions differently.
+"""
+
+import math
+import sys
+
+sys.path.insert(0, __file__.rsplit("/", 1)[0])
+from params import _flatten                          # noqa: E402
+
+
+def scan(pr, name, y):
+    """x positions where a horizontal line at `y` crosses the outline."""
+    xs = []
+    for p in pr.paths(name):
+        pts = _flatten(p)
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]):
+            if (y0 - y) * (y1 - y) < 0:
+                xs.append(x0 + (x1 - x0) * (y - y0) / (y1 - y0))
+    return sorted(xs)
+
+
+def strokes(pr, name, y):
+    """(ink runs, gaps) along that scanline."""
+    xs = scan(pr, name, y)
+    ink = [b - a for a, b in zip(xs[0::2], xs[1::2])]
+    gaps = [b - a for a, b in zip(xs[1::2], xs[2::2])]
+    return ink, gaps
+
+
+def vscan(pr, name, x):
+    """y positions where a vertical line at `x` crosses the outline."""
+    ys = []
+    for p in pr.paths(name):
+        pts = _flatten(p)
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]):
+            if (x0 - x) * (x1 - x) < 0:
+                ys.append(y0 + (y1 - y0) * (x - x0) / (x1 - x0))
+    return sorted(ys)
+
+
+class Latin:
+    """Measured behaviour of the typeface, per master."""
+
+    def __init__(self, pr):
+        self.pr = pr
+        cap, xh = pr.cap, pr.xh
+
+        # -- crowding -------------------------------------------------------
+        # m is this face's own three-stem glyph and W its own four-diagonal
+        # one. Whatever they do about a full cell is the answer for Ш and Ж.
+        n_ink, _ = strokes(pr, "n", xh * 0.30)
+        m_ink, m_gap = strokes(pr, "m", xh * 0.30)
+        v_ink, _ = strokes(pr, "V", cap * 0.60)
+        w_ink, w_gap = strokes(pr, "W", cap * 0.60)
+
+        self.lcStem2 = n_ink[0]
+        self.lcStem3 = m_ink[0]
+        # how much a third stem costs, as a ratio -- 0.83 at ExtraBold, ~1.0
+        # at Thin, where the cell never binds
+        self.crowd3 = m_ink[0] / n_ink[0]
+        self.counter3 = min(m_gap) if m_gap else None
+        self.crowd4diag = (min(w_ink) / min(v_ink)) if v_ink else 1.0
+
+        # the widest the face lets a capital be -- Y at both masters here, 565
+        # units at Thin and 603 at ExtraBold, where it overhangs the cell. This
+        # is the ceiling for Ф, the widest letter in the Cyrillic set.
+        # Q is drawn from components in this source and reports no nodes of
+        # its own, so the widths are collected from whatever actually has
+        # outlines rather than assuming all 26 do.
+        drawn = [self._bbox(pr, g)
+                 for g in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if pr.paths(g)]
+        self.capWidest = max(b[2] - b[0] for b in drawn)
+
+        self.span2 = self._span(pr, "n")
+        self.span3 = self._span(pr, "m")
+        self.span4 = self._span(pr, "W")
+
+        # -- junction heights ----------------------------------------------
+        # where K's diagonals meet its stem, as a fraction of cap height
+        self.kJoint = self._k_joint(pr)
+        # where Y's arms fork
+        self.yFork = self._y_fork(pr)
+        # B's waist -- the height at which a two-lobe letter divides
+        self.bWaist = self._b_waist(pr)
+
+        # -- proportion of a stem-plus-bowl letter --------------------------
+        # B: how much of the cell the stem takes and how much the bowl gets.
+        # This is what Ы, Ь, Ъ and Б need and what they were guessing at.
+        bx = self._bbox(pr, "B")
+        self.bowlLeft = bx[0]
+        self.bowlRight = bx[2]
+        self.bowlWidth = bx[2] - bx[0]
+        # B's bowl is drawn slightly HEAVIER than its own stem -- 30 against
+        # 29 at Thin, 166 against 161 at ExtraBold. Ь Ъ Б hang that same bowl,
+        # so this is their stroke. Taking the stem instead left them a few per
+        # cent lighter than В standing next to them.
+        _o, _c = pr.paths("B")[0], pr.paths("B")[1]
+        self.bowlStroke = (max(n.position.x for n in _o.nodes)
+                           - max(n.position.x for n in _c.nodes))
+
+        # -- the same questions again, at x-height ---------------------------
+        # Cyrillic lowercase is largely small-capital in shape, which is
+        # exactly why every one of these has to be asked again rather than
+        # scaled: b's bowl is not B's, k's diagonals meet its stem at 0.31 of
+        # the x-height at Thin and 0.10 at ExtraBold where K's barely move,
+        # and the lowercase sidebearings are tighter. The crowding, counter,
+        # span and descender figures above are already lowercase readings --
+        # they come from n, m, p and y -- so they are not repeated here.
+        bl = self._bbox(pr, "b")
+        self.lcBowlLeft = bl[0]
+        self.lcBowlRight = bl[2]
+        self.lcBowlWidth = bl[2] - bl[0]
+        # b's bowl comes out at exactly the lowercase stem at both masters,
+        # where B's is a unit heavier than its own. Measured, not assumed.
+        _lo, _lc = pr.paths("b")[0], pr.paths("b")[1]
+        self.lcBowlStroke = (max(n.position.x for n in _lo.nodes)
+                             - max(n.position.x for n in _lc.nodes))
+
+        self.lcWidest = max(b[2] - b[0] for b in
+                            (self._bbox(pr, g)
+                             for g in "abcdefghijklmnopqrstuvwxyz"
+                             if pr.paths(g)))
+
+        # k's upper diagonal lands on its stem here, as K's does above
+        self.lcKJoint = min(n.position.y
+                            for n in pr.paths("k")[0].nodes) / float(xh)
+        # and v is the lowercase's own two-diagonal letter, so it says how far
+        # this face lets a leg travel sideways per unit of x-height
+        self.lcLegSplay = abs(self._a_splay(pr, "v"))
+
+        # -- descenders ------------------------------------------------------
+        # depth and terminal width of the face's own descenders
+        self.descDepth = -self._bbox(pr, "p")[1]
+        yb = self._bbox(pr, "y")
+        self.yTailDepth = -yb[1]
+        self.yTailLeft = yb[0]
+        # Width of y's tail where it ends -- across the stroke, not across the
+        # page. The tail is a diagonal, and a horizontal scanline reports a
+        # stroke leaning at angle t as 1/cos wider than it is: 266 units at
+        # ExtraBold against a true 134. Nothing reads this yet, which is
+        # exactly why it was worth correcting before something does.
+        self.tailWidth = self._lean_width(pr, "y", -self.yTailDepth * 0.55)
+
+        # -- diagonal splay --------------------------------------------------
+        # A's left leg: how far this face lets a leg travel sideways over the
+        # cap height. Л's splay was invented; this measures it.
+        self.legSplay = self._a_splay(pr, "A")
+
+    @staticmethod
+    def _bbox(pr, name):
+        xs = [n.position.x for p in pr.paths(name) for n in p.nodes]
+        ys = [n.position.y for p in pr.paths(name) for n in p.nodes]
+        return min(xs), min(ys), max(xs), max(ys)
+
+    @staticmethod
+    def _lean_width(pr, name, at, d=12.0):
+        """Thickness of the leftmost stroke at height `at`, across the stroke
+        rather than across the page.
+
+        Two corrections, and y's tail needs both. Where the stroke's centre
+        travels between two heights gives its lean, and the lean gives a
+        1/cos correction -- but that only helps a stroke that is more upright
+        than not. Where the tail has flattened out, a horizontal scanline
+        reports its LENGTH, and the honest thickness is how tall it is at that
+        point: 266 units read flat, 257 after the lean, 134 read the way it is
+        actually drawn.
+        """
+        xa, xb = scan(pr, name, at - d), scan(pr, name, at + d)
+        if len(xa) < 2 or len(xb) < 2:
+            return pr.stem
+        w = ((xa[1] - xa[0]) + (xb[1] - xb[0])) / 2.0
+        slope = ((xb[0] + xb[1]) - (xa[0] + xa[1])) / 2.0 / (2.0 * d)
+        across = w / math.hypot(1.0, slope)
+        ys = vscan(pr, name, (xa[0] + xa[1] + xb[0] + xb[1]) / 4.0)
+        tall = min((hi - lo for lo, hi in zip(ys[0::2], ys[1::2])
+                    if lo <= at <= hi), default=None)
+        return across if tall is None else min(across, tall)
+
+    @staticmethod
+    def _span(pr, name):
+        b = Latin._bbox(pr, name)
+        return b[2] - b[0]
+
+    def _k_joint(self, pr):
+        """Height where K's diagonals meet the stem, over cap height."""
+        k = pr.paths("K")
+        # the upper diagonal's lowest node sits on the stem
+        low = min(n.position.y for n in k[0].nodes)
+        return low / float(pr.cap)
+
+    def _y_fork(self, pr):
+        y = pr.paths("Y")[0]
+        ys = sorted({round(n.position.y) for n in y.nodes})
+        # the fork is the lowest y shared by the two arms, above the stem foot
+        return ys[1] / float(pr.cap) if len(ys) > 1 else 0.45
+
+    def _b_waist(self, pr):
+        c = list(pr.paths("B")[1].nodes)
+        return c[10].position.y / float(pr.cap)
+
+    def _a_splay(self, pr, name):
+        """Horizontal travel of a diagonal letter's left leg over its full
+        height, per unit height -- the face's own idea of how far a leg leans.
+
+        Signed: A's leg leans out going down and v's leans in, so v comes back
+        negative. Only the magnitude is the answer to how far, which is why
+        the lowercase reading takes the absolute value.
+        """
+        a = pr.paths(name)[0]
+        pts = [(n.position.x, n.position.y) for n in a.nodes]
+        top = max(p[1] for p in pts)
+        bot = min(p[1] for p in pts)
+        xtop = min(p[0] for p in pts if p[1] > top - 0.12 * (top - bot))
+        xbot = min(p[0] for p in pts if p[1] < bot + 0.12 * (top - bot))
+        return (xtop - xbot) / float(top - bot)
+
+    def report(self):
+        p = self.pr
+        return "\n".join([
+            f"--- {p.master.name} ---",
+            f"  stem cap/lc          {p.stem} / {p.lcStem:.0f}   bar {p.bar}",
+            f"  crowding: 3 stems    stroke x{self.crowd3:.3f}  "
+            f"counter {self.counter3:.0f}  span {self.span3:.0f} "
+            f"(2 stems: {self.span2:.0f})",
+            f"  crowding: 4 diagonals stroke x{self.crowd4diag:.3f}  "
+            f"span {self.span4:.0f}",
+            f"  K joint  {self.kJoint:.3f} cap     "
+            f"Y fork {self.yFork:.3f} cap     B waist {self.bWaist:.3f} cap",
+            f"  B bowl   x[{self.bowlLeft:.0f},{self.bowlRight:.0f}] "
+            f"width {self.bowlWidth:.0f}",
+            f"  descender depth {self.descDepth:.0f}   y tail depth "
+            f"{self.yTailDepth:.0f} left {self.yTailLeft:.0f} "
+            f"width {self.tailWidth:.0f}",
+            f"  leg splay {self.legSplay:.3f} per unit height",
+            f"  lowercase: bowl x[{self.lcBowlLeft:.0f},"
+            f"{self.lcBowlRight:.0f}] stroke {self.lcBowlStroke:.0f}   "
+            f"widest {self.lcWidest:.0f}",
+            f"             k joint {self.lcKJoint:.3f} xh   "
+            f"leg splay {self.lcLegSplay:.3f} per unit height",
+        ])
+
+
+if __name__ == "__main__":
+    import glyphsLib
+    from params import Params
+    f = glyphsLib.load(sys.argv[1] if len(sys.argv) > 1
+                       else "sources/SUSEMono.glyphs")
+    for mi in range(len(f.masters)):
+        print(Latin(Params(f, mi)).report())
