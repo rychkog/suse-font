@@ -841,18 +841,28 @@ def Ve(pr, top=None):
     # What makes B's join square is the short vertical BETWEEN the two arcs,
     # 12 units at Thin and 5 at ExtraBold, which is why bLobeStep is measured.
     wl, wu = waist + step / 2.0, waist - step / 2.0
-    r1 = min(wl / 2.0 * 0.97, (right - x0) * 0.5)
-    xs = right - r1
-    r2 = max(upper - xs, 4.0)
+
+    # The arcs are ELLIPSES, not quarter-circles: the horizontal reach comes
+    # from how far this face sweeps a bowl and the vertical from the lobe's
+    # own half-height. One radius for both axes is what made в look nothing
+    # like В -- a lobe is half the letter tall, so the height bound the radius
+    # and the arc swept only 0.24 of the width where b and B both sweep about
+    # 0.5. The lobes came out as rectangles with rounded corners.
+    rx = m.lcBowlSweep * (right - x0) if getattr(pr, "lower", False) \
+        else m.bowlSweep * (right - x0)
+    ry1 = min(wl / 2.0 * 0.97, rx)
+    xs = right - min(rx, (right - x0) * 0.5)
+    rx2 = max(upper - xs, 4.0)
+    ry2 = min((top - wu) / 2.0 * 0.97, rx2)
 
     ns = [node(x0, 0.0), node(xs, 0.0)]
-    ns += arc_to(xs, 0.0, right, r1, right, 0.0)
-    ns += [node(right, wl - r1)]
-    ns += arc_to(right, wl - r1, xs, wl, right, wl)
+    ns += arc_to(xs, 0.0, right, ry1, right, 0.0)
+    ns += [node(right, wl - ry1)]
+    ns += arc_to(right, wl - ry1, xs, wl, right, wl)
     ns += [node(xs, wu)]
-    ns += arc_to(xs, wu, upper, wu + r2, upper, wu)
-    ns += [node(upper, top - r2)]
-    ns += arc_to(upper, top - r2, upper - r2, top, upper, top)
+    ns += arc_to(xs, wu, upper, wu + ry2, upper, wu)
+    ns += [node(upper, top - ry2)]
+    ns += arc_to(upper, top - ry2, xs, top, upper, top)
     ns += [node(x0, top)]
     outer = path(ns)
     if area(outer) < 0:
@@ -860,9 +870,9 @@ def Ve(pr, top=None):
 
     # and the two counters, one bar apart across the waist
     lo = d_shape(x0 + t, th, right - t, waist - th / 2.0,
-                 max(r1 - t, ri), max(r1 - th, ri))
+                 max(right - xs - t, ri), max(ry1 - th, ri))
     up = d_shape(x0 + t, waist + th / 2.0, upper - t, top - th,
-                 max(r2 - t, ri), max(r2 - th, ri))
+                 max(rx2 - t, ri), max(ry2 - th, ri))
     return [outer] + [reverse(c) if area(c) > 0 else c for c in (lo, up)]
 
 
