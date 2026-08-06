@@ -31,13 +31,13 @@ round.
 | **г** | 2026-08-06 | Corner set matches Г exactly. Arm is a **ceiling**, `ARM_SHARE` × Г's arm × `lcCapWidth`, so Thin keeps its own 367 and only the heavy end moves. |
 | **ф** | 2026-08-06 | Width, wall and middle stem all linear in the stem (`EF_FIT["lc"]`, clamped at 1.0). Bowl is **not** о — `EF_BOWL_TALLER` 1.05 about о's centre. Marginally wide for its height at Regular/Bold; two masters cannot bend it. |
 | **Ф** | 2026-08-06 | Same three relations (`EF_FIT["cap"]`). `EF_OVERHANG` 0.07, which sets the bowl's height as well as the stem's projection. Every internal proportion inside the panel at all four weights. |
+| **я** | 2026-08-06 | Bowl floor is R's bowl floor, taken from node 11 of R's outline as a fraction of cap — not R's leg top, which is buried inside that floor. Roof and floor inset at the lowercase bar. Leg solved over R's own leg height and standing off the stem by R's own figure. Approved with three readings still marginally outside the panel at the heavy end — counter aspect 0.689 against 0.710, counter height 0.225 against 0.230, wedge 0.524 against 0.581. No Latin lowercase hangs a bowl over a leg, so the capital's fraction is the only donor there is; do not chase these three. |
 
 ## In review — changed and shown, no verdict recorded
 
 | glyph | shown | change |
 | --- | --- | --- |
-| **Я** | 2026-08-06 | Bowl floor now R's bowl floor rather than R's leg top — the two coincide at Thin and are a tenth of the cap apart at ExtraBold. Roof and floor inset at the bar, not the side stroke. Leg solved over R's own leg height and standing off the stem by R's own figure. |
-| **я** | 2026-08-06 | The same three changes, through `Lower`. Counter and wedge both much improved; three readings still marginally outside the panel at the heavy end — counter aspect, counter height, wedge. |
+| **Я** | 2026-08-06 | Bowl floor now R's bowl floor rather than R's leg top — the two coincide at Thin and are a tenth of the cap apart at ExtraBold. Roof and floor inset at the bar, not the side stroke. Leg solved over R's own leg height and standing off the stem by R's own figure. The lowercase я, which shares all three, is approved; this one has no verdict yet. |
 
 ## Not recorded
 
