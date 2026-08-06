@@ -17,11 +17,11 @@ A reader should not be able to tell which letters came later. This is the goal
 every rule below serves, and when a rule and this goal disagree, this goal
 wins.
 
-The user is a native Ukrainian reader and not a type designer, so the reports
-that matter arrive in exactly these terms: *"ю simply doesn't belong and
-doesn't have SUSEMono signature"*, *"ґ has [the] defect you've fixed with
-[the] uppercase version before which drops SUSEMono signature"*. Both were
-real, and neither was visible to any measurement running at the time.
+Review comes from a fluent reader of the script rather than a type designer,
+so the reports that matter arrive in those terms — a letter "doesn't belong",
+or "drops the SUSE Mono signature". Such reports have been consistently right,
+and typically describe something no measurement running at the time could
+see.
 
 ### The signature is concrete
 
@@ -93,7 +93,7 @@ Not by looking at the letter alone:
 
 Two authorities, and they answer different questions.
 
-- The **panel** (60 monospace faces on this machine, `tools/panel.py`)
+- The **panel** (the monospace faces installed on the host, `tools/panel.py`; 60 at the time of writing)
   establishes **that** a relation holds, and roughly where.
 - The **host** — SUSE Mono's own Latin — supplies **what** the value is.
 
@@ -393,9 +393,9 @@ source, one master at a time.
 
 ## 5 · Rendering for review
 
-Every report is a picture. Text-only progress is useless to the user, who is a
-native Ukrainian reader and not a type designer — the render *is* the finding,
-and a bad render wastes the round.
+Every report is a picture. Text-only progress is useless when review is by
+eye rather than by number — the render *is* the finding, and a bad render
+wastes the round.
 
 ### Quality is not optional — *prose only*
 
@@ -471,9 +471,10 @@ report.
 ### Why the ledger exists
 
 `docs/APPROVALS.md` is the record of what has been approved and therefore what
-is frozen. Without it the rule "never change an approved glyph" is unenforceable
-— this session reached the point of asking *"is Ф approved?"* with no way to
-answer, having already changed Ґ twice without noticing it was approved.
+is frozen. Without it the rule "never change an approved glyph" is
+unenforceable — the question "is this one approved?" has been reached with no
+way to answer it, after a glyph had already been changed twice without anyone
+noticing it was frozen.
 
 An approved glyph is frozen. A panel median is not evidence against it; if it
 genuinely must change, say so and ask first. When a new sibling should match an

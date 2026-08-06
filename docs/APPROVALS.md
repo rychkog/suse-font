@@ -4,10 +4,10 @@ The record of which glyphs the user has approved, and therefore which are
 **frozen**.
 
 This file exists because `CLAUDE.md`'s rule — *never change an approved glyph
-without explicit confirmation* — is unenforceable without it. During the
-session that created this file, the question *"is Ф approved?"* came up with no
-way to answer it, and Ґ had by then been changed twice without anyone noticing
-it was frozen. Both cost a round.
+without explicit confirmation* — is unenforceable without it. The question
+"is this one approved?" has been reached with no way to answer it, and Ґ had
+by then been changed twice without anyone noticing it was frozen. Both cost a
+round.
 
 ## How to use it
 
@@ -25,8 +25,8 @@ it was frozen. Both cost a round.
 
 | glyph | approved | note |
 | --- | --- | --- |
-| **Ґ** | before 2026-08-06 | Tick rise `0.21 × cap` and the derived inner radius. Confirmed again on 2026-08-06 — *"that tick was good some time ago, I was satisfied"* — after two unrequested changes were reverted. The panel independently supports it: `TICK_RISE` is flat at 0.212–0.221 across every weight band. |
-| **л** | before 2026-08-06 | *"Looks good now"* after the leg-splay fix. `LEG_LEAN`; the sloped leg reads wider than its bbox and no metric sees it. |
+| **Ґ** | before 2026-08-06 | Tick rise `0.21 × cap` and the derived inner radius. Re-confirmed on 2026-08-06 after two unrequested changes were reverted. The panel independently supports it: `TICK_RISE` is flat at 0.212–0.221 across every weight band. |
+| **л** | before 2026-08-06 | Confirmed after the leg-splay fix. `LEG_LEAN`; the sloped leg reads wider than its bbox and no metric sees it. |
 
 ## In review — changed and shown, no verdict recorded
 
