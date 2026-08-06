@@ -9,6 +9,27 @@ The brief lives at `~/suse-mono-cyrillic-prompt.md` and is binding.
 **`docs/METHOD.md` is how to investigate** — read it before changing any
 constant.
 
+## The objective
+
+**The Cyrillic must read as SUSE Mono — not as Cyrillic added to SUSE Mono.**
+A reader should not be able to tell which letters came later. Every rule below
+serves this; when a rule and this goal disagree, this goal wins.
+
+The face's own Latin is the authority on what the shapes are. The panel of 60
+monospace faces can tell you *which relations exist* — that ф widens as it
+gets bolder — but never what a SUSE Mono letter should look like. A panel
+median is not a reason to change something this face already does
+consistently, and never a reason to change an approved glyph.
+
+Derived beats drawn for the same reason: the Latin is already condensed and
+optically fitted to its cell, so a glyph built from it inherits that work and
+a freshly drawn one throws it away.
+
+Test it in company, never alone — the "vs Latin" row on the checkpoint sheet,
+the mixed `git commit -m 'юність' build/ґрунт-єднати.log` line, and at 12px
+and 14px. `docs/METHOD.md` opens with what the signature concretely consists
+of.
+
 ## Pipeline
 
 Use it. Do not invent one. `python` is not on PATH; use `./venv/bin/python`.
