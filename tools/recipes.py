@@ -135,6 +135,9 @@ CHE_COUNTER = 0.48
 # stem against a panel 0.42-0.61 -- the stem nearly three times the counter it
 # sat between. There is no room left to buy once the letter is past the cell
 # edge; the ink goes into the counters instead.
+# ф's bowl, over the height the face's own о is drawn at -- see Ef.
+EF_BOWL_TALLER = 1.05
+
 EF_FIT = {
     "cap": {"width": (0.8444, 0.6314),
             "wall": (1.1431, -1.6746),
@@ -167,8 +170,18 @@ EF_HEIGHT = 1.781
 # lower quartile rather than its median -- at ExtraBold this face's stem is 150
 # units of a 600 cell, and every unit given to the gap comes off the bowl.
 YU_GAP = 0.129
-EF_OVERHANG = 0.10      # Ф: how far the stem projects past the bowl, in cap
-                        # heights. Borrowed for the same reason -- see Ef.
+# Ф: how far the stem projects past the bowl, in cap heights. Borrowed for the
+# same reason -- see Ef.
+#
+# It was 0.10, which is where every drawn face on this machine clusters when
+# you ask the question that way round. But this figure also sets the bowl's
+# HEIGHT, which is cap minus twice the overhang, and read from that side 0.10
+# was too generous: the bowl came out at the very bottom of the panel's height
+# range at all four weights while the projection sat at the top, and the bowl
+# ended up wider than it was tall -- 1.07 against a panel that stops at 1.00.
+# Too much stem showing and not enough bowl. At 0.07 the bowl grows 7.5%, the
+# aspect lands at 0.995 and the projection still measures inside the panel.
+EF_OVERHANG = 0.07
 
 _METRICS = {}
 
@@ -899,6 +912,15 @@ def Ef(pr):
         # m's figure is for. The capital escapes it by being the widest letter
         # the face allows; at x-height there is no such room to buy.
         ob = bbox(pr.paths(round_of(pr)))
+        # ф's bowl is NOT о. Drawn at о's exact height it measured 0.97 of the
+        # x-height where the panel runs 0.99 to 1.03, and 1.13 wide for its
+        # height where the panel stops at 1.08 -- a squashed oval. The panel
+        # draws this bowl at 1.04 to 1.10 of the face's own о and is quite
+        # clear that it is a bigger letter, so it is given its own height
+        # about о's centre rather than о's outline.
+        oc = (ob[1] + ob[3]) / 2.0
+        orad = (ob[3] - ob[1]) / 2.0 * EF_BOWL_TALLER
+        ob = (ob[0], oc - orad, ob[2], oc + orad)
         half = ef_fit(pr, "width") * 600.0 / 2.0
         # The stem runs the panel's own height for ф, centred on the bowl,
         # rather than all the way from the descender to the ascender. Taken
