@@ -1830,12 +1830,20 @@ def Ya(pr, top=None, bottom=0.0):
 
 
 # -- Ж ---------------------------------------------------------------------
-# Read off a professionally drawn monospace Ж (JetBrains Mono, Regular and
-# ExtraBold), which turns out to be five straight strokes and nothing else:
+# The construction was read off a professionally drawn monospace Ж (JetBrains
+# Mono, Regular and ExtraBold), which turns out to be five straight strokes
+# and nothing else:
 #
-#   * the centre stem is LIGHTER than the arms, 0.844 and 0.880 of them at the
-#     two weights -- near enough constant, and the reason the middle does not
-#     go black: it is the one stroke pressed on from both sides.
+#   * the centre stem is NOT lighter than the arms. JetBrains draws it at
+#     0.87-0.95 of them and falling with weight, and that was taken as the
+#     figure -- but across the 49 panel faces that draw Ж the ratio fits
+#     1.033 + 0.011 * stem/em, which is flat at 1.03 over the whole axis.
+#     JetBrains sits near the bottom of that population, so 0.86 generalised
+#     one face's habit into a constant, which is the fault ф was found by.
+#     The face agrees with the panel rather than with JetBrains: it does not
+#     lighten a diagonal at all -- X runs 0.97 to 1.02 of H's stem at every
+#     weight -- so there is no reason here for the one vertical stroke in the
+#     letter to be the lightest thing in it. See ZHE_STEM.
 #   * the upper pair of arms land on the stem ABOVE the middle and the lower
 #     pair BELOW it, never at one point. The band between the two landings is
 #     solid, and its height is 0.756 and 0.713 of a stem -- again near enough
@@ -1866,7 +1874,15 @@ U_LEAN = 1.00
 U_WIDTH = "V"
 U_FOOT = 0.102
 
-ZHE_STEM = 0.86         # centre stem, as a fraction of an arm
+# Centre stem, as a fraction of an arm. The panel's own figure, fitted over 49
+# faces: 1.033 + 0.011 * stem/em, which is flat to a hundredth across the whole
+# range, so a constant is the right shape here and not a relation waiting to be
+# found. Taken at the fitted value rather than at a round 1.0 because the
+# measurement carries a one to three per cent offset against the source ratio
+# -- the panel's brackets are built with the same instrument, so the target has
+# to be measured-inside-measured, and 1.0 re-measures at 0.97 against a Regular
+# bracket that starts at 0.999.
+ZHE_STEM = 1.033
 ZHE_BAND = 0.73         # solid middle band height, as a fraction of an arm
 ZHE_WAIST = 0.517       # its centre, as a fraction of cap height
 ZHE_SHELF = 0.33        # arm-to-stem step, as a fraction of an arm
