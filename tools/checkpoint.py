@@ -98,8 +98,8 @@ def main():
     # Ukrainian alone never sets Ы Ъ Э, so those three had only ever been
     # reviewed as isolated glyphs. Both scripts from here on.
     russian = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРЫ, ЭХО"
-    ua = ok("ще тихо: гори, сонце, стерні")
-    ru = ok("тише, гости — станции пишут")
+    ua = ok("вітер тихо: гори, сонце, стерні")
+    ru = ok("ветер тише — станции пишут")
 
     parts = [grid(chars)]
 
@@ -108,10 +108,10 @@ def main():
     parts.append(line_block(
         "Each new lowercase against its own capital, and against the Latin "
         "lowercase it shares a line with",
-        [("pairs", FONT % "Regular", 44, ok("Гг Нн Тт Пп Шш Щщ Цц Ии")),
-         ("pairs bold", FONT % "Bold", 44, ok("Гг Нн Тт Пп Шш Щщ Цц Ии")),
-         ("vs Latin", FONT % "Regular", 44, ok("nн mш rг tт pп uц iи")),
-         ("JetBrains", JB % "Regular", 44, ok("Гг Нн Тт Пп Шш Щщ Цц Ии"))]))
+        [("pairs", FONT % "Regular", 44, ok("Вв Гг Нн Тт Пп Шш Щщ Цц Ии")),
+         ("pairs bold", FONT % "Bold", 44, ok("Вв Гг Нн Тт Пп Шш Щщ Цц Ии")),
+         ("vs Latin", FONT % "Regular", 44, ok("bв nн mш rг tт pп uц iи")),
+         ("JetBrains", JB % "Regular", 44, ok("Вв Гг Нн Тт Пп Шш Щщ Цц Ии"))]))
 
     parts.append(line_block(
         "Same text, this font above JetBrains Mono below (professionally drawn Cyrillic)",
@@ -121,7 +121,7 @@ def main():
          ("JetBrains Bold", JB % "Bold", 40, ru)]))
 
     parts.append(line_block(
-        "Real sizes (the eight stem-and-bar lowercase; the rest is still to come)",
+        "Real sizes (the stem-and-bar lowercase plus в; the rest is still to come)",
         [("14px UA", FONT % "Regular", 14, ua),
          ("14px RU", FONT % "Regular", 14, ru),
          ("12px UA", FONT % "Regular", 12, ua),
@@ -132,11 +132,11 @@ def main():
     parts.append(line_block(
         "Mixed Latin and Cyrillic in one line -- where a bolted-on script shows",
         [("18px", FONT % "Regular", 18,
-          ok("git commit -m 'станции пишут' v2.1 build/ще-тихо.log")),
+          ok("git commit -m 'станции пишут' v2.1 build/вітер-тихо.log")),
          ("14px", FONT % "Regular", 14,
-          ok("git commit -m 'станции пишут' v2.1 build/ще-тихо.log")),
+          ok("git commit -m 'станции пишут' v2.1 build/вітер-тихо.log")),
          ("JetBrains 18px", JB % "Regular", 18,
-          ok("git commit -m 'станции пишут' v2.1 build/ще-тихо.log")),
+          ok("git commit -m 'станции пишут' v2.1 build/вітер-тихо.log")),
          ("18px caps", FONT % "Regular", 18,
           "git commit -m ПОЛЕ FIXED ЦВІТЕ v2.1 ВІТЕР build/ДМЕ.log")]))
 

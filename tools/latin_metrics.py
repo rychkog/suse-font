@@ -135,6 +135,17 @@ class Latin:
         self.lcBowlStroke = (max(n.position.x for n in _lo.nodes)
                              - max(n.position.x for n in _lc.nodes))
 
+        # How far the bowl SWEEPS: the horizontal reach of its outer arcs, as
+        # a share of its own width. This is the face's roundness, and it is the
+        # one thing B and b agree on across the case boundary -- 0.47-0.55 in B
+        # against 0.45-0.49 in b at Thin, 0.33-0.51 against 0.31-0.41 at
+        # ExtraBold. So the Latin reconciles a capital with its lowercase by
+        # holding the sweep, and в has to as well: built from arcs that were
+        # circular rather than elliptical it swept only 0.24, and its lobes
+        # read as rectangles with rounded corners rather than as D-shapes.
+        self.bowlSweep = self._sweep(pr, "B")
+        self.lcBowlSweep = self._sweep(pr, "b")
+
         self.lcWidest = max(b[2] - b[0] for b in
                             (self._bbox(pr, g)
                              for g in "abcdefghijklmnopqrstuvwxyz"
@@ -194,6 +205,29 @@ class Latin:
         tall = min((hi - lo for lo, hi in zip(ys[0::2], ys[1::2])
                     if lo <= at <= hi), default=None)
         return across if tall is None else min(across, tall)
+
+    @staticmethod
+    def _sweep(pr, name):
+        """Mean horizontal reach of the bowl's two widest outer arcs, over the
+        bowl's width. Taking the two widest picks out the arcs that make the
+        bowl's right-hand sweep and leaves the smaller ones where it meets the
+        stem."""
+        p = pr.paths(name)[0]
+        ns = list(p.nodes)
+        st = next((i for i, n in enumerate(ns) if n.type != "offcurve"), 0)
+        ns = ns[st:] + ns[:st]
+        prev, pend, dx = ns[0], [], []
+        for n in ns[1:] + [ns[0]]:
+            if n.type == "offcurve":
+                pend.append(n)
+                continue
+            if n.type == "curve" and len(pend) == 2:
+                dx.append(abs(n.position.x - prev.position.x))
+            pend = []
+            prev = n
+        xs = [n.position.x for q in pr.paths(name) for n in q.nodes]
+        dx.sort(reverse=True)
+        return (sum(dx[:2]) / 2.0) / (max(xs) - min(xs)) if dx else 0.47
 
     @staticmethod
     def _span(pr, name):
