@@ -503,6 +503,7 @@ Two smaller traps in the same act of reading a donor:
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
+| `diagonals.py` | Ж and ж's centre stem against an arm, and the face's own X V W K Y measured **perpendicular** to the stroke | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
