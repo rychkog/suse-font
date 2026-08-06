@@ -1205,7 +1205,24 @@ def Ve(pr, top=None):
     top = pr.cap if top is None else top
     x0, right, t = bowl_of(pr)
     m = L(pr)
-    th = t * pr.bar / pr.stem
+    base = getattr(pr, "_pr", pr)
+    # B's own three horizontals, per master. A two-lobe letter does not draw
+    # them at the bar: B runs its lobe's roof and floor at 0.96 of the bar at
+    # Thin and 0.90 at ExtraBold, and its waist lighter still at 0.96 and
+    # 0.85. Drawn at a flat bar each, в spent 318 of its 493 units of
+    # x-height on three horizontals and left 175 for two counters, where the
+    # panel leaves 204 -- and the counters came out 2.09 times as wide as
+    # they were tall against a panel 1.17 to 1.83.
+    #
+    # Read from B's INNER contour, and from its on-curve nodes only. Its node
+    # box is 45 units taller than the curve it describes, because the control
+    # points of a bowl's corner sit outside the bowl -- the same trap as
+    # taking control points for polygon vertices, which mis-measured every
+    # round letter until check.py's flat() was fixed. Nodes 1 and 18 are the
+    # counters' outer ends, 9 and 10 the two sides of the waist.
+    bi = pr.paths("B")[1].nodes
+    th = (base.cap - bi[1].position.y) / float(base.bar) * pr.bar
+    wb = ((bi[9].position.y - bi[10].position.y) / float(base.bar)) * pr.bar
     waist, step = m.bWaist * top, m.bLobeStep
     upper = x0 + VE_UPPER * (right - x0)
     ri = inner_radius(pr)
@@ -1230,7 +1247,22 @@ def Ve(pr, top=None):
     # like В -- a lobe is half the letter tall, so the height bound the radius
     # and the arc swept only 0.24 of the width where b and B both sweep about
     # 0.5. The lobes came out as rectangles with rounded corners.
-    rx, ry1 = bowl_arc(pr, x0, right, 0.0, wl)
+    # ...and the sweep is a fraction of the LOBE'S HEIGHT, not of the letter's
+    # WIDTH. The fraction itself is right and comes from the face; what it
+    # multiplied was wrong. A lobe is half the letter tall and the whole of it
+    # wide, so a reach taken across the width asked for a corner 202 units
+    # across on a lobe 193 tall at ExtraBold -- a radius wider than the lobe
+    # was high. The letter read wide and flat, which is what was reported.
+    #
+    # Measured in the built font as the outer edge's setback at the waist over
+    # the lobe's height, this face's В runs 0.42 at Thin falling to 0.36 at
+    # ExtraBold and the panel's в 0.39 falling to 0.32. Against the width, в
+    # ran 0.57 RISING to 0.65: outside at every weight and moving the wrong
+    # way, because a bowl's sweep narrows as the face gets heavier while the
+    # letter it is measured across widens.
+    sweep = m.lcBowlSweep if getattr(pr, "lower", False) else m.bowlSweep
+    rx = sweep * wl
+    ry1 = min(wl / 2.0 * 0.97, rx)
     xs = right - rx
     rx2 = max(upper - xs, 4.0)
     ry2 = min((top - wu) / 2.0 * 0.97, rx2)
@@ -1249,9 +1281,9 @@ def Ve(pr, top=None):
         outer = reverse(outer)
 
     # and the two counters, one bar apart across the waist
-    lo = d_shape(x0 + t, th, right - t, waist - th / 2.0,
+    lo = d_shape(x0 + t, th, right - t, waist - wb / 2.0,
                  max(right - xs - t, ri), max(ry1 - th, ri))
-    up = d_shape(x0 + t, waist + th / 2.0, upper - t, top - th,
+    up = d_shape(x0 + t, waist + wb / 2.0, upper - t, top - th,
                  max(rx2 - t, ri), max(ry2 - th, ri))
     return [outer] + [reverse(c) if area(c) > 0 else c for c in (lo, up)]
 
