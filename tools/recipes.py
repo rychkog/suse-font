@@ -119,13 +119,47 @@ CHE_COUNTER = 0.48
 # thin from 0.97 to 0.78 of the stem across the axis where the panel does
 # 0.99 to 0.85, and weight-matched its counters sit inside the panel. Only
 # the width was frozen.
-EF_WIDTH_BASE = 0.789
-EF_WIDTH_SLOPE = 0.775
+# Three of them, per case, and every one is a straight line in the face's own
+# stem rather than a number. The panel thins a Ф or ф from the inside as the
+# strokes grow: over the em-normalised stem its bowl wall runs 1.03 down to
+# 0.86 and its middle stem 1.00 down to 0.78, while its width goes the other
+# way, 0.87 up to 0.95, so the counters have somewhere to be. Fitted by least
+# squares over the 60 panel faces; linear in the stem, so interpolation
+# between the two masters reproduces them at Regular and Bold rather than
+# drifting off them.
+#
+# The capital was exempt from all three, on the reasoning that it is the
+# widest letter the face allows and so has room to spare. It has not: at
+# ExtraBold it stood at 1.005 of its own advance with negative sidebearings,
+# wall and stem still at full weight, and its counters down to 0.35 of the
+# stem against a panel 0.42-0.61 -- the stem nearly three times the counter it
+# sat between. There is no room left to buy once the letter is past the cell
+# edge; the ink goes into the counters instead.
+EF_FIT = {
+    "cap": {"width": (0.8444, 0.6314),
+            "wall": (1.1431, -1.6746),
+            "mid": (1.1072, -1.7645)},
+    "lc": {"width": (0.7892, 0.7754),
+           "wall": (1.1279, -1.7705),
+           "mid": (1.0777, -1.7156)},
+}
 
 
-def ef_width(pr):
-    upm = pr.font.upm if hasattr(pr.font, "upm") else 1000.0
-    return EF_WIDTH_BASE + EF_WIDTH_SLOPE * (pr.stem / upm)
+def ef_fit(pr, key):
+    a, b = EF_FIT["lc" if getattr(pr, "lower", False) else "cap"][key]
+    v = a + b * (pr.stem / 1000.0)
+    # The panel's lightest face draws its stem at about 0.05 of the em; this
+    # one draws Thin at 0.029, off the bottom of the data the lines were
+    # fitted to. Extrapolated down there they ask for a bowl wall heavier than
+    # the stem it crosses -- 1.03 against a panel maximum of 1.02, which the
+    # stroke gate refused, and rightly. An interior stroke is never heavier
+    # than the stem; at the light end the two are simply equal.
+    return min(v, 1.0) if key in ("wall", "mid") else v
+
+
+def ef_crowd(pr):
+    """The bowl's wall as a share of what the round letter draws it at."""
+    return ef_fit(pr, "wall") * pr.stem / bowl_stroke(pr)[0]
 # ...and its total height over the x-height, the panel's median across the same
 # 51 faces.
 EF_HEIGHT = 1.781
@@ -833,8 +867,9 @@ def Ef(pr):
     flat-ended vertical in this face does.
     """
     m = L(pr)
-    widest = m.lcWidest if getattr(pr, "lower", False) else m.capWidest
-    edge = (600.0 - widest) / 2.0
+    # Both cases take the panel's width relation now. capWidest is what let
+    # the capital grow past its own cell.
+    edge = (600.0 - ef_fit(pr, "width") * 600.0) / 2.0
     # The lowercase ф is a TALL letter: its stem runs from the descender to
     # the ascender with the bowl at x-height, which is what classify has said
     # all along -- "bowl + ascender-to-descender stem". Drawn to the x-height
@@ -864,7 +899,7 @@ def Ef(pr):
         # m's figure is for. The capital escapes it by being the widest letter
         # the face allows; at x-height there is no such room to buy.
         ob = bbox(pr.paths(round_of(pr)))
-        half = ef_width(pr) * 600.0 / 2.0
+        half = ef_fit(pr, "width") * 600.0 / 2.0
         # The stem runs the panel's own height for ф, centred on the bowl,
         # rather than all the way from the descender to the ascender. Taken
         # to both extremes it stood 1.89 of the x-height at ExtraBold and
@@ -881,9 +916,12 @@ def Ef(pr):
         # wall at Regular and ExtraBold, where the panel holds the two equal --
         # median 1.000 across 60 faces, quartiles 0.950 and 1.031. A letter
         # this crowded gives way in both strokes at once or in neither.
-        st = pr.stem * m.crowd3
+        # crowd3 is m's three-stem figure and it over-thins here: it left the
+        # wall at 0.78 of the stem where the panel wants 0.82-0.93, which is
+        # what made the counters read airy once the bowl had been widened.
+        st = ef_fit(pr, "mid") * pr.stem
         return (bowl(pr, 300.0 - half, 300.0 + half, ob[1], ob[3],
-                     crowd=m.crowd3)
+                     crowd=ef_crowd(pr))
                 + [rect(300.0 - st / 2.0, foot,
                         300.0 + st / 2.0, foot + EF_HEIGHT * pr.cap)])
     mid = 300.0
@@ -893,8 +931,9 @@ def Ef(pr):
     # puts it between 0.065 and 0.170 of cap and clusters hard on 0.10 --
     # JetBrains 0.100, Consolas 0.100, Monotional 0.083, DejaVu 0.083.
     oh = EF_OVERHANG * pr.cap
-    return (bowl(pr, edge, 600.0 - edge, oh, pr.cap - oh)
-            + [rect(mid - pr.stem / 2.0, 0.0, mid + pr.stem / 2.0, pr.cap)])
+    st = ef_fit(pr, "mid") * pr.stem
+    return (bowl(pr, edge, 600.0 - edge, oh, pr.cap - oh, crowd=ef_crowd(pr))
+            + [rect(mid - st / 2.0, 0.0, mid + st / 2.0, pr.cap)])
 
 
 def Yu(pr):
