@@ -36,7 +36,9 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| glyph | shown | change |
+| --- | --- | --- |
+| **в** | 2026-08-06 | Two faults. The lobe's sweep is now a fraction of the **lobe's height** rather than of the letter's width — it was asking for a corner wider than the lobe was tall at ExtraBold. And the three horizontals take B's own figures, 0.96 of the bar at Thin falling to 0.90 for the roof and floor and 0.85 for the waist, instead of a flat bar each. Counter aspect goes 2.09 to 1.69 against a panel 1.17–1.83, and its direction with weight reverses to match the panel's. The setback at the waist is 1–7% under the panel at Thin, Regular and Bold. |
 
 ## Not recorded
 
