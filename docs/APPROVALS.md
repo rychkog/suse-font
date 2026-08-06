@@ -40,27 +40,29 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| glyph | shown | change |
+| --- | --- | --- |
+| **к** | 2026-08-06 | Newly drawn, and barely drawn at all: it is the face's own **k** with the stem cut to the x-height, the arm and leg taken unchanged. The 51 panel faces that draw both agree the two letters are one drawing — к is 1.000 of k's width, middle half inside a thousandth, same left edge to the em, same leg lean. Tier 2, not the tier 3 it was listed as. The three contours are told apart by which reaches above the x-height, never by their order. |
+| **ќ** | 2026-08-06 | Falls out of к — `ka-cy + acutecomb`, no new outline. Shown on the same sheet. |
 
 ## Not recorded
 
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
-**Capitals** — А Б В Г Д Е Ж З И Й К М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
+**Capitals** — А Б В Г Д Е З И Й К М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
 Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ќ Ѝ Џ
 
-**Lowercase** — а д е ж и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
+**Lowercase** — а д е и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
 ѓ ѕ ј ѝ
 
 ## Not drawn
 
-**б з к м** — Ukrainian/Russian core. б is the hard one: no capital and no
-Latin donor.
+**б з м** — Ukrainian/Russian core. б is the hard one: no capital and no
+Latin donor. з and м are their capitals' constructions at x-height; unlike к,
+neither has a lowercase Latin counterpart to take.
 
 **Ђ Љ Њ Ћ ђ љ њ ћ џ** — Serbian.
-
-**ќ** — blocked on к.
 
 ---
 
