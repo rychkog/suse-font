@@ -32,24 +32,23 @@ round.
 | **ф** | 2026-08-06 | Width, wall and middle stem all linear in the stem (`EF_FIT["lc"]`, clamped at 1.0). Bowl is **not** о — `EF_BOWL_TALLER` 1.05 about о's centre. Marginally wide for its height at Regular/Bold; two masters cannot bend it. |
 | **Ф** | 2026-08-06 | Same three relations (`EF_FIT["cap"]`). `EF_OVERHANG` 0.07, which sets the bowl's height as well as the stem's projection. Every internal proportion inside the panel at all four weights. |
 | **Я** | 2026-08-06 | Bowl floor is R's bowl floor, taken from node 11 of R's outline — not R's leg top, which is buried inside that floor and only appears to agree with it at Thin. Roof and floor inset at the bar, not the side stroke. Leg solved over R's own leg height and standing off the stem by R's own figure. Every reading inside the panel except the letter's width, where В is equally under it — the face is narrow, not the letter. |
+| **в** | 2026-08-06 | The lobe's sweep is a fraction of the **lobe's height**, not of the letter's width — taken across the width it asked for a corner wider than the lobe was tall at ExtraBold. The three horizontals take B's own figures rather than a flat bar each: 0.96 of the bar at Thin falling to 0.90 for the roof and floor, and 0.96 to 0.85 for the waist, read from B's inner contour's **on-curve nodes only**. Counter aspect 2.09 to 1.69 against a panel 1.17–1.83, and its direction with weight reverses to match the panel's. Approved with the setback at the waist 1–7% under the panel at Thin, Regular and Bold. |
+| **Ъ ъ** | 2026-08-06 | The left edge falls with the weight — 0.035 of the advance at Thin to 0.013 at ExtraBold for the capital — where it used to sit flat at 0.055. The shoulder's length is a share of the cell and does not move, so that edge is what decides the bowl's width, and the bowl pays for its wall twice. Counter against Ь's runs 0.86, 0.79, 0.72, 0.67 against a panel holding 0.78–0.86. Going that far left is the face's own habit: Y starts at 18 units at Thin and −1 at ExtraBold, w at 32 and 20. |
 | **я** | 2026-08-06 | Bowl floor is R's bowl floor, taken from node 11 of R's outline as a fraction of cap — not R's leg top, which is buried inside that floor. Roof and floor inset at the lowercase bar. Leg solved over R's own leg height and standing off the stem by R's own figure. Approved with three readings still marginally outside the panel at the heavy end — counter aspect 0.689 against 0.710, counter height 0.225 against 0.230, wedge 0.524 against 0.581. No Latin lowercase hangs a bowl over a leg, so the capital's fraction is the only donor there is; do not chase these three. |
 
 ## In review — changed and shown, no verdict recorded
 
-| glyph | shown | change |
-| --- | --- | --- |
-| **Ъ ъ** | 2026-08-06 | The left edge now falls with the weight — 0.035 of the advance at Thin to 0.013 at ExtraBold for the capital — instead of sitting flat at 0.055. The shoulder's length is a share of the cell and does not move, so the edge is what decides the bowl's width, and the bowl pays for its wall twice. Counter against Ь's goes 0.50 to 0.67 at ExtraBold, against a panel that holds 0.78 at every weight. |
-| **в** | 2026-08-06 | Two faults. The lobe's sweep is now a fraction of the **lobe's height** rather than of the letter's width — it was asking for a corner wider than the lobe was tall at ExtraBold. And the three horizontals take B's own figures, 0.96 of the bar at Thin falling to 0.90 for the roof and floor and 0.85 for the waist, instead of a flat bar each. Counter aspect goes 2.09 to 1.69 against a panel 1.17–1.83, and its direction with weight reverses to match the panel's. The setback at the waist is 1–7% under the panel at Thin, Regular and Bold. |
+*(none)*
 
 ## Not recorded
 
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
-**Capitals** — А Б В Г Д Е Ж З И Й К М Н О П Р С Т У Х Ц Ч Ш Щ Ъ Ы Ь Э Ю
+**Capitals** — А Б В Г Д Е Ж З И Й К М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
 Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ќ Ѝ Џ
 
-**Lowercase** — а в д е ж и й н о п р с т у х ц ч ш щ ъ ы ь э ю ё є і ї ў ѐ
+**Lowercase** — а д е ж и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
 ѓ ѕ ј ѝ
 
 ## Not drawn

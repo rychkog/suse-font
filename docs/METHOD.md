@@ -264,7 +264,10 @@ In this order, because each step changes what the later ones read:
    Я passed 1, 2 and 3 — it widened with weight at ×1.16 against the panel's
    ×1.13, its strokes were the face's own, its bowl's aspect tracked the panel
    — and its counter had still closed to a third of what the panel holds,
-   because the bowl's floor never moved.
+   because the bowl's floor never moved. Ъ is the same fault in the other
+   axis: its shoulder is a share of the cell and cannot move, so its left edge
+   alone decides how wide the bowl is, and that edge was flat. A bowl pays for
+   its wall twice, so 15% off the span cost half the counter by ExtraBold.
 1. **Does the letter widen with weight?** Compare width ÷ advance against the
    panel *bucketed by weight*. (ф's fault: 0.863 flat against 0.832 → 0.938.)
 2. **Do the interior strokes thin?** wall ÷ stem and middle ÷ stem against the
@@ -419,6 +422,22 @@ there at all — the letter only comes apart at the heavy end, which reads as
 **Fix:** read the figure at both masters and say what each one is in units
 before using either. If the two differ by less than a stroke at Thin and more
 than a stroke at ExtraBold, they are two different quantities.
+
+Two smaller traps in the same act of reading a donor:
+
+- **A fraction is a fraction *of* something, and the denominator decides even
+  the sign of its trend.** в's lobe sweep, taken over the letter's WIDTH, fell
+  from 0.494 to 0.410 and looked like a well-behaved figure narrowing with the
+  weight. The same reach over the LOBE'S HEIGHT — which is what a corner
+  radius actually competes with — rose from 0.57 to 0.65, because the letter
+  widens while the sweep narrows. The fraction was right; what it multiplied
+  was not. When a shape is squatter than the donor the fraction came from,
+  a share of width stops meaning what it meant.
+- **`Params.box` and any max over `path.nodes` include the OFF-CURVE points**,
+  which for a bowl's corner sit outside the curve. B's inner contour reads 45
+  units taller at ExtraBold than the outline it describes. Read on-curve nodes
+  only, or flatten. This is F6 one step earlier — in the source rather than in
+  a probe.
 
 ---
 
@@ -748,6 +767,30 @@ the full lowercase stem; ы and ф take a deliberate reduction. с, э, з and �
 cannot be read this way at all — they are open, so the widest scanline's first
 run is a terminal or the stem, not a wall (F6).
 
+### A family is read as a family, and the outliers are not all faults
+
+Reading the bowl letters together — `tools/harmony.py`, §4 — the family turned
+out to be in good order on the two things that carry across a line of text.
+Walls hold 1.00 to 1.04 of the stem for every letter in both cases. Reach
+splits into exactly two groups, the B-group at 557 and the O-group at 571,
+which is the host's own split and not a drift. Э and э agree with С and с to
+a unit.
+
+The letters that stand outside the family are worth naming, because three of
+the four are correct:
+
+- **Ю Ф ю ф** sit 13–17% under the family's wall. They carry a stroke through
+  the bowl, so a scanline crosses three strokes where the others cross two,
+  and the panel agrees with them at every weight. Right.
+- **С с Э э** reach 0.86–0.88 of the advance against the family's 0.93. An
+  open letter has no far wall to reach with. Right, and the Latin C reads the
+  same.
+- **Я я** reach short for the same reason on the other side. Right.
+- **Ъ ъ** were outside the family *and* outside the panel. Wrong, and the
+  only one of the four that was.
+
+That is the whole argument for asking each reading twice.
+
 ### A diagonal is solved over its donor's run, not over the gap it sits in
 
 Я's leg lands on the letter's left edge at the baseline and springs from under
@@ -776,6 +819,9 @@ Serbian џ all put a stroke across a gap that is not the stroke's own run.
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
+- **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
+  0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
+  inside at 0.951. Eight units, and not yet explained.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
