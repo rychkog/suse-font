@@ -256,6 +256,28 @@ CORNER_PAIRS = [
 # still reports.
 CORNER_EXEMPT = {"tse-cy", "shcha-cy"}
 
+# Д Ц Щ Џ and their lowercase hang a TAIL off the baseline, and a tail is not
+# a descender. p's stroke carries on down past the baseline; ц's turns and
+# stops. They are different features and they do not reach the same depth --
+# across 60 faces ц's tail runs 0.94 of its own Ц's, while p's descender is a
+# third deeper again. Seeding these from the Latin's p q y g j made the sweep
+# insist they match it, which is precisely the bad inference that had ц
+# descending a full 200 and reading far too long against Ц. So the tails are
+# one group, agreeing with each other, and true descenders are another.
+TAILED = set("ДЦЩЏдцщџ")
+
+# ...and a lowercase tail hangs as deep as its own capital's, in absolute
+# units, though its body is a third shorter. Checking the tails only against
+# each other would not have caught this: ц and щ were both a full descender
+# deep and agreed perfectly. It is the relation to the CAPITAL that broke.
+#
+# Equality is stricter than the panel's median of 0.94, and deliberately so:
+# it is the commonest value there by a wide margin, drawn by 26 of the 60
+# faces against 14 for the next, and it is the rule this file has chosen --
+# one depth for both cases, see recipes.descent. The fault it replaces sat at
+# 1.333, outside all sixty.
+TAIL_PAIRS = (("ц", "Ц"), ("щ", "Щ"), ("д", "Д"), ("џ", "Џ"))
+
 
 def corner_set(paths):
     """Every near-circular turn in a glyph, by radius.
@@ -590,7 +612,7 @@ def sweep(gs, subjects, ref, weight):
     Returns the findings, and how far each glyph reached past the case's top
     and bottom lines, which only mean anything once the whole set is in.
     """
-    out, depths = [], dict(ref["desc"])
+    out, depths, tails = [], dict(ref["desc"]), {}
     top, stem, floor = ref["top"], ref["stem"], ref["counter"]
     for ch, gname in subjects:
         shapes = flatten(gs, gname)
@@ -635,7 +657,7 @@ def sweep(gs, subjects, ref, weight):
         ymax = max(p[1] for poly in polys for p in poly)
         pad = max(ref["rounds"] + [0]) + 5
         if ymin < -pad:
-            depths[ch] = round(-ymin)
+            (tails if ch in TAILED else depths)[ch] = round(-ymin)
         elif round(-ymin) not in ref["rounds"] + ref["flats"]:
             out.append(f"{weight:9} {ch} sits {-ymin:.0f} below the baseline "
                        f"-- the face uses {ref['flats']} or {ref['rounds']}")
@@ -644,7 +666,7 @@ def sweep(gs, subjects, ref, weight):
         if ref["asc"] and ymax > top + pad and round(ymax) not in ref["asc"]:
             out.append(f"{weight:9} {ch} rises to {ymax:.0f} -- the face's "
                        f"own ascenders reach {ref['asc']}")
-    return out, depths
+    return out, depths, tails
 
 
 def main():
@@ -685,17 +707,19 @@ def main():
             if selftest:
                 subjects = [(n, n) for n in case.alphabet if n in gs]
 
-            got, depths = sweep(gs, subjects, ref, weight)
+            got, depths, tails = sweep(gs, subjects, ref, weight)
             findings += got
             # Every glyph that descends does so to the SAME depth -- true of
             # Д Ц Щ in each of the five drawn faces measured, and true of the
             # Latin's own p q y g j here. Where the Latin answers, `depths`
             # starts seeded with its answer, so a drawn glyph is compared
             # against the face rather than only against its own siblings.
-            if len(set(depths.values())) > 1:
-                findings.append(
-                    f"{weight:9} descending {case.label}s disagree on depth: "
-                    + ", ".join(f"{c} {d}" for c, d in sorted(depths.items())))
+            for group, what in ((depths, "descending"), (tails, "tailed")):
+                if len(set(group.values())) > 1:
+                    findings.append(
+                        f"{weight:9} {what} {case.label}s disagree on depth: "
+                        + ", ".join(f"{c} {d}"
+                                    for c, d in sorted(group.items())))
 
     # Coincident nodes are checked in the SOURCE, on real nodes. Measured on
     # the built outline they cannot be told apart from a curve's control
@@ -824,6 +848,18 @@ def main():
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
+
+        for low, up in TAIL_PAIRS:
+            if ord(low) not in cmap or ord(up) not in cmap:
+                continue
+            def _floor(ch):
+                polys = contours(gs, cmap[ord(ch)])
+                return min(p[1] for poly in polys for p in poly) if polys else 0
+            a, b = _floor(low), _floor(up)
+            if abs(a - b) > 2:
+                findings.append(
+                    f"{weight:9} {low} tail reaches {-a:.0f} where its "
+                    f"capital {up} reaches {-b:.0f}")
 
         for case in CASES:
             top = getattr(f["OS/2"], case.metric)
