@@ -97,7 +97,96 @@ been shown to work.
 
 ---
 
-## 2 · Fault catalogue
+## 2 · Internal relations
+
+**A glyph's parts must be measured against each other, not only against the
+face's stem or the advance.** This is the principle the ф and Ф work came out
+of, and it is worth stating on its own because a letter can be correct on
+every absolute measure and still read wrong.
+
+### Why the relations exist
+
+As a face gets heavier its parts do **not** scale together. Across the panel,
+light cut to heavy cut:
+
+| | growth |
+| --- | --- |
+| the face's stem | **×2.51** |
+| ф's bowl wall | ×1.92 |
+| ф's middle stem | ×1.78 |
+| ф's counter | ×0.57 — *shrinks* |
+| ф's total width | ×1.05 |
+
+Interior strokes thicken at roughly **three-quarters the rate the stem does**,
+the letter widens a little to buy room, and the counters give up the
+difference. Scale everything uniformly instead and the counters are what pays,
+which is exactly how a bold letter turns ugly.
+
+Stated as ratios rather than growth, the same thing:
+
+| ÷ the face's own stem | panel light | panel heavy |
+| --- | --- | --- |
+| ф bowl wall | 0.99 | 0.85 |
+| ф middle stem | 0.97 | 0.81 |
+| Ф bowl wall | 1.03 | 0.86 |
+| Ф middle stem | 1.00 | 0.78 |
+
+### The ratios worth reading
+
+One scanline through the middle of a letter gives most of these at once
+(`tools/probe.py: runs`, `gaps`, `vruns`):
+
+- **part ÷ the face's own stem** — does the interior thin as the face
+  thickens, or is it still at full weight?
+- **middle stem ÷ counter** — the ratio that actually reads as *ugly*. See
+  below.
+- **counter ÷ stem** — how much white survives.
+- **bowl width ÷ bowl height** — is the bowl round, or squashed?
+- **counter width ÷ counter height** — the same question of the white.
+- **symmetry** of the parts either side of a crossing stroke.
+- **the letter's width ÷ the advance** — the room the rest is competing for.
+
+### Absolute measures can all pass while the letter is wrong
+
+This is the part that matters. When the capital Ф was reported as ugly at
+heavy weights, its counters were **0.35 of the stem against a panel 0.42–0.61**
+— outside, but only somewhat. The reading that matched what the eye saw was
+**middle stem ÷ counter at 2.83 against a panel 1.14–1.83**: the stem was
+nearly three times the white it sat between.
+
+Conversely the lowercase ф's counters were, weight-matched, *inside* the panel
+all along. Its fault was elsewhere — the bowl never widened — and no
+counter-only check would have found it.
+
+**A ratio between two parts of the same glyph carries information that neither
+part carries alone.** Measure the pair.
+
+### The order things give way
+
+Counters first, stroke weight last — and *before either*, the letter widens.
+That third term is easy to miss and was the whole of ф's fault: it had the
+right strokes and the right counters for its width, and the width was frozen.
+
+### Diagnosing "it gets ugly when bold"
+
+In this order, because each step changes what the later ones read:
+
+1. **Does the letter widen with weight?** Compare width ÷ advance against the
+   panel *bucketed by weight*. (ф's fault: 0.863 flat against 0.832 → 0.938.)
+2. **Do the interior strokes thin?** wall ÷ stem and middle ÷ stem against the
+   same buckets. (Ф's fault: 1.01–1.02 flat against 1.03 → 0.86.)
+3. **Is the bowl's aspect right?** A bowl widened without being made taller is
+   a squashed oval — correct in every stroke and still wrong. (Both letters'
+   second round.)
+4. **Only then the counters themselves**, which by this point are usually
+   fixed as a consequence.
+
+Steps 1–3 are all about relations between parts. The counters are the
+symptom, and going straight at them treats the symptom.
+
+---
+
+## 3 · Fault catalogue
 
 Seven classes. Each has recurred at least twice.
 
@@ -196,7 +285,7 @@ output of a gate.
 
 ---
 
-## 3 · Probe inventory
+## 4 · Probe inventory
 
 | tool | measures | gate? |
 | --- | --- | --- |
@@ -225,7 +314,7 @@ source, one master at a time.
 
 ---
 
-## 4 · How the code is organised
+## 5 · How the code is organised
 
 Worth knowing before reading `recipes.py`, because none of it is obvious from
 a single function.
@@ -271,7 +360,7 @@ raw coordinates.
 
 ---
 
-## 5 · Settled findings
+## 6 · Settled findings
 
 Things established by measurement that are not method and not a fault.
 
@@ -320,7 +409,7 @@ measurement may well defend it.
 
 ---
 
-## 6 · Open threads
+## 7 · Open threads
 
 - **о does not follow the panel's weight relation.** Relative to the face's own
   о, ф's bowl measured 1.205 at Thin and 1.040 at ExtraBold against a panel

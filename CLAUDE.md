@@ -66,7 +66,12 @@ background pollers. A `make build` has been OOM-killed mid-run, deleting
   face turns *wider* in t and f (168) than in E, F, L (122).
 - Never mirror: И, Я, Э are not flipped N, R, C.
 - Never scale a capital down for a lowercase. Redraw stems at lowercase weight.
-- Counters give way first; stroke weight gives way last.
+- **The letter widens, then counters give way, then stroke weight** — in that
+  order. A glyph's parts do not scale together as the face gets heavier:
+  interior strokes thicken at about three-quarters the rate the stem does.
+  Measure the parts **against each other**, not only against the stem — a
+  letter can pass every absolute check and still read wrong. `docs/METHOD.md`
+  §2 has the ratios and the order to diagnose them in.
 - Design the heaviest master first.
 
 ## How the code is organised
