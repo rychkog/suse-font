@@ -287,13 +287,26 @@ def descent(pr):
     return L(pr).descDepth * CAP_DESCENT
 
 
-def bowl_stroke(pr, donor="O"):
+def round_of(pr, upper="O"):
+    """The face's own round letter for the case in hand: O and C above, o and
+    c below.
+
+    Same rule as bowl_of, and for the reason Э proved: a cloned or refitted
+    outline does not re-size through Lower. Run at x-height with the capital
+    still named, Э came out a full cap-height letter standing in a lowercase
+    word, and nothing but the height rule noticed.
+    """
+    return upper.lower() if getattr(pr, "lower", False) else upper
+
+
+def bowl_stroke(pr, donor=None):
     """O's own side stroke, per master.
 
     O is monolinear at Thin (29 all round) but modulated at ExtraBold -- 164
     at the sides against 136 top and bottom. Insetting its counter uniformly
     throws that away and leaves Ф and Ю visibly lighter than O beside them.
     """
+    donor = round_of(pr) if donor is None else donor
     o, c = pr.paths(donor)[0], pr.paths(donor)[1]
     ox = min(n.position.x for n in o.nodes)
     cx = min(n.position.x for n in c.nodes)
@@ -302,7 +315,7 @@ def bowl_stroke(pr, donor="O"):
     return cx - ox, cy - oy
 
 
-def bowl(pr, x0, x1, y0, y1, donor="O", crowd=1.0):
+def bowl(pr, x0, x1, y0, y1, donor=None, crowd=1.0):
     """O's curve refitted to a box, at O's stroke weight times `crowd`.
 
     Ф and Ю carry a stem through the bowl, so a scanline crosses three
@@ -311,6 +324,7 @@ def bowl(pr, x0, x1, y0, y1, donor="O", crowd=1.0):
     m against n -- x0.97 at Thin, x0.83 at ExtraBold -- so the letters give up
     exactly as much stroke as the typeface itself gives up, and no more.
     """
+    donor = round_of(pr) if donor is None else donor
     outer, counter = pr.paths(donor)[0], pr.paths(donor)[1]
     tx, ty = bowl_stroke(pr, donor)
     tx, ty = tx * crowd, ty * crowd
@@ -435,6 +449,44 @@ def Ghe_lc(pr, top=None):
     ns += [node(x0 + s, 0.0)]
     p = path(ns)
     return [p if area(p) > 0 else reverse(p)]
+
+
+def Ghe_upturn_lc(pr, top=None):
+    """ґ -- г with a tick turning up at the end of its arm.
+
+    Ґ splices E's own nodes; there is no lowercase e with an arm, so this
+    rebuilds the same shape from the radii the face uses, exactly as Ghe_lc
+    does for г. The tick's proportions are Ґ's: it rises 0.21 of the letter
+    above the arm, which is the convention Consolas and Iosevka both hold and
+    which the panel puts at a median 0.213 across the 37 faces that draw the
+    letter.
+
+    Both bends take the reduced corner, as Ґ's does: a bend is bounded by the
+    SHORTER of the strokes it joins, and here that is the tick.
+    """
+    top = pr.cap if top is None else top
+    x0, x1, s, b = pr.capL, pr.capR, pr.stem, pr.bar
+    ro = corner_radius(pr) * RADIUS
+    ri = max(min(ro - s, b), 4.0)
+    # The tick rises further at x-height than at cap height, and the panel is
+    # clear about both: 0.213 of the cap above Г across the 37 faces that draw
+    # Ґ, but 0.280 of the x-height above г across 51 that draw ґ. A shorter
+    # letter needs proportionally more tick to stay legible. Carrying the
+    # capital's 0.21 down left ґ at 0.66 of the panel's ink median against a
+    # range that bottoms out at 0.65.
+    rise = round(0.28 * top)
+    ns = [node(x0, 0.0), node(x0, top - ro)]
+    ns += arc_to(x0, top - ro, x0 + ro, top, x0, top)
+    ns += [node(x1 - ro, top)]
+    ns += arc_to(x1 - ro, top, x1, top + ro, x1, top)
+    ns += [node(x1, top + rise), node(x1 - s, top + rise),
+           node(x1 - s, top - b + ri)]
+    ns += arc_to(x1 - s, top - b + ri, x1 - s - ri, top - b, x1 - s, top - b)
+    ns += [node(x0 + s + ri, top - b)]
+    ns += arc_to(x0 + s + ri, top - b, x0 + s, top - b - ri, x0 + s, top - b)
+    ns += [node(x0 + s, 0.0)]
+    p_ = path(ns)
+    return [p_ if area(p_) > 0 else reverse(p_)]
 
 
 def En_lc(pr, top=None):
@@ -683,7 +735,19 @@ def Ef(pr):
     flat-ended vertical in this face does.
     """
     m = L(pr)
-    edge = (600.0 - m.capWidest) / 2.0
+    widest = m.lcWidest if getattr(pr, "lower", False) else m.capWidest
+    edge = (600.0 - widest) / 2.0
+    # The lowercase ф is a TALL letter: its stem runs from the descender to
+    # the ascender with the bowl at x-height, which is what classify has said
+    # all along -- "bowl + ascender-to-descender stem". Drawn to the x-height
+    # like its neighbours it measured 1.000 of the x-height where the panel
+    # runs 1.589 to 1.975, and its ink came out at 0.69 of the panel's median,
+    # outside every one of the 51 faces that draw it.
+    if getattr(pr, "lower", False):
+        oh = EF_OVERHANG * pr.cap
+        return (bowl(pr, edge, 600.0 - edge, oh, pr.cap - oh)
+                + [rect(300.0 - pr.stem / 2.0, -m.descDepth,
+                        300.0 + pr.stem / 2.0, pr.asc)])
     mid = 300.0
     # How far the stem projects past the bowl. Borrowed, and marked as such:
     # no Latin letter here has a stroke crossing a bowl, and this face ships
@@ -697,15 +761,24 @@ def Ef(pr):
 
 def Yu(pr):
     """Ю -- stem, joining bar, bowl."""
-    o = pr.paths("O")[0]
+    o = pr.paths(round_of(pr))[0]
     ys = [n.position.y for n in o.nodes]
     x0, x1, s = fit_stems(pr, 3)
-    crowd = L(pr).crowd3
+    # The bowl keeps O's weight. m's three-stem reduction is for three STEMS,
+    # and Ю's bowl is a bowl -- the same argument Ф was fixed on, and the same
+    # order the brief sets: counters give way first, stroke weight last. With
+    # the reduction ю's lightest stroke read 0.750 of the stem at ExtraBold,
+    # under the panel's tenth percentile of 0.769 and well under its median of
+    # 0.910, while its counters sat at a roomy 125. Without it the counter
+    # takes the strain and closes to 81, which is still wider than the 79 this
+    # face's own m accepts between three stems.
+    crowd = 1.0
     tx, _ = bowl_stroke(pr)
-    tx *= crowd
     bx0 = x0 + s + (x1 - x0) * 0.04
+    # the bar sits on the case's own middle: midY is H's and does not travel
+    bary = pr.barCentre * pr.cap - pr.bar / 2.0
     return ([rect(x0, 0.0, x0 + s, pr.cap),
-             rect(x0, pr.midY, bx0 + tx, pr.midY + pr.bar)]
+             rect(x0, bary, bx0 + tx, bary + pr.bar)]
             + bowl(pr, bx0, x1, min(ys), max(ys), crowd=crowd))
 
 
@@ -724,7 +797,7 @@ def E_ukr(pr):
     lopsided. JetBrains' Є ends its arm at 405 against a bowl spanning 92-522
     -- 0.73 of the way across -- so the aperture stays open.
     """
-    c = pr.paths("C")
+    c = pr.paths(round_of(pr, "C"))
     xs = [n.position.x for p in c for n in p.nodes]
     ys = [n.position.y for p in c for n in p.nodes]
     x0, x1 = min(xs), max(xs)
@@ -1591,7 +1664,9 @@ RECIPES = {
     # Latin counterpart to donate. The other five are their capital's own
     # construction driven through Lower.
     "ge-cy": lc(Ghe_lc), "en-cy": lc(En_lc), "te-cy": lc(Te_lc),
-    "ve-cy": lc(Ve), "softsign-cy": lc(Soft), "hardsign-cy": lc(Hard),
+    "ve-cy": lc(Ve),
+    "ef-cy": lc(Ef), "yu-cy": lc(Yu), "e-cy": lc(E_ukr),
+    "gheupturn-cy": lc(Ghe_upturn_lc), "softsign-cy": lc(Soft), "hardsign-cy": lc(Hard),
     # the capital's own construction at x-height. These six need no donor
     # swap: they are built from measured parameters and geometry rather than
     # from spliced Latin outlines, so Lower alone re-sizes them.

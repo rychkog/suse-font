@@ -742,7 +742,12 @@ def sweep(gs, subjects, ref, weight):
                        f"-- the face uses {ref['flats']} or {ref['rounds']}")
         # and a glyph that reaches above the line must reach the height the
         # face reaches, not one of its own
-        if ref["asc"] and ymax > top + pad and round(ymax) not in ref["asc"]:
+        # ґ's tick is a partial rise, not an ascender: the panel puts it at a
+        # median 0.280 of the x-height above г, range 0.189 to 0.400, so it is
+        # never meant to reach the 730 that b d h k l share. Same exemption
+        # the self-test gives f g i j t, and for the same reason.
+        if (ref["asc"] and ymax > top + pad and ch not in "ґ"
+                and round(ymax) not in ref["asc"]):
             out.append(f"{weight:9} {ch} rises to {ymax:.0f} -- the face's "
                        f"own ascenders reach {ref['asc']}")
     return out, depths, tails
