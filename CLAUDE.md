@@ -17,7 +17,10 @@ Use it. Do not invent one. `python` is not on PATH; use `./venv/bin/python`.
 ./venv/bin/python tools/build_cyrillic.py sources/SUSEMono.glyphs --rebuild
 rm -f build.stamp && make build
 bash tools/verify.sh          # all five gates, in order
+bash tools/review.sh          # regenerate EVERY review image from this build
 ```
+
+Render into `tools/out/`. Never review an image made before the last fix.
 
 Run `verify.sh` **unfiltered** before showing anything. Do not grep a gate's
 output — findings have been hidden that way, including a broken interpolation.
@@ -65,3 +68,16 @@ background pollers. A `make build` has been OOM-killed mid-run, deleting
 - Never scale a capital down for a lowercase. Redraw stems at lowercase weight.
 - Counters give way first; stroke weight gives way last.
 - Design the heaviest master first.
+
+## How the code is organised
+
+- `classify.py` assigns every letter a **tier**: T1 a Latin component, T2
+  assembled from existing parts, T3 newly drawn. Take the highest tier the
+  letter honestly allows — derived glyphs inherit the Latin's optical fitting.
+- `recipes.py` builds each glyph per master; `lc()` runs a recipe through the
+  `Lower` view (`params.py`), which answers with the lowercase's own stem, bar
+  and sidebearings while `paths` still returns the real Latin.
+- `geom.py` is the outline algebra. Recipes are written in it, not in raw
+  coordinates.
+- **A green mechanical run is not evidence a glyph is right.** Node parity
+  cannot see that a glyph is the wrong size — it passed Э drawn at cap height.

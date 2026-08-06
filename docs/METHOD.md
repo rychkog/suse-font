@@ -210,8 +210,14 @@ output of a gate.
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
 | `checkpoint.py` | the review sheet | — |
+| `classify.py` | the tier table — what is derived, and from what | — |
+| `geom.py` | outline algebra over Glyphs paths (22 primitives) | — |
+| `build_cyrillic.py` | writes recipes into the Glyphs source; `--rebuild` drops and redraws | — |
 
 `verify.sh` runs all five gates in order and exits non-zero on any failure.
+`review.sh` regenerates **every** review image from the current build — use it
+rather than rendering one sheet, because reviewing an image made before the
+last fix wastes a round.
 
 Only `probe.py` reads built fonts and the panel through one lens, which is what
 makes "ours" and "theirs" the same quantity. Everything above it reads the
@@ -219,7 +225,102 @@ source, one master at a time.
 
 ---
 
-## 4 · Open threads
+## 4 · How the code is organised
+
+Worth knowing before reading `recipes.py`, because none of it is obvious from
+a single function.
+
+### Tiers — *`tools/classify.py`*
+
+Every target letter is assigned the **highest tier it can honestly take**, to
+keep fresh drawing to a minimum. The Latin has already been condensed and
+optically fitted to a 600-unit cell; a derived glyph inherits that work and a
+freshly drawn one throws it away.
+
+- **T1** — the same drawing as a Latin glyph, as a Glyphs **component**, never
+  a copied path, so it tracks the Latin through both masters for free.
+- **T2** — assembled from components and parts that already exist.
+- **T3** — genuinely new outlines, drawn once and node-matched across masters.
+
+Two rules rule out the obvious shortcuts, and a Cyrillic reader sees a breach
+of either immediately: **no mirroring** (И is not a flipped Н, Я not a flipped
+R, Э not a flipped С — mirroring reverses terminal cuts and stroke modulation)
+and **no scaling capitals down for lowercase**.
+
+### The `Lower` view — *`tools/params.py`*, applied by `lc()` in `recipes.py`
+
+Cyrillic lowercase is largely small-capital in shape, so for most letters the
+**construction** carries over unchanged — and *only* the construction.
+
+`Lower` wraps a `Params` and answers with the lowercase's own figures: the
+x-height for `cap`, 150 against 161 for the stem, 106 against 135 for the bar,
+the lowercase sidebearings. `paths` still hands back the real Latin, so a
+recipe reading L's corner or O's bowl gets exactly what it always got.
+
+This is what lets one recipe serve both cases. It is also where **F1** hides:
+a recipe that hard-codes a capital's proportion instead of reading it off `pr`
+will silently carry that proportion down into the lowercase. `getattr(pr,
+"lower", False)` is the test for which case a recipe is running in.
+
+### Outline algebra — *`tools/geom.py`*
+
+`node` / `path` / `rect` / `bbox` / `reverse` / `translate` / `mirror_x` /
+`scale_x` / `slant` / `piecewise_y`, plus `corner_radius` and `inner_radius`,
+which read the face's own turns off L. Recipes are written in these, not in
+raw coordinates.
+
+---
+
+## 5 · Settled findings
+
+Things established by measurement that are not method and not a fault.
+
+### Node parity says nothing about size
+
+Э was drawn at **cap height** while being a lowercase letter, and the
+interpolation-compatibility check passed it without complaint. Parity checks
+path count, node count, order, start node and direction. It cannot see that a
+glyph is the wrong size, in the wrong place, or the wrong letter. A green
+mechanical run is not evidence that a glyph is right.
+
+### Optical width is not bbox width — *no metric captures this*
+
+л read "too wide" twice while every width metric said it was fine. The cause
+was its **sloped leg**: a slanted stroke reads wider than its bounding box
+against upright neighbours. There is no measurement in this project that sees
+it, and the user's report was the only signal. When a width complaint survives
+a clean width measurement, look for a diagonal.
+
+The same asymmetry is why `check.py` reads Л and Д on their vertical right
+stem rather than their leading slanted leg — a horizontal cut across a slope
+always measures wide.
+
+### A lowercase's corner set is its capital's
+
+г matches Г **exactly** — `[78, 103]` at Thin, `[20, 122]` at ExtraBold. So ґ
+must be г plus the tick's two corners, which is precisely Ґ's set. Reasoning
+from that identity found three wrong corners in ґ at once, where measuring
+them one at a time had missed them.
+
+Corollary: at ExtraBold this face turns **wider** in the lowercase t and f
+(168) than in E, F and L (122). The capital's radius is a **floor** for a
+lowercase corner, never a ceiling.
+
+### Not every constant hides a relation
+
+The weight sweep checked eleven flat constants and found **one** genuine
+instance (`EF_WIDTH`). `EF_HEIGHT` (4% spread), `TICK_RISE` (4%) and
+`YERU_INK` came back genuinely flat or already tracking the panel.
+
+`TICK_RISE` matters twice over: the panel holds Ґ's tick rise at 0.212–0.221
+of cap height at *every* weight, so the approved 0.21 is right — and a
+"rise follows the stem" alternative that had been proposed would have moved it
+**away** from the panel. Measure before changing an approved glyph, and the
+measurement may well defend it.
+
+---
+
+## 6 · Open threads
 
 - **о does not follow the panel's weight relation.** Relative to the face's own
   о, ф's bowl measured 1.205 at Thin and 1.040 at ExtraBold against a panel
