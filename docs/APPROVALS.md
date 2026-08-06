@@ -27,14 +27,14 @@ round.
 | --- | --- | --- |
 | **Ґ** | before 2026-08-06 | Tick rise `0.21 × cap` and the derived inner radius. Re-confirmed on 2026-08-06 after two unrequested changes were reverted. The panel independently supports it: `TICK_RISE` is flat at 0.212–0.221 across every weight band. |
 | **л** | before 2026-08-06 | Confirmed after the leg-splay fix. `LEG_LEAN`; the sloped leg reads wider than its bbox and no metric sees it. |
+| **ґ** | 2026-08-06 | All four of Ґ's corners — `[28,57,78,103]` Thin, `[4,20,67,122]` ExtraBold — with its own rise, `0.28 × x-height`, not the capital's 0.21. Arm takes `lc_arm_end`. |
+| **г** | 2026-08-06 | Corner set matches Г exactly. Arm is a **ceiling**, `ARM_SHARE` × Г's arm × `lcCapWidth`, so Thin keeps its own 367 and only the heavy end moves. |
+| **ф** | 2026-08-06 | Width, wall and middle stem all linear in the stem (`EF_FIT["lc"]`, clamped at 1.0). Bowl is **not** о — `EF_BOWL_TALLER` 1.05 about о's centre. Marginally wide for its height at Regular/Bold; two masters cannot bend it. |
+| **Ф** | 2026-08-06 | Same three relations (`EF_FIT["cap"]`). `EF_OVERHANG` 0.07, which sets the bowl's height as well as the stem's projection. Every internal proportion inside the panel at all four weights. |
 
 ## In review — changed and shown, no verdict recorded
 
-These have been rendered for the user but no approval is on record. Treat as
-**not frozen**, and do not assume the silence was assent.
-
-`ґ` `г` `ф` `Ф` — all changed on 2026-08-06 after defect reports, rebuilt and
-shown, verdict outstanding.
+*(none)*
 
 ## Not recorded
 
