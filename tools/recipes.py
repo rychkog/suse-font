@@ -100,6 +100,10 @@ CAP_DESCENT = 0.75      # of the face's own descender depth
 # the two tightest, Consolas at 0.455 and JetBrains at 0.470, sit just under
 # this. Everything else about Ч comes from SUSE's own Y and L.
 CHE_COUNTER = 0.48
+# ф's width at x-height, over the advance: the panel's own median across the
+# 51 faces that draw it. The capital takes capWidest instead, being the widest
+# letter the face allows.
+EF_WIDTH = 0.863
 EF_OVERHANG = 0.10      # Ф: how far the stem projects past the bowl, in cap
                         # heights. Borrowed for the same reason -- see Ef.
 
@@ -475,16 +479,20 @@ def Ghe_upturn_lc(pr, top=None):
     # capital's 0.21 down left ґ at 0.66 of the panel's ink median against a
     # range that bottoms out at 0.65.
     rise = round(0.28 * top)
-    ns = [node(x0, 0.0), node(x0, top - ro)]
-    ns += arc_to(x0, top - ro, x0 + ro, top, x0, top)
-    ns += [node(x1 - ro, top)]
-    ns += arc_to(x1 - ro, top, x1, top + ro, x1, top)
-    ns += [node(x1, top + rise), node(x1 - s, top + rise),
-           node(x1 - s, top - b + ri)]
-    ns += arc_to(x1 - s, top - b + ri, x1 - s - ri, top - b, x1 - s, top - b)
-    ns += [node(x0 + s + ri, top - b)]
-    ns += arc_to(x0 + s + ri, top - b, x0 + s, top - b - ri, x0 + s, top - b)
-    ns += [node(x0 + s, 0.0)]
+    # The tick's RIGHT edge is the arm's own right end, carried on upward; its
+    # LEFT edge comes down only as far as the arm's top surface. Run the left
+    # edge down to the arm's UNDERSIDE instead and the outline crosses itself
+    # where it meets the arm's top -- at (381, 493) at ExtraBold -- and the
+    # tip comes away from the letter. Same topology the capital splices out
+    # of E.
+    ns = [node(x0 + s, 0.0), node(x0 + s, top - b - ri)]
+    ns += arc_to(x0 + s, top - b - ri, x0 + s + ri, top - b, x0 + s, top - b)
+    ns += [node(x1, top - b), node(x1, top + rise),
+           node(x1 - s, top + rise), node(x1 - s, top + ri)]
+    ns += arc_to(x1 - s, top + ri, x1 - s - ri, top, x1 - s, top)
+    ns += [node(x0 + ro, top)]
+    ns += arc_to(x0 + ro, top, x0, top - ro, x0, top)
+    ns += [node(x0, 0.0)]
     p_ = path(ns)
     return [p_ if area(p_) > 0 else reverse(p_)]
 
@@ -744,8 +752,31 @@ def Ef(pr):
     # runs 1.589 to 1.975, and its ink came out at 0.69 of the panel's median,
     # outside every one of the 51 faces that draw it.
     if getattr(pr, "lower", False):
-        oh = EF_OVERHANG * pr.cap
-        return (bowl(pr, edge, 600.0 - edge, oh, pr.cap - oh)
+        # The bowl is simply o, centred, at o's own size. EF_OVERHANG says how
+        # far the STEM projects past the bowl, and it was borrowed for the
+        # capital, where the stem stops at the cap line and has to be seen
+        # doing it. Down here the stem already runs to the ascender and the
+        # descender, so nothing is gained by holding the bowl short of the
+        # x-height -- and holding it short is what flattened the bowl: 0.10 of
+        # the height off the top and the bottom left it 1.44 wide for its
+        # height at Thin and 1.77 at ExtraBold, where the panel's ф sits at
+        # 1.04 and this face's own o at 0.86 and 1.31. A flat ellipse where
+        # the face draws round.
+        # o's own height, and the panel's own width for ф -- 0.863 of the
+        # advance, which with that height gives the bowl an aspect of 1.02
+        # against the panel's median of 1.04. o's width alone is too narrow:
+        # at ExtraBold its counter left only 22 units either side of the stem
+        # crossing it, and the four junctions came to 37 degrees where this
+        # face's own sharpest is 46.
+        #
+        # And unlike Ю, ф DOES take the crowding reduction. A scanline across
+        # its bowl crosses three strokes -- wall, stem, wall -- which is what
+        # m's figure is for. The capital escapes it by being the widest letter
+        # the face allows; at x-height there is no such room to buy.
+        ob = bbox(pr.paths(round_of(pr)))
+        half = EF_WIDTH * 600.0 / 2.0
+        return (bowl(pr, 300.0 - half, 300.0 + half, ob[1], ob[3],
+                     crowd=m.crowd3)
                 + [rect(300.0 - pr.stem / 2.0, -m.descDepth,
                         300.0 + pr.stem / 2.0, pr.asc)])
     mid = 300.0
