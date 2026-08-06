@@ -24,7 +24,7 @@ from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
                   fit)
 from latin_metrics import Latin
-from params import Lower
+from params import Lower, _flatten
 
 # Multiple of the face's own corner radius, for the letters whose arm is too
 # short to carry the whole thing.
@@ -1959,6 +1959,99 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
             + mirror_x(clone_all(left), 300.0))
 
 
+def Em(pr, top=None, bottom=0.0):
+    """м -- М's construction at x-height, rebuilt from M's own figures.
+
+    М here IS the Latin M, a tier-1 donor, and Latin m is three arches, so
+    unlike к there is no lowercase counterpart to take and the letter has to be
+    built. What can still be inherited is every proportion: nothing below is
+    chosen, all of it is read off M at this master.
+
+    Four strokes -- two upright, two diagonal down to a vertex that stops well
+    above the baseline. The vertex is cut FLAT rather than brought to a point,
+    because that is what M does: its two diagonals stop level with the height
+    at which their centrelines cross, which is this face's rule that two
+    strokes crossing stay square.
+
+    Across the 51 panel faces that draw both, м is 1.000 of М's width with the
+    middle half inside seven thousandths, and М's uprights and м's carry the
+    same reduction against their own case's stem -- 0.925 and 0.922. So the
+    box and the weights come straight across; only the height changes.
+    """
+    top = pr.cap if top is None else top
+    base = getattr(pr, "_pr", pr)
+    h = top - bottom
+    polys = [_flatten(p) for p in base.paths("M")]
+
+    def cross(y):
+        xs = []
+        for pts in polys:
+            for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]):
+                if (y0 - y) * (y1 - y) < 0:
+                    xs.append(x0 + (x1 - x0) * (y - y0) / (y1 - y0))
+        xs.sort()
+        return [(xs[i], xs[i + 1]) for i in range(0, len(xs) - 1, 2)]
+
+    def line(ya, yb, idx):
+        """Centreline and perpendicular width of one stroke between two cuts."""
+        ra, rb = cross(ya), cross(yb)
+        a, b = ra[idx], rb[idx]
+        ca, cb = (a[0] + a[1]) / 2.0, (b[0] + b[1]) / 2.0
+        s = (cb - ca) / (yb - ya)
+        return ca, s, (a[1] - a[0]) / math.hypot(1.0, s)
+
+    # The uprights, read low down where the diagonals have gone.
+    low = cross(base.cap * 0.15)
+    left, right = low[0][0], low[-1][1]
+    upright = (low[0][1] - low[0][0]) / base.stem
+
+    # The diagonals, read a quarter of the way into the band where all four
+    # strokes stand apart. That band is 0.36..0.95 of cap at Thin and
+    # 0.53..0.89 at ExtraBold, so any fixed height reads a merged run at one
+    # of the two masters and gives the diagonal a slope it does not have.
+    four = [j for j in range(5, 99) if len(cross(base.cap * j / 100.0)) == 4]
+    ya = base.cap * (four[0] + (four[-1] - four[0]) * 0.25) / 100.0
+    yb = ya + base.cap * 0.10
+    la, ra_ = line(ya, yb, 1), line(ya, yb, 2)
+    diag = (la[2] + ra_[2]) / 2.0 / base.stem
+    _ = (ya + (ra_[0] - la[0]) / (la[1] - ra_[1])) / base.cap
+
+    # ...and rebuilt in this case's box, at this case's stroke.
+    #
+    # The vertex is NOT М's height as a fraction. м keeps М's width -- the
+    # panel is emphatic, 1.000 with the middle half inside seven thousandths --
+    # over two thirds of its height, so a diagonal that lands at the same
+    # fraction has to lean half again as hard and closes the counter to seven
+    # units at ExtraBold where this face's own Latin never goes below fifteen.
+    # The letter cannot widen and the stroke is the last thing to give, so what
+    # gives is the depth: the vertex drops until the diagonal has М's OWN lean
+    # back, which at both masters means the baseline. That is what the panel
+    # sees too -- its median for м's vertex is 0.18 of the x-height against
+    # 0.30 of the cap for М, and its lower quartile is 0.04.
+    # ...and both strokes take the face's own crowding reduction on top of М's
+    # figures. М is four strokes across a cell that is 700 tall; м is four
+    # strokes across the same cell 472 tall, so its diagonals lean harder and
+    # the wedge between each upright and its diagonal is the tightest white in
+    # the letter. Left at М's weights that wedge closes to 24 units at Regular
+    # where this face's own Latin never goes below 28 -- and Regular is where
+    # it shows, because both masters are clear and the failure is in the blend.
+    # `crowd3` is the same reduction the face gives m's third stem against n,
+    # which Ж's arms already take for the same reason.
+    us = upright * pr.stem * L(pr).crowd3
+    ds = diag * pr.stem * L(pr).crowd3
+    lean = abs(la[1])
+    yv = max(bottom, top - (300.0 - (left + us / 2.0)) / lean)
+    out = [rect(left, bottom, left + us, top),
+           rect(right - us, bottom, right, top)]
+    for x in (left + us / 2.0, right - us / 2.0):
+        s = (300.0 - x) / (yv - top)
+        hw = ds * math.hypot(1.0, s)
+        out.append(path([node(x - hw / 2.0, top), node(x + hw / 2.0, top),
+                         node(300.0 + hw / 2.0, yv),
+                         node(300.0 - hw / 2.0, yv)]))
+    return [p if area(p) > 0 else reverse(p) for p in out]
+
+
 def Ka(pr):
     """к -- the face's own k with the ascender taken off.
 
@@ -2023,7 +2116,7 @@ RECIPES = {
     # from spliced Latin outlines, so Lower alone re-sizes them.
     "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
-    "yeru-cy": lc(Yeru), "ka-cy": Ka,
+    "yeru-cy": lc(Yeru), "ka-cy": Ka, "em-cy": lc(Em),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }
