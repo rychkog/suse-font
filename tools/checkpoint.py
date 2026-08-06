@@ -68,6 +68,42 @@ def line_block(title, rows, height_hint=0):
     return im
 
 
+def matched(pairs, weights=("Regular", "Bold"), size=58):
+    """Each lowercase scaled so its x-height equals the capital's cap height.
+
+    The one view that answers "does this lowercase belong to that capital".
+    Setting them at their real sizes only ever shows that one is smaller than
+    the other; scaling the size away leaves the silhouette, which is the thing
+    actually in question.
+    """
+    tmp = Image.new("RGB", (10, 10))
+    lab = ImageFont.truetype(LABEL, 15)
+    head = ImageFont.truetype(LABEL, 17)
+    rowh = int(size * 1.75)
+    im = Image.new("RGB", (W, 30 + rowh * len(weights)), "white")
+    d = ImageDraw.Draw(im)
+    d.text((0, 4), "Each lowercase scaled so its x-height equals the "
+           "capital's cap height -- size removed, silhouette left",
+           font=head, fill=(60, 60, 60))
+    y = 30
+    for wt in weights:
+        f = TTFont(FONT % wt)
+        k = f["OS/2"].sCapHeight / float(f["OS/2"].sxHeight)
+        big = ImageFont.truetype(FONT % wt, size)
+        small = ImageFont.truetype(FONT % wt, int(round(size * k)))
+        d.text((0, y + rowh // 3), wt, font=lab, fill=(140, 140, 140))
+        x = 150
+        for i in range(0, len(pairs), 2):
+            d.text((x, y), pairs[i], font=big, fill=(0, 0, 0))
+            # the capital's own advance, so the two sit side by side rather
+            # than on top of each other -- this face is monospaced at 600/1000
+            d.text((x + int(size * 0.60), y - int(size * (k - 1) * 0.98)),
+                   pairs[i + 1], font=small, fill=(180, 30, 30))
+            x += int(size * 1.72)
+        y += rowh
+    return im
+
+
 def stack(images, gap=26):
     w = max(i.width for i in images)
     h = sum(i.height for i in images) + gap * (len(images) - 1)
@@ -112,6 +148,8 @@ def main():
          ("pairs bold", FONT % "Bold", 44, ok("Вв Ьь Ъъ Ыы Гг Нн Тт Пп Шш Щщ Цц Ии")),
          ("vs Latin", FONT % "Regular", 44, ok("bв bь bъ nн mш rг tт pп uц iи")),
          ("JetBrains", JB % "Regular", 44, ok("Вв Ьь Ъъ Ыы Гг Нн Тт Пп Шш Щщ Цц Ии"))]))
+
+    parts.append(matched(ok("ВвЬьЪъЫыГгНнТтПпШшЩщЦцИи")))
 
     parts.append(line_block(
         "Same text, this font above JetBrains Mono below (professionally drawn Cyrillic)",
