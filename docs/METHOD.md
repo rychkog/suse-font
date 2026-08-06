@@ -10,6 +10,83 @@ it; it survives because it is written here.
 
 ---
 
+## The objective
+
+**The Cyrillic must read as SUSE Mono — not as Cyrillic added to SUSE Mono.**
+A reader should not be able to tell which letters came later. This is the goal
+every rule below serves, and when a rule and this goal disagree, this goal
+wins.
+
+The user is a native Ukrainian reader and not a type designer, so the reports
+that matter arrive in exactly these terms: *"ю simply doesn't belong and
+doesn't have SUSEMono signature"*, *"ґ has [the] defect you've fixed with
+[the] uppercase version before which drops SUSEMono signature"*. Both were
+real, and neither was visible to any measurement running at the time.
+
+### The signature is concrete
+
+It is not a feeling. It can be enumerated, and every item is readable off the
+Latin:
+
+- **Where one stroke turns, it rounds. Where two cross, it stays square.**
+  This is the single most characteristic thing about the face.
+- **A corner's radius tracks stroke weight, not letter height** — L's outer
+  turn runs 103 at Thin and 122 at ExtraBold while its inner runs 78 and 20.
+- **A short stroke takes the reduced corner** (`RADIUS`), because a bend is
+  bounded by the shorter of the two strokes it joins.
+- **Terminals are cut square and flat**, on the cap line, the baseline and the
+  x-height alike.
+- **A lowercase turn is never tighter than the capital's.** At ExtraBold this
+  face turns *wider* in t and f (168) than in E, F and L (122).
+- Everything sits in a **600-unit cell** that the Latin has already been
+  condensed and optically fitted to.
+
+When a letter "doesn't belong", one of those is usually missing. г's corner had
+been halved by a reduction meant for short strokes; ґ's notch had been squared
+by a subtraction that went negative; ю's join had been made too short to read.
+
+### The host is the authority, the panel is not
+
+This is why **host before panel** (§1) is the first rule of method, and it is
+worth being blunt about the asymmetry:
+
+- The **panel** can only tell you **which relations exist** across monospace
+  design generally — that ф widens with weight, that г's arm is shorter than
+  Г's, that a tick rises about 0.21 of the cap.
+- The **host** tells you **what the value is** in *this* face, and what the
+  shape must look like.
+
+A panel median is never a reason to change something the face already does
+consistently, and never a reason to change a letter the user has approved.
+Sixty other faces are evidence about typefaces in general; they are not
+evidence about this one.
+
+### Derived beats drawn, for this reason
+
+The tier system (§5) is not an efficiency measure. The Latin has already been
+condensed, fitted and optically corrected inside its cell. A glyph derived from
+it — a component, or a construction reading its corners and stems off it —
+**inherits that work**. A glyph drawn fresh throws it away and has to re-earn
+it, and will not fully succeed. Take the highest tier the letter honestly
+allows.
+
+### How to test it
+
+Not by looking at the letter alone:
+
+- **`checkpoint.py`'s "vs Latin" row** — each new lowercase beside the Latin
+  lowercase it shares a line with.
+- **The mixed Latin/Cyrillic line** — `git commit -m 'юність' v2.1
+  build/ґрунт-єднати.log`. A bolted-on script shows here before anywhere else,
+  because the eye compares scripts directly across a word boundary.
+- **The JetBrains rows** are for calibration, not imitation. They answer
+  "is this within the range a professional Cyrillic occupies", not "does this
+  belong to SUSE Mono".
+- **Reading sizes, 12px and 14px.** Signature failures that survive at display
+  size often vanish or invert at text size, which is where the face is used.
+
+---
+
 ## 1 · Method
 
 ### Host before panel — *prose only*
