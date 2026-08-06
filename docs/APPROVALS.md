@@ -38,7 +38,9 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| glyph | shown | change |
+| --- | --- | --- |
+| **Ж ж** | 2026-08-06 | The centre stem is no longer lighter than the arms. `ZHE_STEM` was 0.86, read off JetBrains Mono alone; across the 49 panel faces that draw Ж the ratio is flat at 1.00 over the whole weight range, and this face never lightens a diagonal either — its X runs 0.97 to 1.02 of H's stem at every weight. Now 1.033, and the built letter measures 1.01–1.03 in the capital and 1.02–1.04 in the lowercase, inside the panel at all four weights in both cases. **Known marginal if approved:** the arm stays heavier than the panel wants at Bold and ExtraBold — 0.85 and 0.83 of the face's own stem against a panel bracket ending at 0.82 and 0.79. That is the face, not the letter: its own X is outside in the same direction at the same weights, and its K sits at 0.86 where Ж's arm sits at 0.85. |
 
 ## Not recorded
 

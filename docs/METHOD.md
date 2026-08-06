@@ -400,6 +400,15 @@ Every one of these was announced as a defect before being caught:
   to 0.72 at Bold, which no drawn stroke does. **Corrected** by requiring the
   run to hold its height as well as its position.
 
+- Ж's probe swept for the first height where a cut gives three clean runs and
+  reported that one. The arm's measured thickness drifts with the height it is
+  read at — cut flat against the cap line at the top, running into the stem at
+  the bottom — so at Regular the same letter read 0.983 low in the band and
+  1.035 high in it, for a ratio the source holds at exactly 1.033 at both
+  masters. Interpolation cannot change a ratio both masters agree on, which is
+  what gave it away. **Corrected** to a median over the whole band. It had been
+  about to send a correct constant back for a second round of tuning.
+
 **Tell:** a reading of exactly 0.000, an empty result set, or one wildly out
 of family with its neighbours. Reproduce it with an independent probe before
 reporting it. **And a reading that jumps around between the interpolated
@@ -895,6 +904,27 @@ donor's own margin, at both masters, so there is nothing to drift.
 
 This applies to every diagonal still to be assembled — к, ж, у, х and the
 Serbian џ all put a stroke across a gap that is not the stroke's own run.
+
+### One reference face is a population of one
+
+`ZHE_STEM` was read off JetBrains Mono at two weights and set to 0.86 — the
+centre stem of Ж drawn lighter than its arms, because it is "the one stroke
+pressed on from both sides". The reading was right about JetBrains: measured
+again here it runs 0.95 at Thin down to 0.87 at ExtraBold. But across the 49
+panel faces that draw Ж the ratio is **flat at 1.00**, and JetBrains sits near
+the bottom of that population. So the constant generalised one face's habit,
+and the direction — falling with weight — was taken from an outlier too.
+
+The face agreed with the panel and not with the donor: it does not lighten a
+diagonal at all, its X running 0.97 to 1.02 of H's stem at every weight. So
+there was no reason for the single upright in Ж to be the lightest thing in
+it, and `strokes.py` had been saying so all along — Ж and ж were the furthest
+from the panel's median of anything drawn here.
+
+**Rule: a constant read off one face is a hypothesis, not a measurement.** It
+is the same fault ф was found by, one step earlier: there the panel was
+consulted but not bucketed, here it was not consulted at all. Bucket the panel
+before believing a figure, *and* count how many faces answered.
 
 ### The face ends a stroke two ways, and the side is not one of them
 
