@@ -37,10 +37,15 @@ does not state anywhere, and a threshold that has to be picked is the thing
 this project has been burned by most. The six pairs in `audit.py` are the six
 whose letters are made of corners, which is why they are the six.
 
-Not a gate. It reports, the way `harmony.py` does -- a finding here is a
-candidate for the user's eye, and several of the letters it names are frozen.
-Run `--selftest` first: it puts the Latin through the identical readings, and
-anything it flags is this file being wrong rather than the face.
+This IS a gate, and `--selftest` is a second one: the Latin goes through the
+identical readings, and anything it flags is this file being wrong rather than
+the face. Both run in `verify.sh`.
+
+Being a gate means the readings that are already known and already answered
+for have to be written down rather than tolerated silently -- see `ACCEPTED`.
+A glyph in that table is not exempt; it is pinned to the figure it was
+accepted at, so the letter can stop being a finding without becoming
+unwatched.
 """
 
 import math
@@ -262,6 +267,32 @@ def cut_pass(selftest, subj):
     return findings
 
 
+# Horizontals already read, already explained, and already in APPROVALS.md
+# where they are frozen. Each is pinned to the figure it was accepted at
+# rather than waved through by letter, so the letter goes on being measured:
+# в drifting to 0.80 would fail this table exactly as a new letter would.
+#
+#   в       its horizontals are B's own, which fall from 0.96 of the bar to
+#           0.90 across the axis. Recorded when в was approved.
+#   Ы ы     three strokes have to fit across one cell, so the whole letter is
+#           shaved -- the answer Ш already gives. See recipes.Yeru.
+#   Ф ф     a unit over the Latin's own heaviest at Thin, two per cent under
+#           its lightest at Regular. Both approved; both now noted in
+#           APPROVALS.md so a later pass does not read them as defects.
+ACCEPTED = {
+    ("в", "Regular"): 0.92, ("в", "Bold"): 0.89, ("в", "ExtraBold"): 0.90,
+    ("ы", "Regular"): 0.92, ("ы", "Bold"): 0.88,
+    ("Ы", "Regular"): 0.89,
+    ("ф", "Thin"): 1.07, ("ф", "Regular"): 0.98,
+    ("Ф", "Thin"): 1.09,
+}
+
+# How far an accepted reading may move before it is a finding again. Two
+# points is the outline arithmetic between one build and the next, not room
+# for a redrawing: the faults this file exists for were 8 to 11 points out.
+ACCEPT_SLACK = 0.02
+
+
 def _median(v):
     return sorted(v)[len(v) // 2]
 
@@ -280,7 +311,7 @@ def bar_pass(selftest, subj):
     the two masters interpolate, and a horizontal that is right at both ends
     can still be wrong in between if it was pinned rather than derived.
     """
-    findings = []
+    findings, used = [], set()
     for weight in WEIGHTS:
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf", lazy=True)
         try:
@@ -308,14 +339,32 @@ def bar_pass(selftest, subj):
                     if not b:
                         continue
                     d = _median(b) / ref
-                    if not lo <= d <= hi:
-                        print(f"    {ch}  horizontal {_median(b):.0f}, "
-                              f"{d:.2f} of the face's own {ref:.0f}")
-                        findings.append(f"{weight:9} {ch} horizontal "
-                                        f"{d:.2f} of the face's own")
+                    if lo <= d <= hi:
+                        continue
+                    known = ACCEPTED.get((ch, weight))
+                    if known is not None and abs(d - known) <= ACCEPT_SLACK:
+                        used.add((ch, weight))
+                        print(f"    {ch}  horizontal {d:.2f} of the face's "
+                              f"own -- accepted at {known:.2f}")
+                        continue
+                    print(f"    {ch}  horizontal {_median(b):.0f}, "
+                          f"{d:.2f} of the face's own {ref:.0f}")
+                    findings.append(f"{weight:9} {ch} horizontal "
+                                    f"{d:.2f} of the face's own")
                 print(f"    ({len(rows)} read)")
         finally:
             f.close()
+
+    # A ledger nobody prunes stops being a ledger. An entry that no longer
+    # fires means the letter came back inside the Latin's own range, which is
+    # good news and still has to be acted on -- otherwise the table goes on
+    # excusing a reading that is not there any more, and the next real drift
+    # in that letter is waved through under an obsolete figure.
+    if not selftest:
+        for key in sorted(set(ACCEPTED) - used):
+            print(f"    {key[0]} at {key[1]} is inside the Latin's own range "
+                  f"now -- drop it from ACCEPTED")
+            findings.append(f"{key[1]:9} {key[0]} accepted entry is stale")
     return findings
 
 
@@ -328,3 +377,4 @@ if __name__ == "__main__":
     out = report("--selftest" in sys.argv)
     print("=" * 72)
     print(f"{len(out)} findings")
+    sys.exit(1 if out else 0)

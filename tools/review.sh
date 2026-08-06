@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ./venv/bin/python tools/checkpoint.py A >/dev/null
+./venv/bin/python tools/signature_sheet.py >/dev/null
 ./venv/bin/python - <<'PY'
 from PIL import Image, ImageDraw, ImageFont
 F = "fonts/ttf/SUSEMono-%s.ttf"
@@ -58,5 +59,5 @@ sheet("tools/out/be_big.png",
        ("SUSE Bold", F % "Bold"), ("JetBrains Bold", JB % "Bold"),
        ("SUSE ExtraBold", F % "ExtraBold"), ("JetBrains ExtraBold", JB % "ExtraBold")],
       "БДЦЩ", 150, 190)
-print("regenerated audit.png, be_big.png, checkpoint.png")
+print("regenerated audit.png, be_big.png, checkpoint.png, signature.png")
 PY
