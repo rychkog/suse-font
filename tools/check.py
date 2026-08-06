@@ -32,7 +32,38 @@ def flat(gs, name):
         elif op == "lineTo":
             cur.append(a[0])
         elif op in ("qCurveTo", "curveTo"):
-            cur += [p for p in a if p]
+            # Actually flatten. Taking the control points as vertices was
+            # cheap and wrong: the polygon does not follow the curve, and at
+            # Bold it missed Ф's counter crossing the scanline altogether, so
+            # the "first stroke" ran from the outer wall straight across the
+            # counter to the stem -- 221 units against a true 125, reported as
+            # a 52% error that was not there.
+            p0 = cur[-1]
+            if op == "curveTo":
+                c1, c2, p3 = a
+                for k in range(1, 25):
+                    t = k / 24.0
+                    u = 1.0 - t
+                    cur.append((u**3 * p0[0] + 3*u*u*t * c1[0]
+                                + 3*u*t*t * c2[0] + t**3 * p3[0],
+                                u**3 * p0[1] + 3*u*u*t * c1[1]
+                                + 3*u*t*t * c2[1] + t**3 * p3[1]))
+            else:
+                pts = list(a)
+                on = pts[-1]
+                offs = pts[:-1]
+                if on is None:
+                    on = offs[0]
+                for i, c in enumerate(offs):
+                    end = on if i == len(offs) - 1 else (
+                        (c[0] + offs[i + 1][0]) / 2.0,
+                        (c[1] + offs[i + 1][1]) / 2.0)
+                    for k in range(1, 25):
+                        t = k / 24.0
+                        u = 1.0 - t
+                        cur.append((u*u * p0[0] + 2*u*t * c[0] + t*t * end[0],
+                                    u*u * p0[1] + 2*u*t * c[1] + t*t * end[1]))
+                    p0 = end
         elif op == "closePath" and cur:
             polys.append(cur)
             cur = []
