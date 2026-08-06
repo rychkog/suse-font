@@ -176,6 +176,25 @@ class Latin:
         # cap height. Л's splay was invented; this measures it.
         self.legSplay = self._a_splay(pr, "A")
 
+        # How wide this face sets a lowercase letter against a capital, over
+        # letters of the same construction -- straight-sided, flat-topped,
+        # one or two stems. NOT lcWidest/capWidest: those are maxima over the
+        # whole alphabet, so the capital side is Y at 565 and the ratio ends
+        # up measuring how splayed the widest capital is rather than how the
+        # two cases are spaced. The panel's reading of г's arm is normalised
+        # by exactly this, and it has to be the same measurement here or the
+        # comparison is meaningless.
+        #
+        # This face runs 1.06 at Thin down to 0.98 at ExtraBold -- the
+        # lowercase starts wider than the capitals and ends narrower. Any
+        # lowercase width derived from a capital's has to carry that, or it
+        # drifts across the axis; see how г's arm did.
+        self.lcCapWidth = (
+            max(self._bbox(pr, g)[2] - self._bbox(pr, g)[0]
+                for g in "nudbhkpqm" if pr.paths(g)) /
+            max(self._bbox(pr, g)[2] - self._bbox(pr, g)[0]
+                for g in "HNUDBEFKLPR" if pr.paths(g)))
+
     @staticmethod
     def _bbox(pr, name):
         xs = [n.position.x for p in pr.paths(name) for n in p.nodes]
