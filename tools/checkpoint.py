@@ -134,8 +134,8 @@ def main():
     # Ukrainian alone never sets Ы Ъ Э, so those three had only ever been
     # reviewed as isolated glyphs. Both scripts from here on.
     russian = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРЫ, ЭХО"
-    ua = ok("ця дівчина ще жде лист")
-    ru = ok("для лыжни, эхо, счёты")
+    ua = ok("ґрунт, юність, єднати")
+    ru = ok("юность, форты, тёщи")
 
     parts = [grid(chars)]
 
@@ -144,12 +144,12 @@ def main():
     parts.append(line_block(
         "Each new lowercase against its own capital, and against the Latin "
         "lowercase it shares a line with",
-        [("pairs", FONT % "Regular", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы")),
-         ("pairs bold", FONT % "Bold", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы")),
-         ("vs Latin", FONT % "Regular", 44, ok("aя oэ bв xж nл vд")),
-         ("JetBrains", JB % "Regular", 44, ok("Дд Жж Лл Чч Ээ Яя Вв Ьь Ъъ Ыы"))]))
+        [("pairs", FONT % "Regular", 44, ok("Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя")),
+         ("pairs bold", FONT % "Bold", 44, ok("Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя")),
+         ("vs Latin", FONT % "Regular", 44, ok("oф oю cє rґ vд nл")),
+         ("JetBrains", JB % "Regular", 44, ok("Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя"))]))
 
-    parts.append(matched(ok("ВвДдЖжЛлЧчЭэЯя")))
+    parts.append(matched(ok("ФфЮюЄєҐґДдЛл")))
 
     parts.append(line_block(
         "Same text, this font above JetBrains Mono below (professionally drawn Cyrillic)",
@@ -159,7 +159,7 @@ def main():
          ("JetBrains Bold", JB % "Bold", 40, ru)]))
 
     parts.append(line_block(
-        "Real sizes (eighteen lowercase; б ґ є з к м ф ю still to come)",
+        "Real sizes (twenty-two lowercase; б з к м still to come)",
         [("14px UA", FONT % "Regular", 14, ua),
          ("14px RU", FONT % "Regular", 14, ru),
          ("12px UA", FONT % "Regular", 12, ua),
@@ -170,11 +170,11 @@ def main():
     parts.append(line_block(
         "Mixed Latin and Cyrillic in one line -- where a bolted-on script shows",
         [("18px", FONT % "Regular", 18,
-          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
+          ok("git commit -m 'юність' v2.1 build/ґрунт-єднати.log")),
          ("14px", FONT % "Regular", 14,
-          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
+          ok("git commit -m 'юність' v2.1 build/ґрунт-єднати.log")),
          ("JetBrains 18px", JB % "Regular", 18,
-          ok("git commit -m 'для лыжни' v2.1 build/ця-дівчина.log")),
+          ok("git commit -m 'юність' v2.1 build/ґрунт-єднати.log")),
          ("18px caps", FONT % "Regular", 18,
           "git commit -m ПОЛЕ FIXED ЦВІТЕ v2.1 ВІТЕР build/ДМЕ.log")]))
 
