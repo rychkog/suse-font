@@ -203,6 +203,9 @@ def main():
                 print(f"      {ch}  mine {v:5.3f}   median {med:5.3f} "
                       f"(p10 {lo:5.3f}, max {hi:5.3f})   furthest inside")
     print(f"\n{bad} readings below the panel's tenth percentile")
+    # non-zero so verify.sh gates on it, the way check.py already does
+    return 1 if bad else 0
 
 
-main()
+if __name__ == "__main__":
+    sys.exit(main())

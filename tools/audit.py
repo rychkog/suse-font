@@ -302,8 +302,17 @@ TAIL_PAIRS = (("ц", "Ц"), ("щ", "Щ"), ("д", "Д"), ("џ", "Џ"))
 # -- and therefore occupies a bigger fraction of a shorter letter, so a single
 # sample can land above the arm in Г and inside it in г and jump by 0.8 on its
 # own. That is physical, not a defect.
-PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЬьЪъЫы"
+PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЬьЪъЫыДдЖжЛлЧчЭэЯя"
 PROFILE_TOL = 0.08
+
+# KNOWN HOLE, left open deliberately. The silhouette check divides every letter
+# by its own width, which is what makes it useful and also blinds it to width:
+# Л was widened to 1.133 of П while л stayed at 1.000, and the two normalised
+# to the same outline within 0.001. The obvious patch -- require л/п to match
+# Л/П -- is WRONG, and fires on в and ж, because this face genuinely does not
+# hold that ratio across the case: b's bowl reaches 526 where B's reaches 518,
+# on a narrower lowercase reference. The right check compares each case
+# against the PANEL's own figure for that case, the way strokes.py does.
 
 
 def profile(gs, gname):
@@ -354,6 +363,12 @@ def corner_set(paths):
 def corner_drift(low, cap, exempt):
     """What differs between a lowercase letter's corners and its capital's."""
     if low == cap:
+        return None
+    # A unit either way is the outline rounding, not a decision. Changing the
+    # counter that sizes Ц's stem moved its tail corner from 22 to 23 and this
+    # reported it as a drift, which is noise wearing a finding's clothes.
+    if len(low) == len(cap) and all(abs(a - b) <= 1
+                                    for a, b in zip(low, cap)):
         return None
     only_low = Counter(low) - Counter(cap)
     only_cap = Counter(cap) - Counter(low)
@@ -927,6 +942,7 @@ def main():
                     f"{weight:9} {low} is not {up}'s shape: silhouettes "
                     f"differ by {sum(d) / len(d):.3f} on average")
 
+
         # Я hangs В's bowl mirrored, so it belongs to the same family and is
         # checked the same way -- only its wall, since a mirrored bowl in the
         # upper half reaches nothing comparable to В's lower one.
@@ -974,7 +990,7 @@ def main():
 
     if not findings:
         print("audit clean")
-        return
+        return 0
     seen = {}
     for x in findings:
         seen.setdefault(x.split()[1], []).append(x)
@@ -983,6 +999,11 @@ def main():
         print(f"  {ch}")
         for x in seen[ch][:4]:
             print(f"      {x}")
+    # A non-zero exit, so verify.sh actually gates on this. It did not: audit
+    # returned 0 whether it found anything or not, and the script reported
+    # "all gates pass" with findings on the screen above it.
+    return 1
 
 
-main()
+if __name__ == "__main__":
+    sys.exit(main() or 0)

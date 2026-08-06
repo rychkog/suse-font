@@ -72,7 +72,6 @@ def diag_unit(pr):
 
 
 MIN_SB = 0.055          # tightest sidebearing a widened letter may take
-COUNTER = 0.32          # counter width as a fraction of the stem
 YERU_SPLIT = 2.2        # Ы: bowl counter, as a multiple of the gap to its stem
 YERU_INK = 0.72         # Ы: share of its own width that may be ink
 BOWL_COUNTER_TOP = 0.47 # Ь Ъ Б Ы: height of the bowl COUNTER, in cap heights
@@ -217,8 +216,14 @@ def _tailed_body(pr, n, over):
     x0, x1, s = fit_stems(pr, n)
     x1 = min(x1, 592.0 - over)
     span = x1 - x0
-    if span / (n + (n - 1) * COUNTER) < s:
-        s = max(0.80 * pr.stem, min(pr.stem, span / (n + (n - 1) * COUNTER)))
+    # The face's own counter, off m -- the same figure fit_stems uses. This
+    # line carried the flat 0.32 that fit_stems was fixed for and kept, which
+    # is the Ь-and-Ъ pattern again: a constant discredited in one place and
+    # left running in another. It bit only Щ at ExtraBold and only by a third
+    # of a unit, so nothing would ever have shown it.
+    c = L(pr).counter3 / float(pr.stem)
+    if span / (n + (n - 1) * c) < s:
+        s = max(0.80 * pr.stem, min(pr.stem, span / (n + (n - 1) * c)))
     return x0, x1, s
 
 
@@ -507,7 +512,45 @@ def Dzhe(pr):
     return Tse(pr, centre_tail=True)
 
 
-def El(pr, top=None, bottom=0.0):
+# How far Л's leg is pushed out of П's span, and how far Д narrows its body.
+#
+# Л stays at 0: the splay is spent INSIDE П's span and the letter is exactly
+# its neighbours' width. That was tried before and rejected as "a leaning П",
+# but the flatness was the lean, not the width -- see LEG_LEAN, which was
+# discarding nearly half the face's own splay. With the diagonal restored the
+# letter reads as an Л at П's width, and any outward slide is width on top of
+# a slant that already fills the cell.
+#
+# Which matters because a sloped leg is optically wider than a vertical stem:
+# the bbox says 1.000 while the eye sees more of the cell filled than п or н
+# fill. Every width figure sat on the panel's median while the letter still
+# looked too wide beside its neighbours, because bbox width is not what the
+# reader is comparing. Both cases stay inside the panel's range for Л/П and
+# л/п -- 0.993 to 1.254 and 0.881 to 1.230 -- at its narrow end, deliberately.
+#
+# Д cannot follow it. Its body is already 0.80 of the advance against a panel
+# median of 0.614, and every step outward pushes the body further over the
+# plinth until the legs disappear beneath it -- which is the fault this was
+# opened to fix. Д keeps the slant inside its span and narrows the body
+# instead, which is what gives the plinth something to jut past.
+EL_OUTWARD = 0.0
+DE_BODY = 0.86
+
+# What share of the face's own leg lean Л takes. A and v measure a LATIN leg,
+# which spans a triangle rather than the full height, so some factor is needed
+# -- but 0.55 was never derived from anything. It threw away nearly half the
+# measured lean and left Л at 0.155-0.182 of travel per unit height against a
+# panel median of 0.211, and л at 0.206-0.230 against 0.251. The letter went
+# nearly rectangular, and a rectangle reads WIDE however narrow it measures:
+# every width figure for л sat on the panel median while the letter still
+# looked too wide, because width was never the thing that was wrong.
+#
+# 0.65 is what puts both cases on the panel: Л lands at 0.215 and 0.182, л at
+# 0.271 and 0.243, bracketing the medians of 0.211 and 0.251.
+LEG_LEAN = 0.65
+
+
+def El(pr, top=None, bottom=0.0, outward=0.0, span=1.0):
     """Л -- right stem, arm across the top, leg splaying left as it descends.
 
     The top left is ROUNDED. It is a place where one stroke turns into
@@ -534,9 +577,29 @@ def El(pr, top=None, bottom=0.0):
     m = L(pr)
     r = corner_radius(pr) * RADIUS
     x0, x1, s_ = fit_stems(pr, 2)
-    splay = (top - bottom) * m.legSplay * 0.55
-    lgx = x0 + splay
-    foot = x0
+    # Д's body is Л, and the two want opposite things: Л is 1.000 of П's width
+    # where the panel's median is 1.137, while Д's body is 0.80 of the advance
+    # where the panel's is 0.614. Widening Л therefore made Д worse, its body
+    # overflowing the plinth until the legs vanished under it. So the body
+    # narrows independently of the slant, and Д is the only caller that uses it.
+    if span != 1.0:
+        mid = (x0 + x1) / 2.0
+        half = (x1 - x0) * span / 2.0
+        x0, x1 = mid - half, mid + half
+    # The face's own leg lean, per case: A's above, v's below. They are not the
+    # same -- 0.330 and 0.280 against 0.417 and 0.373 -- and using A's for both
+    # left л's leg travelling 0.115 to 0.158 of its own width where the panel's
+    # median is 0.204. Too little slant reads as too much width: the letter
+    # goes nearly rectangular and stops looking like an л at all.
+    lean = m.lcLegSplay if getattr(pr, "lower", False) else m.legSplay
+    splay = (top - bottom) * lean * LEG_LEAN
+    # `outward` slides the SAME slant leftward out of П's span: at 0 the leg
+    # ends where П's stem stands and the letter is П's width, at 1 it starts
+    # there and the letter is wider by a whole splay. The slant is identical
+    # either way, which is the point -- the earlier attempt derived the splay
+    # from a width target instead and straightened the leg to buy the width.
+    lgx = x0 + splay * (1.0 - outward)
+    foot = lgx - splay
     # unit vector down the leg's left edge, to set the arc's start back from
     # the corner by the same radius as the horizontal side
     dx, dy = foot - lgx, bottom - top
@@ -572,11 +635,21 @@ def De(pr, top=None):
     """
     top = pr.cap if top is None else top
     m = L(pr)
-    foot = m.descDepth * CAP_DESCENT
-    inset = round(0.045 * pr.cap)
+    foot = descent(pr)
     x0, x1, s = fit_stems(pr, 2)
+    # How far the plinth juts past the body, which is what makes the legs read
+    # as legs. As a flat 0.045 of the cap this was 32 units at every weight
+    # while the stem grew from 29 to 161, so the overhang fell from 2.24 stems
+    # at Thin to 0.27 at ExtraBold -- below the whole panel, whose median is
+    # 1.01 -- and the legs disappeared under the strokes above them.
+    #
+    # It now scales with the stem and stops at the tightest sidebearing the
+    # face allows, which is what actually binds here: at ExtraBold 0.6 of a
+    # stem is 90 units and there is room for 37.
+    inset = min(max(round(0.045 * pr.cap), round(0.60 * pr.stem)),
+                x0 - round(MIN_SB * 600.0))
     px0, px1 = x0 - inset, x1 + inset
-    body = El(pr, top=top, bottom=pr.bar)
+    body = El(pr, top=top, bottom=pr.bar, span=DE_BODY)
     return body + [rect(px0, 0.0, px1, pr.bar),
                    rect(px0, -foot, px0 + s, pr.bar),
                    rect(px1 - s, -foot, px1, pr.bar)]
@@ -1506,7 +1579,7 @@ def lc(fn, **kw):
 
 RECIPES = {
     "Ge-cy": Ghe, "Gheupturn-cy": Ghe_upturn, "Pe-cy": Pe, "Sha-cy": Sha,
-    "Shcha-cy": Shcha, "Tse-cy": Tse, "Dzhe-cy": Dzhe, "El-cy": El,
+    "Shcha-cy": Shcha, "Tse-cy": Tse, "Dzhe-cy": Dzhe, "El-cy": lambda pr: El(pr, outward=EL_OUTWARD),
     "De-cy": De, "Ef-cy": Ef, "Yu-cy": Yu, "E-cy": E_ukr, "Be-cy": Be,
     "Softsign-cy": Soft, "Hardsign-cy": Hard, "Yeru-cy": Yeru,
     "Ereversed-cy": E_rev, "Ze-cy": Ze, "Ii-cy": Ii, "Che-cy": Che,
@@ -1522,7 +1595,7 @@ RECIPES = {
     # the capital's own construction at x-height. These six need no donor
     # swap: they are built from measured parameters and geometry rather than
     # from spliced Latin outlines, so Lower alone re-sizes them.
-    "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El),
+    "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
     "yeru-cy": lc(Yeru),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
