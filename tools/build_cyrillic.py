@@ -71,9 +71,28 @@ def anchors(pr, name):
     return [("top", 300, top), ("bottom", 300, 0)]
 
 
+def rebuild(font):
+    """Drop every glyph this script owns, so they are drawn again.
+
+    `plan` deliberately skips whatever already exists, which is what lets the
+    set grow a tier at a time. The cost is that changing a recipe changes
+    nothing: the glyph is already there. Reverting the source with git worked
+    only while the Cyrillic was uncommitted -- afterwards a checkout restores
+    the OLD glyphs and the rebuild silently does nothing, which is how a
+    corrected tail depth came back identical.
+    """
+    mine = {name for _, name, _, _ in TIERS}
+    gone = [g.name for g in font.glyphs if g.name in mine]
+    for name in gone:
+        del font.glyphs[name]
+    return gone
+
+
 def main():
     src = sys.argv[1]
     font = glyphsLib.load(src)
+    if "--rebuild" in sys.argv:
+        print(f"  dropped {len(rebuild(font))} glyphs to redraw them")
     prs = [Params(font, mi) for mi in range(len(font.masters))]
 
     added = []

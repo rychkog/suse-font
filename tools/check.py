@@ -168,6 +168,12 @@ def source_fidelity():
     ~0.04 units and invisible, and it is not invertible (0.9981 and 0.9979
     both land on 0.998), so it is accepted -- but anything LARGER than a
     rounding would be a real regression and must fail.
+
+    Only the LATIN is compared. The baseline is HEAD, which was the same thing
+    as "the upstream font" only while the Cyrillic stayed uncommitted; once it
+    was committed, HEAD carried generated glyphs too and every intended
+    redrawing read as a regression. Correcting ц's tail by 50 units failed
+    this check for moving an outline it was never meant to be guarding.
     """
     import subprocess
     import glyphsLib
@@ -178,6 +184,7 @@ def source_fidelity():
     open("/tmp/_orig.glyphs", "w").write(orig)
     a = glyphsLib.load("/tmp/_orig.glyphs")
     b = glyphsLib.load("sources/SUSEMono.glyphs")
+    mine = {name for _, name, _, _ in TIERS}
     out = []
     if len(a.instances) != len(b.instances):
         out.append(f"instances {len(a.instances)} -> {len(b.instances)}")
@@ -190,6 +197,8 @@ def source_fidelity():
     B = {g.name: g for g in b.glyphs}
     worst = 0.0
     for g in a.glyphs:
+        if g.name in mine:
+            continue
         h = B.get(g.name)
         if not h:
             out.append(f"Latin glyph {g.name} lost")
