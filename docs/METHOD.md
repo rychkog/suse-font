@@ -432,6 +432,7 @@ than a stroke at ExtraBold, they are two different quantities.
 | `panel.py` | ink area vs 60 faces | yes |
 | `strokes.py` | lightest stroke ÷ own stem vs 49 faces | yes |
 | `probe.py` | scanline runs on **built** fonts + panel comparison and fitting | no |
+| `harmony.py` | the bowl family read as a family — reach, wall, counter, each against our own median *and* the panel | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
@@ -448,6 +449,29 @@ last fix wastes a round.
 Only `probe.py` reads built fonts and the panel through one lens, which is what
 makes "ours" and "theirs" the same quantity. Everything above it reads the
 source, one master at a time.
+
+### Ask a reading twice — *`tools/harmony.py`*
+
+A letter's reading means two different things depending on what it is compared
+against, and a whole class of faults is invisible unless both are asked:
+
+- **against the rest of our own family** — does this letter sit in the row?
+- **against the panel's own copy of that letter** — is the row in the right
+  place?
+
+A letter can be an outlier in the family and still be right, because that is
+what the letter is: Ю and Ф sit 15% under the family's wall because they
+carry a stroke through the bowl, and the panel agrees with them. And every
+letter can sit comfortably in a family that is uniformly wrong. Ъ needed both
+answers — it was an outlier *and* outside the panel, which is what separated
+it from Ю.
+
+**A sweep over the panel loops fonts on the outside and letters on the
+inside.** Written the other way round — a full pass over sixty faces per
+letter — this file opened and parsed each face thirty-one times and took
+minutes instead of seconds. And find a scanline extremum with a coarse sweep
+plus a fine pass around the winner, not a fine sweep throughout: every
+scanline walks the whole flattened outline.
 
 ---
 
