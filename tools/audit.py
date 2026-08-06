@@ -787,7 +787,10 @@ def sweep(gs, subjects, ref, weight):
         # median 0.280 of the x-height above г, range 0.189 to 0.400, so it is
         # never meant to reach the 730 that b d h k l share. Same exemption
         # the self-test gives f g i j t, and for the same reason.
-        if (ref["asc"] and ymax > top + pad and ch not in "ґ"
+        # ф joins ґ: the panel puts its total height at 1.781 of the x-height,
+        # so measured up from the face's own -200 descender its top lands near
+        # 680 and was never meant to reach the ascender either.
+        if (ref["asc"] and ymax > top + pad and ch not in "ґф"
                 and round(ymax) not in ref["asc"]):
             out.append(f"{weight:9} {ch} rises to {ymax:.0f} -- the face's "
                        f"own ascenders reach {ref['asc']}")

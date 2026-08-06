@@ -104,6 +104,13 @@ CHE_COUNTER = 0.48
 # 51 faces that draw it. The capital takes capWidest instead, being the widest
 # letter the face allows.
 EF_WIDTH = 0.863
+# ...and its total height over the x-height, the panel's median across the same
+# 51 faces.
+EF_HEIGHT = 1.781
+# ю: the clear run between its stem and its bowl, over the advance. The panel's
+# lower quartile rather than its median -- at ExtraBold this face's stem is 150
+# units of a 600 cell, and every unit given to the gap comes off the bowl.
+YU_GAP = 0.129
 EF_OVERHANG = 0.10      # Ф: how far the stem projects past the bowl, in cap
                         # heights. Borrowed for the same reason -- see Ef.
 
@@ -357,6 +364,17 @@ def Ghe(pr, top=None, bottom=0.0):
     return [path([node(inner, bottom)] + seg + [node(outer, bottom)])]
 
 
+# Ґ's tick, reviewed and accepted long before this session. Both its rise and
+# its inner radius were changed here without being asked -- the radius to
+# inner_radius, the rise to a stem-derived formula -- and both are reverted.
+# ґ takes the same two figures so the cases agree.
+#
+# The panel would put the rise higher and the radius rounder, and that is not
+# a reason: an approved letter is evidence about this face, and a median
+# across sixty others is not evidence against it.
+TICK_RISE = 0.21
+
+
 def Ghe_upturn(pr):
     """Ґ -- Г with a tick turning up at the end of the arm.
 
@@ -390,7 +408,7 @@ def Ghe_upturn(pr):
     # seg[4] and seg[5] are the arm's flat right end -- the two nodes the turn
     # stands in for. Everything on either side of them is the face's own E.
     arm_end, y = seg[4].position.x, seg[4].position.y
-    rise = round(0.21 * top)
+    rise = round(TICK_RISE * top)
     x0 = arm_end - pr.stem
     ro = corner_radius(pr) * RADIUS
     ri = max(min(ro - pr.stem, pr.bar), 4.0)
@@ -470,26 +488,43 @@ def Ghe_upturn_lc(pr, top=None):
     """
     top = pr.cap if top is None else top
     x0, x1, s, b = pr.capL, pr.capR, pr.stem, pr.bar
-    ro = corner_radius(pr) * RADIUS
-    ri = max(min(ro - s, b), 4.0)
+    ro = corner_radius(pr)
+    # Two different inner radii, as Ґ has. The stem-into-arm corner is the
+    # face's own, which the capital gets from E's spliced nodes -- 78 and 20.
+    # The tick's own bend is the shorter, derived figure the capital uses
+    # there, 28 and 4.
+    ri = inner_radius(pr)
+    rk = max(min(corner_radius(pr) * RADIUS - s, b), 4.0)
+    # The face's own inner radius, read off L. Derived as `ro - s` it goes
+    # negative once the stroke outgrows the corner and floors at 4, squaring
+    # off the tick's bend at ExtraBold where this face turns at 20 -- the
+    # rounded turn IS the signature, and this is the third time that same
+    # subtraction has thrown it away, after г's corner and в's counter.
     # The tick rises further at x-height than at cap height, and the panel is
     # clear about both: 0.213 of the cap above Г across the 37 faces that draw
     # Ґ, but 0.280 of the x-height above г across 51 that draw ґ. A shorter
     # letter needs proportionally more tick to stay legible. Carrying the
     # capital's 0.21 down left ґ at 0.66 of the panel's ink median against a
     # range that bottoms out at 0.65.
-    rise = round(0.28 * top)
+    rise = round(TICK_RISE * top)
     # The tick's RIGHT edge is the arm's own right end, carried on upward; its
     # LEFT edge comes down only as far as the arm's top surface. Run the left
     # edge down to the arm's UNDERSIDE instead and the outline crosses itself
     # where it meets the arm's top -- at (381, 493) at ExtraBold -- and the
     # tip comes away from the letter. Same topology the capital splices out
     # of E.
+    # FOUR turns, the same four Ґ has, and it had three. The arm ran straight
+    # up into the tick with no rounding at all, leaving a square notch at the
+    # one junction the eye goes to. And the top-left took the reduced corner
+    # where Г and г both take the full one.
+    rt = corner_radius(pr) * RADIUS
     ns = [node(x0 + s, 0.0), node(x0 + s, top - b - ri)]
     ns += arc_to(x0 + s, top - b - ri, x0 + s + ri, top - b, x0 + s, top - b)
-    ns += [node(x1, top - b), node(x1, top + rise),
-           node(x1 - s, top + rise), node(x1 - s, top + ri)]
-    ns += arc_to(x1 - s, top + ri, x1 - s - ri, top, x1 - s, top)
+    ns += [node(x1 - rt, top - b)]
+    ns += arc_to(x1 - rt, top - b, x1, top - b + rt, x1, top - b)
+    ns += [node(x1, top + rise),
+           node(x1 - s, top + rise), node(x1 - s, top + rk)]
+    ns += arc_to(x1 - s, top + rk, x1 - s - rk, top, x1 - s, top)
     ns += [node(x0 + ro, top)]
     ns += arc_to(x0 + ro, top, x0, top - ro, x0, top)
     ns += [node(x0, 0.0)]
@@ -775,10 +810,27 @@ def Ef(pr):
         # the face allows; at x-height there is no such room to buy.
         ob = bbox(pr.paths(round_of(pr)))
         half = EF_WIDTH * 600.0 / 2.0
+        # The stem runs the panel's own height for ф, centred on the bowl,
+        # rather than all the way from the descender to the ascender. Taken
+        # to both extremes it stood 1.89 of the x-height at ExtraBold and
+        # 1.97 at Thin, against a panel median of 1.781 and a maximum of
+        # 1.975 -- a bar longer than any of the 51 faces that draw it.
+        # The foot sits on the face's own descender -- p q y g j all reach
+        # exactly -200 and ф stands in that same line -- and the panel's
+        # height is taken upward from there, which stops short of the
+        # ascender. Centring the stem on the bowl instead left it descending
+        # 184 where every other descender in the face reaches 200.
+        foot = -m.descDepth
+        # The stem takes the SAME reduction as the bowl. Left at full weight
+        # against a crowd-reduced bowl it ran 1.14 and 1.20 of its own bowl's
+        # wall at Regular and ExtraBold, where the panel holds the two equal --
+        # median 1.000 across 60 faces, quartiles 0.950 and 1.031. A letter
+        # this crowded gives way in both strokes at once or in neither.
+        st = pr.stem * m.crowd3
         return (bowl(pr, 300.0 - half, 300.0 + half, ob[1], ob[3],
                      crowd=m.crowd3)
-                + [rect(300.0 - pr.stem / 2.0, -m.descDepth,
-                        300.0 + pr.stem / 2.0, pr.asc)])
+                + [rect(300.0 - st / 2.0, foot,
+                        300.0 + st / 2.0, foot + EF_HEIGHT * pr.cap)])
     mid = 300.0
     # How far the stem projects past the bowl. Borrowed, and marked as such:
     # no Latin letter here has a stroke crossing a bowl, and this face ships
@@ -803,9 +855,25 @@ def Yu(pr):
     # 0.910, while its counters sat at a roomy 125. Without it the counter
     # takes the strain and closes to 81, which is still wider than the 79 this
     # face's own m accepts between three stems.
-    crowd = 1.0
+    # The bowl takes m's reduction after all. Removing it to lift ю's lightest
+    # stroke off the panel's tenth percentile looked right in isolation, and
+    # combined with a wider gap it drove the bowl's counter NEGATIVE at
+    # ExtraBold: the bowl needed 407 units and had 322, Ю's stroke measured
+    # 320 against O's 164, and the variable font stopped interpolating. A
+    # scanline across this letter crosses a stem and both bowl walls, which is
+    # what the figure is for.
+    crowd = L(pr).crowd3
     tx, _ = bowl_stroke(pr)
-    bx0 = x0 + s + (x1 - x0) * 0.04
+    tx *= crowd
+    # The clear run between the stem and the bowl. As 0.04 of the span this
+    # was 21 units at ExtraBold -- 0.085 of the advance where the panel's
+    # median is 0.173 and its lower quartile 0.129 -- and the connecting bar
+    # was too short to read as a connection at all.
+    # ...and the gap gives way before the bowl does. The bowl must hold two
+    # strokes and the counter m already accepts between three stems; whatever
+    # is left over is the gap's, up to the panel's figure.
+    room = (x1 - x0 - s) - (2.0 * tx + L(pr).counter3)
+    bx0 = x0 + s + max(0.0, min(YU_GAP * 600.0, room))
     # the bar sits on the case's own middle: midY is H's and does not travel
     bary = pr.barCentre * pr.cap - pr.bar / 2.0
     return ([rect(x0, 0.0, x0 + s, pr.cap),
