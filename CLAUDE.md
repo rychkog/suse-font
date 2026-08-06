@@ -63,6 +63,11 @@ output — findings have been hidden that way, including a broken interpolation.
    relation holds. `audit.py --selftest` must stay clean.
 4. **A flat proportion constant is suspect** until the panel has been bucketed
    by weight. That is how ф was found.
+5. **A figure read off a donor outline is checked at both masters**, in units,
+   before it is used. Two figures a donor holds can sit a stroke apart at Thin
+   and a tenth of the cap apart at ExtraBold — Я took R's leg top for R's bowl
+   floor on exactly that basis, and only came apart at the heavy end. See
+   `docs/METHOD.md` F8.
 
 ## Reporting
 
@@ -90,6 +95,11 @@ review* until the user says otherwise.
 
 **After any change to a glyph, regenerate the preview and show it again.** The
 user judges from the picture; a stale picture is a false report.
+
+**Approval does not cross the case pair**, however much construction the two
+share — record the case that was named. And **record what was still outside
+the panel when the glyph was approved**, or the next measuring pass will find
+it, call it a defect, and change a frozen glyph.
 
 Record every approval in `docs/APPROVALS.md`. Without that record the rule
 above cannot be honoured — this session reached the point of asking "is Ф
