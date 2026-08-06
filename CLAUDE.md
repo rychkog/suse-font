@@ -106,6 +106,34 @@ above cannot be honoured — this session reached the point of asking "is Ф
 approved?" with no way to answer, having already changed Ґ twice without
 noticing it was frozen.
 
+## Write down what the round taught, every time
+
+**A glyph is not finished when it is approved. It is finished when what it
+taught is written down.** Do this as the last step of every design and every
+change that worked — not at the end of a session, when the measurements are
+gone and only the conclusion is left.
+
+Ask three questions and write the answers where they will be found again:
+
+1. **What was the fault, in one sentence, as a class rather than as a letter?**
+   If it matches one of `docs/METHOD.md`'s F1–F8, add the instance there. If it
+   does not, it is a new class and gets its own entry.
+2. **What relation or measurement is now known that was not?** Into
+   `docs/METHOD.md` §2 if it is a relation between parts, §8 if it is a
+   settled question, §4 if it is a new instrument.
+3. **What would have caught it sooner?** That answer belongs in this file, in
+   *Before changing anything* or *Approval* — the short list of things to do
+   differently next time. Keep it to what changes an action.
+
+Also delete: a thread that has been resolved comes out of §9, and a probe that
+has been fixed stops being listed as broken. A stale open thread costs a round
+the same way a stale picture does.
+
+The test of whether it was worth writing: **would it change what the next
+glyph does?** ф's weight fits, о's stem trap and Я's donor fault all did — they
+are why к, ж and б have a method to follow instead of a fresh start. A note
+that only records that something happened is not worth the line.
+
 ## Hard problems — ask a Fable advisor
 
 For a genuinely hard or ambiguous question, get a second opinion: spawn a

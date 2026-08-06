@@ -523,6 +523,8 @@ The loop:
 4. Wait for the user's verdict. A glyph is *in review* until they say
    otherwise.
 5. On approval, record it in `docs/APPROVALS.md`.
+6. **Write down what the round taught** — into this file, before starting the
+   next glyph. See below.
 
 After **any** change to a glyph, however small, the preview is regenerated and
 shown again. The user judges from the picture, so a stale picture is a false
@@ -541,6 +543,43 @@ genuinely must change, say so and ask first. When a new sibling should match an
 approved one, **copy the approved construction** rather than generalising it
 into a shared helper and re-deriving it — that is precisely how ґ's work
 destroyed Ґ's.
+
+### Step 6 — what the round taught, into this file
+
+**A glyph is finished when what it taught is written down, not when it is
+approved.** Do it while the measurements are still on screen; a day later only
+the conclusion survives, and the conclusion without the numbers behind it is
+the kind of note nobody trusts enough to act on.
+
+Every entry in this document exists because it was written at this point in
+some earlier round, and every one of them has since saved a round:
+
+| written after | saved |
+| --- | --- |
+| ф's weight fits (§2) | Ф, drawn from the same three relations, first try |
+| the stem trap (F5) | о, which would otherwise have been "fixed" |
+| Я's donor fault (F8) | every remaining letter that reads a figure off a donor |
+| the diagonal rule (§8) | к, ж, у, х, џ — all still to be drawn |
+
+Where things go:
+
+- a **fault** → §3, as an instance of an existing class or as a new one
+- a **relation between parts** → §2
+- a **settled question** → §8, and take the thread out of §9
+- a **new instrument** → §4, and if a probe was fixed, stop listing it as broken
+- **what would have caught it sooner** → `CLAUDE.md`, which is the short list
+  read before touching anything
+
+Write the class, not the letter. "Я's bowl floor was wrong" helps nobody; "a
+donor holds two figures that coincide at the light master" is what stops the
+next glyph making the same mistake in a different place. And keep the numbers
+— the readings, both masters, and the panel band they were compared against.
+A finding stated without them cannot be re-checked, and everything in this
+document has to survive being doubted.
+
+The test of whether a line is worth writing: **would it change what the next
+glyph does?** If not, leave it out. This file is read in full at the start of
+every round and its length is a cost.
 
 Two things the ledger has to carry that are easy to leave out:
 
