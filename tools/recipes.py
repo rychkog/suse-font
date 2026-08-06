@@ -432,6 +432,32 @@ def Pe(pr, top=None, bottom=0.0):
                          corner_radius(pr) * RADIUS), top / 2.0)
 
 
+# г's bar is shorter than Г's, and by a share that has to hold across the
+# axis. The panel puts (г arm / Г arm), normalised by each face's own
+# lowercase-to-capital width, at a median 0.895 across 60 faces and keeps it
+# roughly flat with weight. This face's climbed instead -- 0.872 at Thin,
+# 0.933 at Regular, 0.995 at Bold, 1.017 at ExtraBold -- because г took the
+# lowercase sidebearings whole while Г took E's own, and the two converge as
+# the strokes thicken. At ExtraBold both arms measured 461 and г's left
+# sidebearing was actually TIGHTER than Г's, so the lowercase bar had stopped
+# being the shorter of the two altogether.
+#
+# A ceiling, not an assignment: where the face already draws the arm shorter
+# than the panel's share it keeps its own value, which leaves Thin and
+# Regular untouched at 367 and 384 and pulls only Bold and ExtraBold back.
+# The face is the authority on what it already does well; the panel is only
+# the authority on the relation.
+ARM_SHARE = 0.895
+
+
+def lc_arm_end(pr, x0, x1):
+    if not getattr(pr, "lower", False):
+        return x1
+    xs = [n.position.x for p in pr.paths("E") for n in p.nodes]
+    cap_arm = max(xs) - min(xs)
+    return x0 + min(x1 - x0, ARM_SHARE * cap_arm * L(pr).lcCapWidth)
+
+
 def Ghe_lc(pr, top=None):
     """г -- one stem under a bar, with the face's own corner.
 
@@ -462,6 +488,7 @@ def Ghe_lc(pr, top=None):
     """
     top = pr.cap if top is None else top
     x0, x1, s, b = pr.capL, pr.capR, pr.stem, pr.bar
+    x1 = lc_arm_end(pr, x0, x1)
     ro = corner_radius(pr)
     ri = inner_radius(pr)
     ns = [node(x0, 0.0), node(x0, top - ro)]
@@ -488,6 +515,8 @@ def Ghe_upturn_lc(pr, top=None):
     """
     top = pr.cap if top is None else top
     x0, x1, s, b = pr.capL, pr.capR, pr.stem, pr.bar
+    # the tick rides the arm's right end, so it moves with it
+    x1 = lc_arm_end(pr, x0, x1)
     ro = corner_radius(pr)
     # Two different inner radii, as Ґ has. The stem-into-arm corner is the
     # face's own, which the capital gets from E's spliced nodes -- 78 and 20.
