@@ -257,17 +257,29 @@ def tailed_layout(pr, n):
 
 
 def descent(pr):
-    """How far below the baseline a tailed letter reaches.
+    """How far below the baseline a tailed letter reaches -- Д Ц Щ Џ and
+    their lowercase alike.
 
-    The lowercase answer is the face's own and needs no reference at all: p q
-    y g j every one of them reaches -200 at every master, and ц щ д stand in
-    that same line of text. The capitals have no such letter to follow, since
-    no Latin capital descends, so theirs stays the measured 0.75 of that
-    depth -- where JetBrains, DejaVu, Consolas, Fira and Segoe each put Д Ц Щ
-    against their own p.
+    ONE depth for both cases, and it is the capitals' 0.75 of the face's own
+    descender. The lowercase does NOT go deeper, though its body is a third
+    shorter.
+
+    This started out case-split, on the reasoning that p q y g j all reach
+    -200 so ц щ д should stand with them. That is a bad inference: p's
+    descender is the stem carrying on down, a different feature from a tail
+    hung off the baseline, and the Latin has no lowercase tail to read at all.
+    So the panel has to answer, and across 60 faces it is emphatic -- ц's tail
+    runs 0.94 of its own Ц's, ranging 0.69 to 1.16, and the single commonest
+    value is exactly 1.000, drawn by 26 of them. A full descender put ц at
+    1.333 of Ц, outside what any of the sixty does, and the tails read far too
+    long against the capitals.
+
+    Measured against each face's own p, the two cases land in the same place
+    -- 0.756 for the capital and 0.737 for the lowercase -- which is what one
+    depth for both means, and which is why CAP_DESCENT needs no lowercase
+    twin.
     """
-    d = L(pr).descDepth
-    return d if getattr(pr, "lower", False) else d * CAP_DESCENT
+    return L(pr).descDepth * CAP_DESCENT
 
 
 def bowl_stroke(pr, donor="O"):
