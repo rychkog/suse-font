@@ -1309,7 +1309,15 @@ def Ya(pr, top=None, bottom=0.0):
     top = pr.cap if top is None else top
     m = L(pr)
     x0, x1, s = fit_stems(pr, 2)
-    t = pr.stem * m.crowd3
+    # The face's own bowl, not m's three-stem reduction. A scanline across Я
+    # crosses its bowl wall, the counter and the stem -- two strokes, exactly
+    # what В's own bowl is -- so nothing crowds it. Carrying the reduction put
+    # Я's bowl at 0.82 of В's at ExtraBold, below every one of the 51 panel
+    # faces that draw both, whose median is 1.000. This is the same fault Ь and
+    # Ъ were fixed for; Я was never in the family check to catch it, and the
+    # check could not have seen it anyway -- it reads the rightmost run, and
+    # Я's bowl bulges LEFT.
+    t = bowl_of(pr)[2]
     mid = (x0 + x1) / 2.0
 
     # R is the letter this face already built with a leg under a bowl, so R
