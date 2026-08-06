@@ -38,13 +38,12 @@ round.
 | **ж** | 2026-08-06 | The same change as Ж, approved separately on the same day. One constant serves both cases through `lc()`, so the lowercase is a redrawing at lowercase weight rather than a squashed capital — 150 against 161 for the stem at ExtraBold. Built measurement 1.02–1.04 of an arm, inside the panel at all four weights. **Recorded as still outside at approval:** the arm at 0.85 and 0.84 of n's stem at Bold and ExtraBold, against brackets ending at 0.83 and 0.82 — the same reason as the capital's, and not to be chased. |
 | **К** | 2026-08-06 | A tier-1 donor: it **is** the Latin K, unchanged, so approving it approves the mapping rather than a drawing. The consequence is the one worth writing down — К cannot now be altered without altering the Latin, and any future change to K silently changes an approved Cyrillic glyph. `audit.py` already checks that a donor still matches the Latin it names. |
 | **к** | 2026-08-06 | The face's own **k** with the stem cut to the x-height, the arm and leg taken unchanged. The 51 panel faces that draw both agree the two letters are one drawing — к is 1.000 of k's width with the middle half of the population inside a thousandth, the same left edge to the em, the same leg lean. Tier 2, not the tier 3 it had been listed as. The three contours are told apart by which one reaches above the x-height, never by their order: a donor's path indices are what F8 is about. Carries the same tie as К — it is k's outline, so a change to k changes it. |
+| **ќ** | 2026-08-06 | `ka-cy + acutecomb`, no outline of its own — approved on the strength of к, which it is made of. `audit.py` checks the mark clears its base and sits centred. |
 | **я** | 2026-08-06 | Bowl floor is R's bowl floor, taken from node 11 of R's outline as a fraction of cap — not R's leg top, which is buried inside that floor. Roof and floor inset at the lowercase bar. Leg solved over R's own leg height and standing off the stem by R's own figure. Approved with three readings still marginally outside the panel at the heavy end — counter aspect 0.689 against 0.710, counter height 0.225 against 0.230, wedge 0.524 against 0.581. No Latin lowercase hangs a bowl over a leg, so the capital's fraction is the only donor there is; do not chase these three. |
 
 ## In review — changed and shown, no verdict recorded
 
-| glyph | shown | change |
-| --- | --- | --- |
-| **ќ** | 2026-08-06 | Falls out of к — `ka-cy + acutecomb`, no new outline of its own. Shown on the same sheet as к, which is approved; this one was not named. |
+*(none)*
 
 ## Not recorded
 
@@ -52,7 +51,7 @@ Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
 **Capitals** — А Б В Г Д Е З И Й М Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
-Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ќ Ѝ Џ
+Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ѝ Џ
 
 **Lowercase** — а д е и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
 ѓ ѕ ј ѝ
