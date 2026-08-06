@@ -488,50 +488,31 @@ def Ghe_upturn_lc(pr, top=None):
     """
     top = pr.cap if top is None else top
     x0, x1, s, b = pr.capL, pr.capR, pr.stem, pr.bar
-    ro = corner_radius(pr)
-    # Two different inner radii, as Ґ has. The stem-into-arm corner is the
-    # face's own, which the capital gets from E's spliced nodes -- 78 and 20.
-    # The tick's own bend is the shorter, derived figure the capital uses
-    # there, 28 and 4.
-    ri = inner_radius(pr)
-    rk = max(min(corner_radius(pr) * RADIUS - s, b), 4.0)
-    # The face's own inner radius, read off L. Derived as `ro - s` it goes
-    # negative once the stroke outgrows the corner and floors at 4, squaring
-    # off the tick's bend at ExtraBold where this face turns at 20 -- the
-    # rounded turn IS the signature, and this is the third time that same
-    # subtraction has thrown it away, after г's corner and в's counter.
+    ro = corner_radius(pr) * RADIUS
+    ri = max(min(ro - s, b), 4.0)
     # The tick rises further at x-height than at cap height, and the panel is
     # clear about both: 0.213 of the cap above Г across the 37 faces that draw
     # Ґ, but 0.280 of the x-height above г across 51 that draw ґ. A shorter
     # letter needs proportionally more tick to stay legible. Carrying the
     # capital's 0.21 down left ґ at 0.66 of the panel's ink median against a
     # range that bottoms out at 0.65.
-    rise = round(TICK_RISE * top)
+    rise = round(0.28 * top)
     # The tick's RIGHT edge is the arm's own right end, carried on upward; its
     # LEFT edge comes down only as far as the arm's top surface. Run the left
     # edge down to the arm's UNDERSIDE instead and the outline crosses itself
     # where it meets the arm's top -- at (381, 493) at ExtraBold -- and the
     # tip comes away from the letter. Same topology the capital splices out
     # of E.
-    # FOUR turns, the same four Ґ has, and it had three. The arm ran straight
-    # up into the tick with no rounding at all, leaving a square notch at the
-    # one junction the eye goes to. And the top-left took the reduced corner
-    # where Г and г both take the full one.
-    rt = corner_radius(pr) * RADIUS
     ns = [node(x0 + s, 0.0), node(x0 + s, top - b - ri)]
     ns += arc_to(x0 + s, top - b - ri, x0 + s + ri, top - b, x0 + s, top - b)
-    ns += [node(x1 - rt, top - b)]
-    ns += arc_to(x1 - rt, top - b, x1, top - b + rt, x1, top - b)
-    ns += [node(x1, top + rise),
-           node(x1 - s, top + rise), node(x1 - s, top + rk)]
-    ns += arc_to(x1 - s, top + rk, x1 - s - rk, top, x1 - s, top)
+    ns += [node(x1, top - b), node(x1, top + rise),
+           node(x1 - s, top + rise), node(x1 - s, top + ri)]
+    ns += arc_to(x1 - s, top + ri, x1 - s - ri, top, x1 - s, top)
     ns += [node(x0 + ro, top)]
     ns += arc_to(x0 + ro, top, x0, top - ro, x0, top)
     ns += [node(x0, 0.0)]
     p_ = path(ns)
     return [p_ if area(p_) > 0 else reverse(p_)]
-
-
 def En_lc(pr, top=None):
     """н -- two stems joined at the waist.
 
