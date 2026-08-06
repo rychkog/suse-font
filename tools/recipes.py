@@ -100,10 +100,32 @@ CAP_DESCENT = 0.75      # of the face's own descender depth
 # the two tightest, Consolas at 0.455 and JetBrains at 0.470, sit just under
 # this. Everything else about Ч comes from SUSE's own Y and L.
 CHE_COUNTER = 0.48
-# ф's width at x-height, over the advance: the panel's own median across the
-# 51 faces that draw it. The capital takes capWidest instead, being the widest
-# letter the face allows.
-EF_WIDTH = 0.863
+# ф's width at x-height, over the advance -- and it is NOT a constant.
+#
+# It was one: the panel's median, 0.863, taken across all 51 faces at once.
+# That median hid a relation. Bucketed by the face's own stroke weight the
+# panel reads 0.832 at light, 0.842 at medium, 0.871 at bold and 0.938 at
+# extra bold: as the strokes thicken, faces WIDEN the bowl so the counters
+# survive. Held flat at 0.863 this face was too wide at Thin and below the
+# entire panel range at ExtraBold, where the ink had nowhere to go but into
+# the counters -- which is exactly how it read, a fat bar between two slits.
+#
+# A least-squares fit over the 60 panel faces, ф's width against the face's
+# own stem, both over the em, with a residual sd of 0.045. Linear in the
+# stem, so interpolation between the two masters reproduces it exactly at
+# Regular and Bold instead of drifting off it.
+#
+# Everything else about ф was already right: its walls and middle stem
+# thin from 0.97 to 0.78 of the stem across the axis where the panel does
+# 0.99 to 0.85, and weight-matched its counters sit inside the panel. Only
+# the width was frozen.
+EF_WIDTH_BASE = 0.789
+EF_WIDTH_SLOPE = 0.775
+
+
+def ef_width(pr):
+    upm = pr.font.upm if hasattr(pr.font, "upm") else 1000.0
+    return EF_WIDTH_BASE + EF_WIDTH_SLOPE * (pr.stem / upm)
 # ...and its total height over the x-height, the panel's median across the same
 # 51 faces.
 EF_HEIGHT = 1.781
@@ -842,7 +864,7 @@ def Ef(pr):
         # m's figure is for. The capital escapes it by being the widest letter
         # the face allows; at x-height there is no such room to buy.
         ob = bbox(pr.paths(round_of(pr)))
-        half = EF_WIDTH * 600.0 / 2.0
+        half = ef_width(pr) * 600.0 / 2.0
         # The stem runs the panel's own height for ф, centred on the bowl,
         # rather than all the way from the descender to the ascender. Taken
         # to both extremes it stood 1.89 of the x-height at ExtraBold and
