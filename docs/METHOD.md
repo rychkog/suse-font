@@ -391,7 +391,99 @@ source, one master at a time.
 
 ---
 
-## 5 · How the code is organised
+## 5 · Rendering for review
+
+Every report is a picture. Text-only progress is useless to the user, who is a
+native Ukrainian reader and not a type designer — the render *is* the finding,
+and a bad render wastes the round.
+
+### Quality is not optional — *prose only*
+
+A sheet was shipped this session with hard-aliased edges because the outlines
+were filled into **1-bit masks**. Every edge was thresholded, nothing was
+antialiased, and the user's response was that it was unreadable. The
+requirements:
+
+- **Supersample ×4, then downsample with Lanczos.** Fill into an oversized
+  mask and resize; never draw at final size.
+- **Even-odd fill per contour** — XOR each contour into the accumulator so
+  counters punch through. Filling contours independently makes every bowl
+  solid.
+- **Flatten curves to at least 24 steps.** Control points are not vertices;
+  see F6.
+- **Real TrueType labels** at a readable size, not PIL's default bitmap font.
+- **Check for collisions** before sending. Glyphs that overshoot their box
+  will sit on top of their own captions.
+- **Write to `tools/out/`.** The session scratchpad under `/tmp` is not
+  reachable by the user; images left there cannot be looked at.
+
+### Never show a glyph alone — *prose only*
+
+A letter judged in isolation tells you almost nothing. The failures in this
+project were all visible only in company:
+
+- **Beside its own capital or lowercase** — the case pair.
+- **Beside the Latin it shares a line with.** The `vs Latin` row.
+- **In words**, so the eye reads rhythm and colour rather than shape.
+- **At 12px and 14px as well as display size.** Faults at display size often
+  invert or vanish at the size the face is used at.
+- **Beside JetBrains** for calibration — is this within the range a
+  professional Cyrillic occupies — never for imitation.
+
+### Comparing two candidates — *prose only*
+
+Put them **side by side, adjacent, per weight** — not one block above another.
+Stacked variants force the eye across a gap and the difference stops being
+legible. Label which is which under each, and include the same comparison in
+a word at reading size.
+
+State plainly which candidate is on disk. A rendered alternative that has
+never been built has not been through the gates, and the user should be told
+that rather than left to assume.
+
+### Regenerate after every change — *`tools/review.sh`*
+
+`review.sh` rebuilds **every** review image from the current build. Reviewing a
+sheet made before the last fix wastes a round, and it has happened.
+
+---
+
+## 6 · Approval
+
+**Every glyph needs the user's explicit approval, per glyph.** Not per batch,
+not implied by a checkpoint sheet having been shown.
+
+The loop:
+
+1. Draw or change the glyph.
+2. Build, and run `tools/verify.sh` **unfiltered**. Every gate passes before
+   anything is shown — objective quality is not the user's job.
+3. Regenerate the preview (`review.sh`) and show it, in context and in
+   comparison.
+4. Wait for the user's verdict. A glyph is *in review* until they say
+   otherwise.
+5. On approval, record it in `docs/APPROVALS.md`.
+
+After **any** change to a glyph, however small, the preview is regenerated and
+shown again. The user judges from the picture, so a stale picture is a false
+report.
+
+### Why the ledger exists
+
+`docs/APPROVALS.md` is the record of what has been approved and therefore what
+is frozen. Without it the rule "never change an approved glyph" is unenforceable
+— this session reached the point of asking *"is Ф approved?"* with no way to
+answer, having already changed Ґ twice without noticing it was approved.
+
+An approved glyph is frozen. A panel median is not evidence against it; if it
+genuinely must change, say so and ask first. When a new sibling should match an
+approved one, **copy the approved construction** rather than generalising it
+into a shared helper and re-deriving it — that is precisely how ґ's work
+destroyed Ґ's.
+
+---
+
+## 7 · How the code is organised
 
 Worth knowing before reading `recipes.py`, because none of it is obvious from
 a single function.
@@ -437,7 +529,7 @@ raw coordinates.
 
 ---
 
-## 6 · Settled findings
+## 8 · Settled findings
 
 Things established by measurement that are not method and not a fault.
 
@@ -486,7 +578,7 @@ measurement may well defend it.
 
 ---
 
-## 7 · Open threads
+## 9 · Open threads
 
 - **о does not follow the panel's weight relation.** Relative to the face's own
   о, ф's bowl measured 1.205 at Thin and 1.040 at ExtraBold against a panel

@@ -69,9 +69,32 @@ output — findings have been hidden that way, including a broken interpolation.
 - **Always show rendered PNGs.** Text-only progress is useless. Write them to
   `tools/out/` (gitignored, but the user can open them) — not to a scratch
   directory under `/tmp`, which they cannot reach.
+- **They must be high quality.** Supersample ×4 and downsample with Lanczos;
+  XOR each contour so counters punch through; flatten curves to ≥24 steps;
+  real TrueType labels; check nothing collides. A 1-bit fill produces hard
+  aliased edges and has been rejected as unreadable.
+- **Never show a glyph alone.** In context and in comparison: beside its own
+  case pair, beside the Latin it shares a line with, in words, at 12px and
+  14px as well as display size. Comparing two candidates means side by side
+  and adjacent, per weight — never one block above another.
 - **Never show coordinates, node counts or point data.**
 - Own the objective quality: every gate passes *before* anything is shown.
 - No `Co-Authored-By` trailer in commits.
+
+## Approval
+
+**Every glyph needs explicit approval, per glyph** — not per batch, and not
+implied by a sheet having been shown. Draw → build → `verify.sh` unfiltered →
+regenerate the preview → show it → wait for the verdict. A glyph is *in
+review* until the user says otherwise.
+
+**After any change to a glyph, regenerate the preview and show it again.** The
+user judges from the picture; a stale picture is a false report.
+
+Record every approval in `docs/APPROVALS.md`. Without that record the rule
+above cannot be honoured — this session reached the point of asking "is Ф
+approved?" with no way to answer, having already changed Ґ twice without
+noticing it was frozen.
 
 ## Machine
 
