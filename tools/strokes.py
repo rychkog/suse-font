@@ -26,7 +26,7 @@ ambiguous, since five panel faces do draw Ъ that light.
     python tools/strokes.py
 """
 
-import statistics
+import math
 import sys
 
 from fontTools.ttLib import TTFont
@@ -35,14 +35,82 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from panel import families              # noqa: E402
 from audit import contours, runs        # noqa: E402
 
-CAPS = "БВГҐДЕЄЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
-LOWS = "бвгґдеєжзийклмнопрстуфхцчшщъыьэюя"
+# Only what this project DREW. А В Е І О Р С Т Х and their lowercase are
+# donors -- the Latin letter unchanged -- so a flag on one is a fault in this
+# tool and never in the glyph, which is precisely how the round-letter
+# misreading was found: at ExtraBold е measured 0.431 of the stem against a
+# panel median of 0.908, and е is the Latin e.
+#
+# Э and є go too, for the reason audit.CLONES exists: Э reverses the face's own
+# C and є reuses it, so their thinnest section is the face's own drawing and
+# measuring it against the panel says nothing about this project.
+CLONES = "ЭэЄє"
+
+# Below p10 AND meaningfully below the median. Some letters have no spread at
+# all in the panel -- Џ's p10 IS its median, 1.000, so a reading of 0.988 sits
+# below the tenth percentile while being a rounding away from what every face
+# does. Two conditions instead of one keeps that from reporting.
+BELOW_MEDIAN = 0.97
+
+# в is excluded, and the reason is the project's own rule that the host settles
+# what the panel only frames. Its bowl wall thins to 0.793 of its stem towards
+# the waist; SUSE Mono's own B thins to 0.795. в is doing exactly what this
+# face's two-lobe letter does, while the panel's median в, at 0.940, mostly
+# does not. Measured, not waved through -- see the wall profiles in the commit
+# that added this tool.
+EXEMPT = "вВ"
+
+
+def drawn_set():
+    import recipes
+    from classify import TIERS
+    out = []
+    for cp, name, _, _ in TIERS:
+        if name in recipes.RECIPES and chr(cp) not in CLONES:
+            out.append(chr(cp))
+    return ("".join(c for c in out if c.isupper()),
+            "".join(c for c in out if c.islower()))
+
+
+CAPS, LOWS = drawn_set()
 
 
 def stem_of(gs, name, top):
     """The face's own stem, from its plain two-stem letter."""
     xs = runs(contours(gs, name), top * 0.25)
     return (xs[1] - xs[0]) if len(xs) >= 2 else None
+
+
+def across(polys, y, d=6.0):
+    """Every stroke's thickness at height y, measured across ITSELF.
+
+    A run taken horizontally reports a leaning stroke 1/cos too wide, so the
+    two scanlines either side give the stroke's own lean and the lean gives the
+    correction. Runs are paired by position between the two lines; where their
+    counts differ a stroke has appeared or vanished between them and the sample
+    is dropped rather than guessed at.
+    """
+    def rr(v):
+        xs = runs(polys, v)
+        return list(zip(xs[0::2], xs[1::2]))
+
+    a, b = rr(y - d), rr(y + d)
+    if len(a) != len(b) or not a:
+        return []
+    out = []
+    for (a0, a1), (b0, b1) in zip(a, b):
+        w = ((a1 - a0) + (b1 - b0)) / 2.0
+        slope = ((b0 + b1) - (a0 + a1)) / 2.0 / (2.0 * d)
+        # Pairing runs by position is only safe while both scanlines cross the
+        # same strokes. Past about 27 degrees of lean the pair is as likely to
+        # be two different strokes, or one caught mid-merge, and the
+        # correction then divides by a large factor and invents a hairline --
+        # Ъ read 0.339 of its own stem that way, and the Latin o, a donor that
+        # cannot be wrong, read 0.799. Steep samples are dropped, not guessed.
+        if abs(slope) > 0.5:
+            continue
+        out.append(w / math.hypot(1.0, slope))
+    return out
 
 
 def weight(gs, gname, stem):
@@ -56,18 +124,10 @@ def weight(gs, gname, stem):
     against a panel floor of 0.994 and sailed through. The lightest run reads
     the bowl itself.
 
-    Runs under a third of the stem are dropped -- those are the sliver where a
-    scanline grazes a corner or a diagonal's tip, not a stroke anyone drew.
-
-    KNOWN LIMIT, and it is why this tool reports rather than gates. The run is
-    measured horizontally, so a stroke that curves reads light wherever the
-    scanline crosses it obliquely. в's stem measures exactly 150.0 at every
-    height while its bowl wall reads 150 where it is vertical and 136 as the
-    arc turns towards the waist, which drops the letter to 0.886 and under the
-    panel's p10 with nothing wrong with it. Correcting that needs the run
-    measured perpendicular to its own stroke, the way latin_metrics._lean_width
-    does for y's tail. Until then, a flag on a letter with curved strokes is a
-    prompt to go and look, not a verdict.
+    Two kinds of run are not strokes and are dropped. Under a third of the stem
+    is the sliver where a scanline grazes a corner or a diagonal's tip. Over
+    twice the stem is merged ink -- at в's waist the scanline crosses the whole
+    letter and reports a 367-unit "stroke".
     """
     polys = contours(gs, gname)
     if not polys:
@@ -80,9 +140,8 @@ def weight(gs, gname, stem):
     # letter -- э read 0.376 of the stem that way, measuring the top of its
     # own curve rather than any stroke.
     for i in range(25, 76, 2):
-        xs = runs(polys, bot + (top - bot) * i / 100.0 + 0.13)
-        got += [b - a for a, b in zip(xs[0::2], xs[1::2]) if b > a]
-    got = [g for g in got if g > stem / 3.0]
+        got += across(polys, bot + (top - bot) * i / 100.0 + 0.13)
+    got = [g for g in got if stem / 3.0 < g < 2.0 * stem]
     return min(got) / stem if got else None
 
 
@@ -126,7 +185,9 @@ def main():
                 continue
             n = len(vals)
             med, p10 = vals[n // 2], vals[int(0.10 * (n - 1))]
-            outside = v < p10 or v > vals[-1]
+            _ = med
+            outside = ((v < p10 and v < med * BELOW_MEDIAN)
+                       or v > vals[-1]) and ch not in EXEMPT
             rows.append((outside, abs(v / med - 1.0), ch, v, med,
                          p10, vals[-1]))
         rows.sort(reverse=True)
