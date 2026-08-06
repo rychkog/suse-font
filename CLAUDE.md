@@ -96,6 +96,23 @@ above cannot be honoured — this session reached the point of asking "is Ф
 approved?" with no way to answer, having already changed Ґ twice without
 noticing it was frozen.
 
+## Hard problems — ask a Fable advisor
+
+For a genuinely hard or ambiguous question, get a second opinion: spawn a
+subagent with the Agent tool and `model: "fable"`. Worth it for a design
+judgement the measurements do not settle, a finding that might be a probe
+artefact, a construction with no obvious donor (б is the open case), or a
+choice between two constructions that both pass every gate.
+
+Give it **the measurements and the specific question** — it has none of this
+session's context, so "what do you think of ф" gets nothing useful while "the
+bowl is 1.13 wide for its height, the panel holds 0.97–1.08, the height is
+already at the panel ceiling — what gives?" gets something.
+
+Treat the answer as advice, not authority. The face's own Latin is still the
+authority on the shapes, the user's eye is still the verdict, and this is not
+a substitute for measuring or a shortcut around routine work.
+
 ## Machine
 
 Treat memory as scarce: one heavy job at a time, stream rather than slurp, no
