@@ -129,6 +129,31 @@ def stem_of(f, cm=None, gs=None):
     return None
 
 
+def lc_stem_of(f, cm=None, gs=None):
+    """The face's own LOWERCASE stem, read off n.
+
+    Measure a lowercase against this and never against `stem_of`. This face
+    draws n at 0.93 of H where the panel's median is 0.98, so a lowercase
+    relation divided by the capital stem reads about six per cent low in every
+    face -- which is the whole of a "the bowl is lighter than the stem"
+    finding that turned out to be the probe talking. o's wall is exactly this
+    figure at all four weights.
+    """
+    cm = cm if cm is not None else f.getBestCmap()
+    gs = gs if gs is not None else f.getGlyphSet()
+    xh = getattr(f["OS/2"], "sxHeight", 0)
+    if not xh:
+        return None
+    ps = contours(f, "n", cm, gs)
+    if not ps:
+        return None
+    for frac in (0.35, 0.25, 0.45):
+        r = runs(ps, xh * frac)
+        if len(r) == 2:
+            return r[0][1] - r[0][0]
+    return None
+
+
 def widest_run_set(f, ch, ref, n, cm=None, gs=None):
     """The scanline through `ch` giving exactly n ink runs at its widest.
 

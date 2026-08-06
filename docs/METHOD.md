@@ -214,7 +214,8 @@ One scanline through the middle of a letter gives most of these at once
 (`tools/probe.py: runs`, `gaps`, `vruns`):
 
 - **part ÷ the face's own stem** — does the interior thin as the face
-  thickens, or is it still at full weight?
+  thickens, or is it still at full weight? For a lowercase that means **n's**
+  stem (`probe.lc_stem_of`), not H's; this face's differ by 7%.
 - **middle stem ÷ counter** — the ratio that actually reads as *ugly*. See
   below.
 - **counter ÷ stem** — how much white survives.
@@ -323,6 +324,12 @@ side is Y at 565 and their ratio measures how splayed the widest capital is —
 not how the two cases are spaced. Using them for г's arm would have been
 wrong by a different route than the bug being fixed. `lcCapWidth` was added
 instead, measuring the same letters the panel reading was normalised by.
+
+The same fault, in its cheapest form: `probe.stem_of` reads **H**. Divide a
+lowercase part by it and the answer is wrong by however much the face's n
+differs from its H — here 7%, which was enough to make a bowl that exactly
+matches its own stem read as 0.93 and "outside the panel". `lc_stem_of` reads
+n; use it for anything at x-height.
 
 **Tell:** the metric exists and is *nearly* right. That is the dangerous case.
 
@@ -577,15 +584,40 @@ of cap height at *every* weight, so the approved 0.21 is right — and a
 **away** from the panel. Measure before changing an approved glyph, and the
 measurement may well defend it.
 
+### о is not an outlier — the face is narrow, and its lowercase is lighter
+
+о underlies every round letter, so "о does not follow the panel's weight
+relation" was carried as the highest-value open thread. Measured, it is not a
+thread at all, and both halves of it were the probe:
+
+- **The bowl is not light.** о's side wall measured 0.93 of the stem where the
+  panel holds 1.00 — but that stem was H's. Against **n's** stem it is 1.000,
+  1.000, 1.008, 1.000 at the four weights: о is monolinear with the lowercase
+  it stands in, exactly. What is genuinely unlike the panel is face-wide and
+  not о's: this face draws n at **0.93–0.94 of H** where the panel's median is
+  **0.98**. Every lowercase reading taken against the capital stem inherits
+  that. See F5.
+- **The bowl is not narrow *for this face*.** At Thin о fills 0.675 of its
+  advance against a panel 0.683–0.771 — low, but so is everything: c 0.628,
+  e 0.641, n 0.612, u, v, x all below the band, and **c and e sit further
+  below it than о does**. SUSE Mono is a narrow face and о is narrow with its
+  own family. The ф-bowl-to-о ratio of 1.205 at Thin was ф's width taken from
+  the panel's *absolute* figure while о kept the face's own.
+
+The lesson generalises to every letter still to be drawn: **take a width as a
+ratio to the face's own counterpart, never as an absolute share of the advance
+read off the panel.** The panel says which relation holds; the host says what
+the value is, and on width this host is 9% away from the panel at Thin.
+
+Checked at the same time, against n's stem: о, е, ь and ъ draw their bowl at
+the full lowercase stem; ы and ф take a deliberate reduction. с, э, з and ю
+cannot be read this way at all — they are open, so the widest scanline's first
+run is a terminal or the stem, not a wall (F6).
+
 ---
 
 ## 9 · Open threads
 
-- **о does not follow the panel's weight relation.** Relative to the face's own
-  о, ф's bowl measured 1.205 at Thin and 1.040 at ExtraBold against a panel
-  1.000–1.188 / 1.062–1.157 — crooked in the opposite direction from the
-  advance-normalised reading. о underlies every round letter in the set, so
-  this is the highest-value thread left.
 - **`shoulder_spine` (`recipes.py:1304`)** still carries the F2 subtraction.
 - **Three broken probes**: `HARD_SHOULDER`, `ZHE_STEM`, `YU_GAP` (the last two
   return too few faces to judge — Ж's diagonals and ю's join give variable run
