@@ -485,12 +485,37 @@ letter can sit comfortably in a family that is uniformly wrong. Ъ needed both
 answers — it was an outlier *and* outside the panel, which is what separated
 it from Ю.
 
-**A sweep over the panel loops fonts on the outside and letters on the
-inside.** Written the other way round — a full pass over sixty faces per
-letter — this file opened and parsed each face thirty-one times and took
-minutes instead of seconds. And find a scanline extremum with a coarse sweep
-plus a fine pass around the winner, not a fine sweep throughout: every
-scanline walks the whole flattened outline.
+### Write the script so it can be run again — *prose only*
+
+Every probe in the table above gets run dozens of times: once to ask the
+question, again after each fix, again at the next glyph that touches the same
+relation. A probe that takes minutes is a probe that stops being run, and a
+question that stops being asked gets answered by guessing. The machine is also
+short of memory — a `make build` has been OOM-killed mid-run — so a script
+that slurps where it could stream costs more than its own runtime.
+
+So efficiency here is not tidiness, it is whether the instrument survives.
+Four rules, each of which has already cost a round:
+
+- **Open the expensive thing once, and loop it on the outside.** A sweep over
+  the panel loops fonts outer and letters inner. Written the other way round —
+  a full pass over sixty faces per letter — `harmony.py` opened and parsed
+  each face thirty-one times and took minutes instead of seconds.
+- **Hoist everything that does not vary with the inner loop.** The cmap, the
+  glyph set and both stems are built once per face in `read_all`, not once per
+  letter. They are the same object every time; deriving them again is the
+  whole cost of the letter.
+- **Coarse, then fine.** Find a scanline extremum with a coarse sweep plus a
+  short fine pass around the winner, not a fine sweep throughout — every
+  scanline walks the whole flattened outline, so the step count is the price.
+  48 then 12 reads the same extremum as a flat 240 for a quarter of the work.
+- **Stream, and close what you opened.** `TTFont(..., lazy=True)` inside a
+  `try/finally` that closes it. Sixty faces held open at once is sixty parsed
+  font tables resident for no reason.
+
+The test before writing a loop: **how many times does this open a file, and
+does anything inside it depend on the loop variable?** Both answers are
+usually visible without running anything.
 
 ---
 

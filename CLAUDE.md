@@ -158,6 +158,14 @@ background pollers. A `make build` has been OOM-killed mid-run before now,
 which deletes `fonts/` — check for a half-removed output directory before
 assuming the tree is intact.
 
+**Any script you write is written to be run again, so write it efficiently.**
+Open a file once, loop the expensive thing on the outside, hoist out of the
+inner loop anything that does not vary with it, and search coarse before
+searching fine. This is not tidiness — a probe that takes minutes stops being
+run, and a question that stops being asked gets answered by guessing.
+`harmony.py` took minutes before its loops were inverted and takes 25 seconds
+after. `docs/METHOD.md` §4 has the four rules and what each one cost.
+
 Font discovery for the panel and the checkpoint sheet reads the host system's
 installed fonts; override the search roots with `SUSE_FONT_DIRS` (colon
 separated) if they live elsewhere.
