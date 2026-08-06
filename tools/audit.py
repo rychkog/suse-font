@@ -563,6 +563,45 @@ def _bowl(gs, name, top):
     return end, min(r[1] for r in rows if r[0] > end - 1.0)
 
 
+def self_crossings(poly):
+    """Where a contour crosses itself. Kept as a probe, NOT wired as a check.
+
+    ґ came apart because its tick's left edge ran down to the arm's underside
+    instead of stopping on the arm's top, and the two crossed at (381,493).
+    Nothing in the sweep could see that -- every contour had the right node
+    count, corners and weight, and the glyph still broke -- so this looked like
+    the missing check.
+
+    It is not. Run over the face's own Latin it flags B five times, e three, b
+    twice, and three, two, five and six once each. Contours that overlap and
+    resolve under the fill rule are this face's ordinary idiom; geom.rect says
+    as much, "SUSE Mono builds H, T and friends as overlapping rectangles
+    rather than as merged outlines". A rule that fails B is not a rule, and
+    wiring it in would have reported в, я and З -- all correct -- forever.
+
+    What separates ґ's crossing from B's is that ґ's DETACHED something, and
+    that is a question about the union, not about the contour. Left here for
+    the next attempt to start from.
+    """
+    n = len(poly)
+    out = []
+
+    def side(o, a, b):
+        return ((a[0] - o[0]) * (b[1] - o[1])
+                - (a[1] - o[1]) * (b[0] - o[0]))
+
+    for i in range(n):
+        a, b = poly[i], poly[(i + 1) % n]
+        for j in range(i + 2, n):
+            if (j + 1) % n == i:
+                continue
+            c, d = poly[j], poly[(j + 1) % n]
+            if (side(a, b, c) * side(a, b, d) < 0
+                    and side(c, d, a) * side(c, d, b) < 0):
+                out.append(((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0))
+    return out
+
+
 def _bowl_left(gs, name, top):
     """The same reading as _bowl, for a bowl that bulges LEFT.
 
@@ -711,12 +750,14 @@ def sweep(gs, subjects, ref, weight):
         ymin = min(p[1] for poly in polys for p in poly)
         if ymin < -20 and stem:
             lw = _thickness(polys, ymin * 0.5)
-            body = runs(polys, top * 0.25)
-            if lw and len(body) >= 2:
-                sw = body[1] - body[0]
-                if lw > sw * 1.05:
-                    out.append(f"{weight:9} {ch} appendage {lw:.0f} heavier "
-                               f"than stem {sw:.0f}")
+            # against the FACE's own stem, from H or n, not against whatever
+            # run happens to be leftmost a quarter of the way up. ф descends on
+            # its stem while its bowl is crowd-reduced, so the old reading
+            # compared the stem to the bowl wall and called the stem an
+            # overweight appendage -- 150 against 135, both correct.
+            if lw and lw > stem * 1.05:
+                out.append(f"{weight:9} {ch} appendage {lw:.0f} heavier "
+                           f"than the face's own stem {stem:.0f}")
 
         # counters that have closed to slits
         if stem:
