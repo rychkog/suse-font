@@ -87,6 +87,20 @@ BOWL_COUNTER_TOP = 0.47 # Ь Ъ Б Ы: height of the bowl COUNTER, in cap height
 # Ь's stem sat 19 units left of В's for the same reason -- it was taking the
 # face's general capital extent rather than B's own.
 HARD_SHOULDER = 0.20    # Ъ: shoulder length, as a fraction of the advance
+
+# Ъ's LEFT edge, as a share of the advance, and it falls with the weight.
+# The shoulder's length is a share of the cell and does not move, so wherever
+# this edge sits is where the stem sits, and whatever is left over is the
+# bowl's. Held flat at 0.055 the bowl lost width as the wall grew, and by
+# ExtraBold Ъ's counter was HALF Ь's -- 0.50 against a panel that holds
+# 0.78 to 0.79 at every weight, and outside the panel at Bold and ExtraBold
+# in both cases. The panel moves the edge instead: 0.035 of the advance at
+# Thin down to 0.013 at ExtraBold for the capital.
+#
+# Going that far left is this face's own habit, not the panel's alone -- Y
+# already starts at 18 units at Thin and at -1 at ExtraBold, and the
+# lowercase w at 32 and 20, which is where these lines put ъ.
+HARD_LEFT = {"cap": (0.0398, -0.167), "lc": (0.0603, -0.182)}
 # Д Ц Щ Џ all hang below the baseline, and every drawn face gives them ONE
 # depth -- JetBrains, DejaVu, Consolas, Fira and Segoe each use a single figure
 # for all three of Д Ц Щ. Measured against each face's OWN p, it lands
@@ -1383,14 +1397,19 @@ def Hard(pr, top=None):
     so the elbow can carry the face's corners -- see shoulder_spine.
     """
     top = pr.cap if top is None else top
-    x0 = 300.0 - 267.0 + HARD_SHOULDER * 600.0
     # the bowl is Ь's, so it ends where Ь's ends -- B's own above and b's own
     # below. Only the stem moves right, to leave the shoulder its room, and
     # the shoulder's own length is a share of the CELL rather than of the
     # letter, so it carries across the case unchanged: the panel puts the
     # lowercase ъ's at 0.203 of the advance against this file's 0.20.
-    return Soft(pr, top, x0=x0, right=bowl_of(pr)[1],
-                shoulder=300.0 - 267.0)
+    #
+    # What the stem's position then costs is the bowl's width, and the bowl
+    # pays for the wall twice. That is why the left edge has to travel -- see
+    # HARD_LEFT.
+    a, b = HARD_LEFT["lc" if getattr(pr, "lower", False) else "cap"]
+    left = max(a + b * (pr.stem / 1000.0), 0.0) * 600.0
+    return Soft(pr, top, x0=left + HARD_SHOULDER * 600.0,
+                right=bowl_of(pr)[1], shoulder=left)
 
 
 def Yeru(pr, top=None):
