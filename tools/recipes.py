@@ -1959,6 +1959,32 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
             + mirror_x(clone_all(left), 300.0))
 
 
+def Ka(pr):
+    """к -- the face's own k with the ascender taken off.
+
+    Not К at x-height, and not a construction at all. k's arm and leg already
+    live entirely below the x-height, already carry the lowercase's own stroke,
+    and are already fitted to this cell; the only thing that makes k a Latin
+    letter rather than a Cyrillic one is that its stem carries on up to the
+    ascender. Cut that and the letter IS к.
+
+    The 51 panel faces that draw both agree, and not approximately: к's width
+    is 1.000 of k's with the middle half of the population inside a thousandth,
+    its left edge sits at the same place to the em, and its leg leans the same.
+    So this is the highest tier the letter allows -- everything except the
+    stem's height is the host's own drawing, inherited rather than rebuilt.
+
+    The three contours are told apart by what they do, not by their order: the
+    stem is the one that reaches above the x-height. A donor's path indices are
+    exactly the sort of thing that means something different at the other
+    master.
+    """
+    stem = max(pr.paths("k"), key=lambda p: bbox([p])[3])
+    b = bbox([stem])
+    return ([rect(b[0], 0.0, b[2], pr.xh)]
+            + clone_all([p for p in pr.paths("k") if p is not stem]))
+
+
 def lc(fn, **kw):
     """Run a recipe against the lowercase's own stem, bar and sidebearings.
 
@@ -1997,7 +2023,7 @@ RECIPES = {
     # from spliced Latin outlines, so Lower alone re-sizes them.
     "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
-    "yeru-cy": lc(Yeru),
+    "yeru-cy": lc(Yeru), "ka-cy": Ka,
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }

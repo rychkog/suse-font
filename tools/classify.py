@@ -97,7 +97,7 @@ TIERS = [
     (0x0456, "i-cy", 1, "i"),
     (0x0457, "yi-cy", 2, "idotless + dieresiscomb"),
     (0x0439, "iishort-cy", 2, "ii-cy + brevecomb"),
-    (0x043A, "ka-cy", 3, "drawn at lowercase weight"),
+    (0x043A, "ka-cy", 2, "k's arm and leg + stem cut to x-height"),
     (0x043B, "el-cy", 3, "drawn at lowercase weight"),
     (0x043C, "em-cy", 3, "drawn at lowercase weight"),
     (0x043D, "en-cy", 3, "drawn at lowercase weight"),

@@ -906,6 +906,30 @@ donor's own margin, at both masters, so there is nothing to drift.
 This applies to every diagonal still to be assembled — к, ж, у, х and the
 Serbian џ all put a stroke across a gap that is not the stroke's own run.
 
+### Ask whether the Latin already draws the letter, before drawing it
+
+к was listed for three rounds as "drawn at lowercase weight" — a tier-3 job,
+the whole letter to be built from К's proportions at x-height. It is not. The
+face's own **k** has its arm and leg entirely below the x-height, at the
+lowercase stroke, fitted to this cell; the only thing that makes it a Latin
+letter is that its stem carries on up to the ascender. Cut that and the
+outline *is* к. Nothing was drawn — the stem became a rectangle to the
+x-height and the other two contours were taken unchanged.
+
+The panel confirmed it rather than merely permitting it: over the 51 faces
+that draw both, к is **1.000** of k's width with the middle half of the
+population inside a thousandth, its left edge sits at the same place to the
+em, and its leg leans the same. That is not a family resemblance, it is the
+same drawing.
+
+**So the first question for any undrawn letter is which case of the Latin to
+look in.** The capital is the obvious place and it is often the wrong one:
+К at x-height would have meant inventing slopes, a junction and a spring
+height, all of which k already answers. Of what is left, з and м have no
+lowercase counterpart — Latin m is three arches and there is no Latin three —
+so those two really are their capitals' constructions at x-height. к was the
+one that was not, and it was the one being planned as though it were.
+
 ### One reference face is a population of one
 
 `ZHE_STEM` was read off JetBrains Mono at two weights and set to 0.86 — the
