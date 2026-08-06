@@ -181,4 +181,5 @@ def main():
     print(f"\nworst deviation across the set: {worst * 100:.0f}%")
 
 
-main()
+if __name__ == "__main__":
+    main()
