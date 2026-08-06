@@ -67,14 +67,19 @@ CLONES = {"Ze-cy": "three"}
 BOWL_END = 0.02
 BOWL_WEIGHT = 0.02
 # ...and never tighter than this many units, whatever the percentage works out
-# to. The comment above says the tolerance is here to absorb outline rounding,
-# "a unit or so", and 2 per cent of a 29-unit stroke is 0.58 -- too tight to
-# do what it claims. в reads 0.7 light against ь and ъ at every master purely
-# because its elliptical arcs reach their widest by a different route, so the
-# probe lands on a sample where the counter's bezier has already begun to
-# turn. All four are drawn with the identical stroke. The faults this check
-# exists for were 22 and 35 units out at ExtraBold.
-BOWL_UNIT = 1.5
+# to. The probe reads a bowl at its widest point, and where the widest point
+# falls depends on the construction: в's stepped one-contour outer reaches it
+# by a different route than ь's plain d_shape, and я's mirrored bowl is short
+# enough at x-height that bowl_arc gives its counter a far tighter corner --
+# rx 39 against Я's 75 -- which moves the widest point again.
+#
+# Measured against glyphs KNOWN to be drawn with the identical stroke, that
+# spread runs to 4.4 units: at ExtraBold в reads 149.3 and я 153.7, both drawn
+# at exactly 150. Finer sampling does not shift it, so it is geometry and not
+# resolution. Five units is therefore the floor, and it still leaves a wide
+# margin -- the three faults this check exists for were 22, 35 and 29 units
+# out at ExtraBold, the last of them Я carrying m's crowding reduction.
+BOWL_UNIT = 5.0
 # The band the lower bowl lives in, and how finely to walk it. Wide enough to
 # contain the widest point at every master and to stay clear of both the
 # baseline corner and the waist.
@@ -543,6 +548,26 @@ def _bowl(gs, name, top):
     return end, min(r[1] for r in rows if r[0] > end - 1.0)
 
 
+def _bowl_left(gs, name, top):
+    """The same reading as _bowl, for a bowl that bulges LEFT.
+
+    Я hangs the face's bowl mirrored, in the upper half of the letter, so
+    neither the side nor the band _bowl scans applies. Without this the family
+    check simply could not see it, and Я sat at 0.82 of В's bowl weight --
+    below all 51 panel faces -- for as long as it existed.
+    """
+    polys = contours(gs, name)
+    rows = []
+    for i in range(BOWL_STEPS + 1):
+        xs = runs(polys, top * (0.60 + 0.35 * i / float(BOWL_STEPS)))
+        if len(xs) >= 4:
+            rows.append((xs[0], xs[1] - xs[0]))
+    if not rows:
+        return None
+    end = min(r[0] for r in rows)
+    return end, min(r[1] for r in rows if r[0] < end + 1.0)
+
+
 def _signed(poly):
     """Signed area, same convention as geom.area: positive is the outer
     direction this source draws ink in."""
@@ -887,6 +912,7 @@ def main():
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
+        cap, xh = f["OS/2"].sCapHeight, f["OS/2"].sxHeight
 
         for i in range(0, len(PROFILE_PAIRS), 2):
             up, low = PROFILE_PAIRS[i], PROFILE_PAIRS[i + 1]
@@ -900,6 +926,20 @@ def main():
                 findings.append(
                     f"{weight:9} {low} is not {up}'s shape: silhouettes "
                     f"differ by {sum(d) / len(d):.3f} on average")
+
+        # Я hangs В's bowl mirrored, so it belongs to the same family and is
+        # checked the same way -- only its wall, since a mirrored bowl in the
+        # upper half reaches nothing comparable to В's lower one.
+        for ch, host, h in (("Я", "В", cap), ("я", "в", xh)):
+            if ord(ch) not in cmap or ord(host) not in cmap:
+                continue
+            a = _bowl_left(gs, cmap[ord(ch)], h)
+            b = _bowl(gs, cmap[ord(host)], h)
+            if a and b and abs(a[1] - b[1]) > max(BOWL_WEIGHT * b[1],
+                                                  BOWL_UNIT):
+                findings.append(
+                    f"{weight:9} {ch} bowl stroke {a[1]:.0f} against "
+                    f"{host}'s own {b[1]:.0f}")
 
         for low, up in TAIL_PAIRS:
             if ord(low) not in cmap or ord(up) not in cmap:
