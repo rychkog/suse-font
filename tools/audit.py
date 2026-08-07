@@ -166,7 +166,15 @@ LOWER = Case(
     flat=("n", "m", "r", "v", "w", "x", "z"),
     asc=("b", "d", "h", "k", "l"),
     desc=("g", "j", "p", "q", "y"),
-    bowls=(("ь", "в"), ("ъ", "в"), ("б", "в")),
+    # б is deliberately not here. The check asks whether a bowl hung off a stem
+    # ends where в's lower lobe ends, which is the right question for ь and ъ
+    # and the wrong one for б: б's bowl is not a lobe on a stem, it is о whole,
+    # and the panel is emphatic about it -- 1.000 of о's width over the 50
+    # faces that draw both, middle half inside 0.988 to 1.000. в's lobe reaches
+    # 25 units further right than о does at Thin, so the check flagged б for
+    # being о. What guards б's bowl instead is stronger than this check: it IS
+    # о's outline, so the donor check covers it.
+    bowls=(("ь", "в"), ("ъ", "в")),
     # f g i j t are left out of the self-test on purpose: each ends at a
     # height that is its own business -- f's hook, g's ear, i and j's dot, t's
     # short ascender -- and no Cyrillic letter reproduces any of them, so the

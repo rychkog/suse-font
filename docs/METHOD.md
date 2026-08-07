@@ -1047,6 +1047,60 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
+### A junction transfers as a rule, not as a position
+
+б was the letter this project kept calling the hard one: no capital to derive
+from — Б is a different drawing — and no Latin lowercase of its shape. It came
+apart anyway, into three parts, two of which the face already draws.
+
+The **bowl is о**, whole. Over the 50 panel faces that draw both, б's bowl is
+1.000 of о's width with the middle half inside 0.988 to 1.000 — tighter than
+anything б offers against b or against the six.
+
+The **rise is the six's**, and this needed the dissection sheet rather than
+another scalar. A probe reported "straight 0, curved 50" and that reading is
+not what it looks like: it tested whether the left side drifts more than 0.05
+of the width, so it proves only that **no face draws that side as a vertical
+stem**. A straight diagonal drifts as much as a curve does. This face draws its
+six's rise dead straight at a constant slope, and its drift is 0.430 at Thin —
+*inside* the panel's б band of 0.366 to 0.592. The straight rise is not a
+departure from the panel; it is the face's own hand landing inside it.
+
+The **junction** is where the transferable lesson is. Read as a *position* —
+how far along its own bowl's width the six's centreline crosses that bowl's
+top, 0.239 at Thin and 0.287 at ExtraBold — it did not transfer at all: applied
+to о it put the stroke outside the bowl on one side and drove it down through
+the counter on the other, filling it solid. The figure was read on a bowl of a
+different shape and means nothing on another one.
+
+Read as a *rule* it transfers exactly. Measured against its own bowl, the six's
+rise has **no offset to speak of: its left edge IS the bowl's left edge**, the
+two closing to within a unit over the whole upper half of the letter at both
+masters. The bowl's wall becomes the rise. That is a statement about any bowl,
+so it applies to о unchanged — set the rise tangent, and the position falls out
+of the geometry instead of being carried in from a donor it no longer fits.
+
+**Two ways to get tangency wrong, both tried.** Tangent at the bowl's *widest*
+point makes the rise touch at the waist and cut clean across the counter above
+it; tangency has to be **slope-matched** — where the bowl's own wall runs at
+the rise's slope. And tangency gives a *stretch*, not a point: below where the
+edges part company the wall turns toward the vertical while the rise keeps its
+slope, so a rise taken down to the bowl's widest hangs a spur outside the
+silhouette at both masters. Walk the stretch and stop at its end.
+
+**So when a junction has to move between two letters, ask what relation the
+donor holds there — not what coordinate.** A fraction of a width is a
+coordinate wearing a ratio's clothes.
+
+Two readings sit outside the panel and both are the face, checked before being
+blamed on the letter (§1). б reaches 1.48 to 1.55 of the x-height against a
+panel holding 1.42 to 1.46 — but this face's own **b** is 1.481 to 1.547 of its
+x-height against a panel holding 1.389 to 1.530, so the ascender is simply tall
+here, and the panel's other reading, б's top against b's own top, is 1.000 for
+us against a panel lower quartile of exactly 1.000. And the left drift dips to
+0.346 at Bold against that bucket's lower quartile of 0.369 — a quartile, not a
+range, with both masters inside their own buckets.
+
 ### A clone inherits the donor's *set*, not only its shape — and a control pair says which is which
 
 З is the face's own digit three, and the question "is a three really a good З"
@@ -1181,6 +1235,6 @@ the top of the vertical bars.*
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
   width fit running generous mid-axis, which two masters cannot bend.
-- **10 glyphs undrawn**: б and the Serbian Ђ Љ Њ Ћ ђ љ њ ћ џ. б is the hard
-  one — no capital, no Latin donor.
+- **9 glyphs undrawn**, all Serbian: Ђ Љ Њ Ћ ђ љ њ ћ џ. **Ukrainian and
+  Russian are complete.**
 - **Checkpoint C: the italic.**
