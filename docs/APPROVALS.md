@@ -43,7 +43,9 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| Glyph | Shown | What it is |
+| --- | --- | --- |
+| **м** | 2026-08-07 | М's construction at x-height — М is the Latin M and Latin m is three arches, so there is no lowercase counterpart to take. Box, upright and diagonal weights all read off M at each master; both strokes take `crowd3`, the reduction the face gives m's third stem against n, because four strokes cross a cell two thirds the height. The vertex is М's own height scaled by `EM_VERTEX` 0.639, the panel's median for how far that landmark moves across the case — 0.206 of the x-height at Thin, 0.182 at ExtraBold. It was first shown resting on the baseline, which passed every gate and was rejected by eye; the baseline is below the lower quartile of every face in the panel. |
 
 ## Not recorded
 

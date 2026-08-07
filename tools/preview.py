@@ -15,8 +15,15 @@ import recipes as RU
 
 ALL = dict(RU.RECIPES)
 
-CELL = int(__import__("os").environ.get("CELL", 150))
-PAD = 8
+# The cell as delivered. The polygons are filled into a 1-bit mask so the XOR
+# below gives even-odd fill, and a 1-bit fill has no antialiasing at all -- so
+# the mask is built at SS times this and the sheet is downsampled once at the
+# end, which is where the grey edges come from. Drawn at the delivered size it
+# was a hard aliased staircase.
+CELL_OUT = int(__import__("os").environ.get("CELL", 300))
+SS = 4
+CELL = CELL_OUT * SS
+PAD = 8 * SS
 
 
 def flatten(p, steps=16):
@@ -144,7 +151,7 @@ def draw_cell(img, ox, oy, paths, upem, cap, xh):
     for y, col in ((0, (200, 200, 255, 255)), (cap, (255, 210, 210, 255)),
                    (xh, (210, 255, 210, 255))):
         yy = T((0, y))[1]
-        d.line([(ox, yy), (ox + CELL, yy)], fill=col)
+        d.line([(ox, yy), (ox + CELL, yy)], fill=col, width=SS)
     # XOR each contour in turn, which gives even-odd fill: counters punch
     # through, and the deliberate stem/bar overlaps stay solid rather than
     # cancelling the way a naive nonzero fill of separate rects would.
@@ -187,8 +194,10 @@ def main():
                 continue
             draw_cell(img, i * CELL, mi * CELL, paths, font.upm, pr.cap, pr.xh)
     out = "tools/out/preview.png"
+    img = img.resize((cols * CELL_OUT, 2 * CELL_OUT), Image.LANCZOS)
     img.save(out)
     print("wrote", out, img.size)
 
 
-main()
+if __name__ == "__main__":
+    main()

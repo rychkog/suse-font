@@ -803,7 +803,7 @@ def main():
     selftest = "--selftest" in sys.argv
     findings = []
 
-    for weight in ("Thin", "Regular", "ExtraBold"):
+    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
@@ -906,7 +906,7 @@ def main():
     byname = {g.name: g for g in src2.glyphs}
     donors = {n: note for cp, n, t, note in _T if t == 1}
 
-    for weight in ("Thin", "Regular", "ExtraBold"):
+    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
@@ -972,7 +972,7 @@ def main():
     # Left out on purpose: Ы, which carries a third stroke and shaves for it,
     # as every drawn face does; and Ф and Ю, which hang O's bowl rather than
     # B's and take the same shave.
-    for weight in ("Thin", "Regular", "ExtraBold"):
+    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
         f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()

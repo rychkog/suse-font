@@ -1959,6 +1959,18 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
             + mirror_x(clone_all(left), 300.0))
 
 
+# м's vertex, as a fraction of М's own -- each measured against its own line,
+# so this is the shift the letter takes across the case and nothing else. The
+# panel's median over the 51 faces that draw both; its middle half is wide,
+# 0.308 to 0.889, so the panel is saying "well short of М's depth" rather than
+# fixing a value, and the median is taken because it is the only figure in
+# that band the panel actually supports. Two readings agree on where that
+# lands: applied to this face's own М it puts the vertex at 0.206 of the
+# x-height at Thin and 0.182 at ExtraBold, against a panel median for м's
+# vertex, read directly, of 0.180.
+EM_VERTEX = 0.639
+
+
 def Em(pr, top=None, bottom=0.0):
     """м -- М's construction at x-height, rebuilt from M's own figures.
 
@@ -2014,21 +2026,11 @@ def Em(pr, top=None, bottom=0.0):
     yb = ya + base.cap * 0.10
     la, ra_ = line(ya, yb, 1), line(ya, yb, 2)
     diag = (la[2] + ra_[2]) / 2.0 / base.stem
-    _ = (ya + (ra_[0] - la[0]) / (la[1] - ra_[1])) / base.cap
+    mvert = (ya + (ra_[0] - la[0]) / (la[1] - ra_[1])) / base.cap
 
     # ...and rebuilt in this case's box, at this case's stroke.
     #
-    # The vertex is NOT М's height as a fraction. м keeps М's width -- the
-    # panel is emphatic, 1.000 with the middle half inside seven thousandths --
-    # over two thirds of its height, so a diagonal that lands at the same
-    # fraction has to lean half again as hard and closes the counter to seven
-    # units at ExtraBold where this face's own Latin never goes below fifteen.
-    # The letter cannot widen and the stroke is the last thing to give, so what
-    # gives is the depth: the vertex drops until the diagonal has М's OWN lean
-    # back, which at both masters means the baseline. That is what the panel
-    # sees too -- its median for м's vertex is 0.18 of the x-height against
-    # 0.30 of the cap for М, and its lower quartile is 0.04.
-    # ...and both strokes take the face's own crowding reduction on top of М's
+    # Both strokes take the face's own crowding reduction on top of М's
     # figures. М is four strokes across a cell that is 700 tall; м is four
     # strokes across the same cell 472 tall, so its diagonals lean harder and
     # the wedge between each upright and its diagonal is the tightest white in
@@ -2039,8 +2041,13 @@ def Em(pr, top=None, bottom=0.0):
     # which Ж's arms already take for the same reason.
     us = upright * pr.stem * L(pr).crowd3
     ds = diag * pr.stem * L(pr).crowd3
-    lean = abs(la[1])
-    yv = max(bottom, top - (300.0 - (left + us / 2.0)) / lean)
+
+    # The vertex is М's own height, scaled by the shift the panel gives the
+    # letter across the case. Both diagonals run to (300, yv), so the flat cut
+    # sits exactly where their centrelines meet -- М's own rule that two
+    # strokes crossing stay square, and the reason the vertex is cut rather
+    # than pointed.
+    yv = bottom + h * mvert * EM_VERTEX
     out = [rect(left, bottom, left + us, top),
            rect(right - us, bottom, right, top)]
     for x in (left + us / 2.0, right - us / 2.0):

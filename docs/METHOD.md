@@ -442,9 +442,22 @@ Observed: the build piped to `/dev/null`; a `git push` error swallowed by
 `tail`; gates exiting 0 while holding findings; a `grep` filter hiding a broken
 interpolation; `build_cyrillic` doing nothing after a commit; `check.py`
 running its entire suite on import, so importing one function runs the gate.
+`preview.py` and `checkpoint.py` had the same fault and now guard `main()`
+behind `__name__`; importing one of their helpers used to re-render the sheet
+underneath whatever was being looked at.
+
+A gate that reads only some of the weights is the same fault wearing a clean
+result. `audit.py` read Thin, Regular and ExtraBold and never Bold, so м's
+wedge counter — 8 units against the face's own 26 — sat in the tree through a
+build, a full `verify.sh` and a review sheet without a single gate looking at
+it. Regular passed at 35 and ExtraBold has no wedge there at all; the failure
+existed at exactly one weight, and that weight was the one not read. Adding
+Bold flagged м and nothing else, which is also what makes it safe.
 
 **Rule:** run `tools/verify.sh` unfiltered and read all of it. Do not grep the
-output of a gate.
+output of a gate. And a gate reads **every** weight the family ships that its
+own reasoning applies to — an interpolated weight is where a fault lives when
+both masters are clean.
 
 ### F8 · The wrong figure off the right donor
 
@@ -604,8 +617,20 @@ were filled into **1-bit masks**. Every edge was thresholded, nothing was
 antialiased, and the user's response was that it was unreadable. The
 requirements:
 
-- **Supersample ×4, then downsample with Lanczos.** Fill into an oversized
-  mask and resize; never draw at final size.
+- **Supersample ×4, then downsample with Lanczos — to *twice* the layout, not
+  to the layout.** Fill into an oversized mask and resize; never draw at
+  final size. Downsampling all the way to 1 gives away the resolution the
+  render already paid for and the sheet pixelates the moment it is zoomed,
+  which is what a review sheet is for. Two samples per delivered pixel is as
+  much antialiasing as a screen at this density shows. `preview.py` was worse
+  than that — it drew 1-bit masks straight at the delivered size, so its edges
+  were a hard staircase with no grey in them at all.
+- **A reading-size row is the exception and must not be enlarged.** 14px set
+  at 28px is a different rasterization — different hinting, a different
+  stem-to-pixel fit — and that fit is the whole point of the row. Draw those
+  at their true pixel size and enlarge afterwards with **nearest-neighbour**,
+  so one rendered pixel becomes one block and the row stays an honest picture
+  of what the rasterizer produced. `checkpoint.py: line_block(real=True)`.
 - **Even-odd fill per contour** — XOR each contour into the accumulator so
   counters punch through. Filling contours independently makes every bowl
   solid.
@@ -995,6 +1020,33 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
+### A landmark that moves across the case is a ratio, not a fraction or a floor
+
+м's vertex was first put at М's own fraction of the height, which closed the
+wedge to seven units at ExtraBold; the fix was to drop it to the baseline,
+where every counter opened and every gate passed. It was still wrong, and the
+user's eye said so before any instrument did — the letter stood on its point.
+
+Both attempts were the same mistake in opposite directions: taking the capital
+as the answer, then taking the constraint as the answer. Neither is a reading.
+The reading is what the letter does **across the case**, and the panel is the
+only place that lives: over the 51 faces that draw both, м's vertex against
+its own x-height is **0.639** of М's against its own cap. Applied to this
+face's own М that lands at 0.206 of the x-height at Thin and 0.182 at
+ExtraBold, and the panel's direct median for м's vertex — a completely
+separate reading — is 0.180. The baseline was below the panel's lower
+quartile; no face in the reference does what the "fix" did.
+
+The middle half of that ratio is wide, 0.308 to 0.889, and the honest way to
+say what the panel is doing is that it rules out the two extremes rather than
+fixing a value. That is still enough, because the extremes were exactly what
+was being tried.
+
+**So for any landmark inside a letter that also exists in its capital — a
+vertex, a waist, a junction — read the panel for the ratio between the two
+cases and apply it to this face's own capital.** з's waist is the next one:
+the panel already has it at 0.290 of the cap against 0.300 of the x-height.
+
 ---
 
 ## 9 · Open threads
@@ -1012,6 +1064,6 @@ figure the face itself supplies.
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
   width fit running generous mid-axis, which two masters cannot bend.
-- **14 glyphs undrawn**: б з к м, the Serbian Ђ Љ Њ Ћ ђ љ њ ћ џ, and ќ (blocked
-  on к). б is the hard one — no capital, no Latin donor.
+- **11 glyphs undrawn**: б з and the Serbian Ђ Љ Њ Ћ ђ љ њ ћ џ. б is the hard
+  one — no capital, no Latin donor.
 - **Checkpoint C: the italic.**
