@@ -195,7 +195,7 @@ def main():
          ("JetBrains Bold", JB % "Bold", 40, ru)]))
 
     parts.append(line_block(
-        "Real sizes (б and з still to come)",
+        "Real sizes",
         [("14px UA", FONT % "Regular", 14, ua),
          ("14px RU", FONT % "Regular", 14, ru),
          ("12px UA", FONT % "Regular", 12, ua),
