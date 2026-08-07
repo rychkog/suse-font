@@ -170,8 +170,8 @@ def main():
     # Ukrainian alone never sets Ы Ъ Э, so those three had only ever been
     # reviewed as isolated glyphs. Both scripts from here on.
     russian = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРЫ, ЭХО"
-    ua = ok("ґрунт, юність, єднати")
-    ru = ok("юность, форты, тёщи")
+    ua = ok("ґрунт, боротьба, єднати")
+    ru = ok("юность, борьба, тёщи")
 
     parts = [grid(chars)]
 
