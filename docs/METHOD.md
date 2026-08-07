@@ -361,7 +361,14 @@ differs from its H — here 7%, which was enough to make a bowl that exactly
 matches its own stem read as 0.93 and "outside the panel". `lc_stem_of` reads
 n; use it for anything at x-height.
 
-**Tell:** the metric exists and is *nearly* right. That is the dangerous case.
+Its most expensive instance was a metric that was exactly right and answering a
+different question. б's bowl is 1.000 of о's width, measured correctly over 50
+faces — and it was used to decide what *shape* the bowl is, which a width does
+not say. Three versions of the letter were built on it and all three were
+rejected by eye. See §8.
+
+**Tell:** the metric exists and is *nearly* right — or is exactly right about
+something adjacent. That is the dangerous case.
 
 ### F6 · A broken probe reported as a finding
 
@@ -982,6 +989,14 @@ lowercase counterpart — Latin m is three arches and there is no Latin three �
 so those two really are their capitals' constructions at x-height. к was the
 one that was not, and it was the one being planned as though it were.
 
+**б was the second, and it was worse**, because б had been written down as the
+letter with no Latin of its shape and that sentence went unchallenged for four
+rounds. It is **b**: same left edge, same right edge, same bowl top, over the 50
+faces that draw both. The only difference is that b's stem stops at the ascender
+and б's turns right — and the face draws that turn too, in **g's tail**, which
+is the same figure upside down. Nothing was drawn but the splice. See *A width
+equality is not a shape identity* for how the wrong answer held for so long.
+
 ### One reference face is a population of one
 
 `ZHE_STEM` was read off JetBrains Mono at two weights and set to 0.86 — the
@@ -1076,58 +1091,53 @@ disagreed with the picture.** When a measurement says a letter is fine and the
 render says it is not, the measurement is the thing to re-derive. It was
 treated as the tiebreaker for a whole round.
 
-### A junction transfers as a rule, not as a position
+### A width equality is not a shape identity
 
-б was the letter this project kept calling the hard one: no capital to derive
-from — Б is a different drawing — and no Latin lowercase of its shape. It came
-apart anyway, into three parts, two of which the face already draws.
+**This one cost three rejections, and the sentence that caused it read like a
+measurement.** б's bowl is 1.000 of о's width over the 50 panel faces, middle
+half 0.988 to 1.000 — the tightest reading anywhere in the letter. That was
+written down as *the bowl is о*, and three versions of б were built by cloning
+о and laying a stroke against its left flank. Every one was rejected by eye.
 
-The **bowl is о**, whole. Over the 50 panel faces that draw both, б's bowl is
-1.000 of о's width with the middle half inside 0.988 to 1.000 — tighter than
-anything б offers against b or against the six.
+The equality is real and says nothing about the bowl. б is as wide as о because
+**b's stem plus b's bowl is as wide as о** — a fact about the cell, which every
+letter in a monospace shares. Asked the question it was actually being used to
+answer, the same panel answers plainly: б's left edge is **b's left edge** (off
+by 0.18 of a lowercase stem, and to the left), its right edge is **b's right
+edge** (0.000, middle half −0.017 to +0.008 of о's width), and its bowl's top is
+**b's bowl's top** to within a twentieth of the x-height. Laid over each other
+the two letters are one drawing with one difference: b's stem stops at the
+ascender and б's turns right.
 
-The **rise is not the six's**, though it was built that way twice. A six's rise
-holds one slope the whole way and never turns; every б in the panel swings from
-a lean of about 0.49 to a slope between 2.9 and 3.7 in its top third. A rise
-with no turn in it reads as a six, and that is what the eye called it. What the
-rise actually is here is **solved**, not set: the flag's start is the panel's
-figure, tangency to the bowl is the host's rule, and the lean is the one free
-variable that satisfies both.
+**Tell: a scalar that agrees to a thousandth is evidence about that scalar, not
+about the shape.** Two letters can share a width and share nothing else. The
+check that closes the gap costs one picture — draw the candidate donor under
+the reference outline and look at where it shows. Three rounds went on solving
+leans and radii for a junction the letter does not have, because that picture
+was never made.
 
-The **junction** is where the transferable lesson is. Read as a *position* —
-how far along its own bowl's width the six's centreline crosses that bowl's
-top, 0.239 at Thin and 0.287 at ExtraBold — it did not transfer at all: applied
-to о it put the stroke outside the bowl on one side and drove it down through
-the counter on the other, filling it solid. The figure was read on a bowl of a
-different shape and means nothing on another one.
+So this is the second time §8's *ask whether the Latin already draws the letter*
+has paid, and the second time it was reached only after the letter had been
+drawn the hard way. к was planned for three rounds as К at x-height; б was
+planned for four as о with a stroke on it. **Both questions should be asked
+before the first constant is read**, and asked of the lowercase first.
 
-Read as a *rule* it transfers exactly. Measured against its own bowl, the six's
-rise has **no offset to speak of: its left edge IS the bowl's left edge**, the
-two closing to within a unit over the whole upper half of the letter at both
-masters. The bowl's wall becomes the rise. That is a statement about any bowl,
-so it applies to о unchanged — set the rise tangent, and the position falls out
-of the geometry instead of being carried in from a donor it no longer fits.
+What survives from the three wrong versions, because neither is about б:
 
-**Two ways to get tangency wrong, both tried.** Tangent at the bowl's *widest*
-point makes the rise touch at the waist and cut clean across the counter above
-it; tangency has to be **slope-matched** — where the bowl's own wall runs at
-the rise's slope. And tangency gives a *stretch*, not a point: below where the
-edges part company the wall turns toward the vertical while the rise keeps its
-slope, so a rise taken down to the bowl's widest hangs a spur outside the
-silhouette at both masters. Walk the stretch and stop at its end.
-
-**So when a junction has to move between two letters, ask what relation the
-donor holds there — not what coordinate.** A fraction of a width is a
-coordinate wearing a ratio's clothes.
-
-Two readings sit outside the panel and both are the face, checked before being
-blamed on the letter (§1). б reaches 1.48 to 1.55 of the x-height against a
-panel holding 1.42 to 1.46 — but this face's own **b** is 1.481 to 1.547 of its
-x-height against a panel holding 1.389 to 1.530, so the ascender is simply tall
-here, and the panel's other reading, б's top against b's own top, is 1.000 for
-us against a panel lower quartile of exactly 1.000. And the left drift dips to
-0.346 at Bold against that bucket's lower quartile of 0.369 — a quartile, not a
-range, with both masters inside their own buckets.
+- **A junction transfers as a rule, not as a position.** The six's rise crosses
+  its own bowl's top at 0.239 of that bowl's width at Thin and 0.287 at
+  ExtraBold; carried to о as a *position* it put the stroke outside the bowl on
+  one side and drove it down through the counter on the other, filling it solid.
+  Read as a rule — the six's rise has no offset at all, its left edge **is** its
+  bowl's left edge to within a unit over the upper half at both masters — it
+  transfers to any bowl. A fraction of a width is a coordinate wearing a ratio's
+  clothes.
+- **Tangency, where a letter does need it, is slope-matched and gives a stretch
+  rather than a point.** Tangent at the bowl's *widest* makes the stroke touch at
+  the waist and cut clean across the counter above it. And below where the two
+  edges part company the wall turns toward the vertical while the stroke keeps
+  its slope, so a stroke taken down to the widest hangs a spur outside the
+  silhouette at both masters. Walk the stretch and stop at its end.
 
 ### A clone inherits the donor's *set*, not only its shape — and a control pair says which is which
 
