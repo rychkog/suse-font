@@ -41,7 +41,7 @@ TIERS = [
     (0x0401, "Io-cy", 2, "Ie-cy + dieresiscomb.case"),
     (0x0404, "E-cy", 2, "C + E's middle arm"),
     (0x0416, "Zhe-cy", 3, "drawn: stem + four arms"),
-    (0x0417, "Ze-cy", 3, "drawn: two lobes, three's proportions"),
+    (0x0417, "Ze-cy", 2, "the three, widened to O's width"),
     (0x0418, "Ii-cy", 3, "drawn: two stems + rising diagonal"),
     (0x0406, "I-cy", 1, "I"),
     (0x0407, "Yi-cy", 2, "I-cy + dieresiscomb.case"),

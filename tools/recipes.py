@@ -1518,15 +1518,69 @@ def E_rev(pr, top=None):
                         x1, mid + pr.bar / 2.0)]
 
 
+# З against this face's own O, and з against its own o -- the width each takes,
+# whatever the digit it is drawn from happens to be. Both are the panel's own
+# figure over the 50 faces that answer, and both are genuinely flat: fitted as
+# a line in the stem the slope is nothing, and the fit's residual matches the
+# flat constant's to four decimals. See METHOD, "Not every constant hides a
+# relation" -- and the two agreeing to two parts in a thousand across the case
+# is the panel saying this is one figure, not two.
+ZE_ROUND = {"cap": 0.9814, "lc": 0.9829}
+
+
+def _ze_wall(polys, x0, x1, y0, y1):
+    """The three's wall at the lobes' widest, where a horizontal cut crosses it
+    square. This is the one stroke a horizontal squash would thin, so it is the
+    one that gets pinned."""
+    k = max(range(5, 96),
+            key=lambda j: runs(polys, y0 + (y1 - y0) * j / 100.0)[-1][1])
+    return [b - a for a, b in runs(polys, y0 + (y1 - y0) * k / 100.0)][-1]
+
+
 def Ze(pr, top=None):
-    """З -- the digit three, which this typeface has already drawn.
+    """З -- the digit three, which this typeface has already drawn, widened.
 
     In a grotesque the two are the same letter shape, and borrowing the real
     outline means З inherits the face's own curve, waist and terminals for
     free. Built from two generated arcs instead it had a visible seam where
     the lobes met, and the waist read as a break rather than a join.
+
+    The panel says the borrowing is right and says so specifically. Structure:
+    over the 51 faces that draw both, the two letters put their lobes in the
+    same proportion -- 0.928 upper to lower for З against 0.926 for the three,
+    middle halves overlapping -- and end their strokes at the same angles. The
+    one construction that would disqualify a three is the flat-topped one, the
+    three drawn with a straight diagonal shoulder: 13 of the 51 faces draw
+    that, and no Cyrillic З in the panel does. This face's three is not one of
+    them. Its upper terminal leans 1.97 at Thin and 2.21 at ExtraBold, inside
+    a З population holding 1.61 to 2.02 and nowhere near the flat-topped
+    three's 0.00.
+
+    What does NOT come across is the width, and cloning the outline whole was
+    taking it. Half the panel draws З wider than its own three, but that is
+    not about З: the same faces draw O wider than their own 0 by the same
+    amount, and З/3 measured against O/0 has a median of exactly 1.000. It is
+    the digit set being drawn narrow, and this face does it too -- its digits
+    widen 13% from Thin to ExtraBold where its capitals widen 18%. Cloned flat
+    at the digit's width, З came out at 0.937 of O at ExtraBold against a
+    panel bucket holding 0.974 to 1.007, and its own lowercase at 0.925 of o
+    against 0.933 to 1.022. Both cases, one cause, the heavy end only.
+
+    So the outline is the three's and the width is O's. `squash_x` puts the
+    difference into the whites and leaves the wall alone -- the same instrument
+    з uses, for the same reason: scaling the letter horizontally would thin the
+    walls exactly the way scaling it vertically thins the bars.
     """
-    return clone_all(pr.paths("three"))
+    src = [_flatten(p) for p in pr.paths("three")]
+    xs = [q[0] for p in src for q in p]
+    ys = [q[1] for p in src for q in p]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    want = bbox(pr.paths("O"))
+    want = (want[2] - want[0]) * ZE_ROUND["cap"]
+    wall = _ze_wall(src, x0, x1, y0, y1)
+    out = squash_x(clone_all(pr.paths("three")), [(x1 - wall, x1)],
+                   x1, x0 + want, x0)
+    return translate(out, dx=300.0 - (x0 + want / 2.0))
 
 
 def Ze_lc(pr):
@@ -1590,13 +1644,20 @@ def Ze_lc(pr):
     out = squash(out, bands, -over + (y1 - y0) * k, pr.cap + over, -over)
 
     # x: the walls to lowercase weight about the cell's centre, then the width
-    # to the lowercase's own box. At ExtraBold the first stage overshoots the
-    # width the box asks for and the second widens the letter back out, which
-    # is the same arithmetic run the other way and needs no special case.
+    # to the one the face's own o asks for. Not the box ratio, which is what
+    # this took first and which carries the digit set's own narrowness: this
+    # face widens its digits 13% from Thin to ExtraBold where its round letters
+    # widen 18%, so the box ratio left з at 0.925 of o at the heavy end against
+    # a panel holding 0.933 to 1.022. `ZE_ROUND` is the panel's own figure and
+    # the capital takes the same reading against O -- see `Ze`. At ExtraBold
+    # the first stage overshoots the width this asks for and the second widens
+    # the letter back out, which is the same arithmetic run the other way and
+    # needs no special case.
     ax0 = 300.0 + (x0 - 300.0) * pr.stem / float(base.stem)
     ax1 = 300.0 + (x1 - 300.0) * pr.stem / float(base.stem)
     out = scale_x(out, pr.stem / float(base.stem))
-    want = (x1 - x0) * (pr.capR - pr.capL) / float(base.capR - base.capL)
+    ob2 = bbox(base.paths("o"))
+    want = (ob2[2] - ob2[0]) * ZE_ROUND["lc"]
     aw = wall * pr.stem / float(base.stem)
     out = squash_x(out, [(ax1 - aw, ax1)], ax1, ax0 + want, ax0)
     return translate(out, dx=300.0 - (ax0 + want / 2.0))
