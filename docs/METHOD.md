@@ -329,8 +329,18 @@ defect, but it is the same expression in the same position.
 - **Left in place where the panel wants less:** the lowercase ф kept it and
   came out at 0.78 of the stem where the panel holds 0.82–0.93 — which is why
   its counters read airy once the bowl was widened.
+- **Counted twice:** м's uprights took it on top of М's own 0.845 of the stem,
+  and М's 0.845 *is* this face's reduction for four strokes across a cell. The
+  uprights landed at 0.704 of n where the panel puts them at 0.922 and this
+  face's own М puts them at 0.845, and the letter read visibly leaner than the
+  п and и beside it. The diagonals keep it: they are what the shorter cell
+  actually crowds.
 
-**Tell:** `crowd3` on anything that is not literally three stems in a cell.
+**Tell:** `crowd3` on anything that is not literally three stems in a cell —
+and, separately, `crowd3` on a figure already read off a crowded donor. A
+ratio taken from М, m or Ж carries that donor's own crowding inside it
+already. See F1: this is the same fault, with the condition hidden in a
+measured ratio rather than in a written constant.
 
 ### F4 · A median across a mixed population hiding a relation
 
@@ -1020,32 +1030,35 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
-### A landmark that moves across the case is a ratio, not a fraction or a floor
+### When two panel readings conflict, the tight one wins and the loose one gives
 
-м's vertex was first put at М's own fraction of the height, which closed the
-wedge to seven units at ExtraBold; the fix was to drop it to the baseline,
-where every counter opened and every gate passed. It was still wrong, and the
-user's eye said so before any instrument did — the letter stood on its point.
+м cost three rounds, and every one of them was a fight between the same two
+readings, neither of which can be had in full in this cell.
 
-Both attempts were the same mistake in opposite directions: taking the capital
-as the answer, then taking the constraint as the answer. Neither is a reading.
-The reading is what the letter does **across the case**, and the panel is the
-only place that lives: over the 51 faces that draw both, м's vertex against
-its own x-height is **0.639** of М's against its own cap. Applied to this
-face's own М that lands at 0.206 of the x-height at Thin and 0.182 at
-ExtraBold, and the panel's direct median for м's vertex — a completely
-separate reading — is 0.180. The baseline was below the panel's lower
-quartile; no face in the reference does what the "fix" did.
+The panel gives both. **м's upright against n is 1.000 of М's against H**,
+middle half inside 0.979 to 1.035 — as tight a reading as this project has
+found. **м's vertex against its own x-height is 0.639 of М's against its own
+cap** — median over the same 51 faces, but with a middle half of 0.308 to
+0.889, which rules out the extremes and fixes nothing.
 
-The middle half of that ratio is wide, 0.308 to 0.889, and the honest way to
-say what the panel is doing is that it rules out the two extremes rather than
-fixing a value. That is still enough, because the extremes were exactly what
-was being tried.
+They conflict because the letter cannot widen: it is monospaced at М's width,
+so a deeper vertex leans the diagonals harder, and past a point the wedge
+between each diagonal and its upright shuts. At the panel's vertex with the
+panel's upright weight that wedge is **six units at Bold**. Something has to
+give, and the answer is not to split the difference — it is to give the
+reading the panel is loose about. м sits at М's own vertex fraction exactly,
+with М's own upright, and the diagonals alone take `crowd3`.
 
-**So for any landmark inside a letter that also exists in its capital — a
-vertex, a waist, a junction — read the panel for the ratio between the two
-cases and apply it to this face's own capital.** з's waist is the next one:
-the panel already has it at 0.290 of the cap against 0.300 of the x-height.
+The two wrong turns are worth keeping because they are symmetrical. First the
+vertex went to М's fraction with `crowd3` on **both** strokes, which starved
+the uprights — see F3. Then it went to the **baseline**, which opened every
+counter, passed every gate, and answered to nothing: the baseline is below the
+lower quartile of every face in the reference. Taking the capital as the
+answer and taking the constraint as the answer are the same mistake.
+
+**So: rank the panel's readings by how tight they are before deciding which
+one to bend.** A median with a middle half a third of its own width wide is
+not evidence against a median with a middle half of six per cent.
 
 ---
 
