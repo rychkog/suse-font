@@ -36,11 +36,13 @@ OURS = [("Thin", "fonts/ttf/SUSEMono-Thin.ttf"),
         ("Bold", "fonts/ttf/SUSEMono-Bold.ttf"),
         ("ExtraBold", "fonts/ttf/SUSEMono-ExtraBold.ttf")]
 
-# б is not drawn yet, so no string here may contain one -- a .notdef box in a
-# review sheet reads as a broken glyph and costs the round it appears in. This
-# rule caught з on its first render, back when з was the undrawn one.
-CAPS_ROW = "ГЕЖЗИЙКЛМПТУФЦЧШЩЭЮЯ  KVWXZEFTLS"
-LC_ROW = "гежзийклмптуфцчшщэюя  kvwxzeftls"
+# Every letter this project draws belongs in these rows. They were
+# written when б and з were still undrawn and a .notdef box in a
+# specimen reads as a drawing fault in a letter that is simply not
+# there; both are drawn now, and a letter left out of the standing
+# sheets is a letter the standing sheets never test.
+CAPS_ROW = "БГЕЖЗИЙКЛМПТУФЦЧШЩЭЮЯ  KVWXZEFTLS"
+LC_ROW = "бгежзийклмптуфцчшщэюя  kvwxzeftls"
 
 
 def lab(sz):
@@ -147,7 +149,7 @@ def main():
         for name, path in (OURS[1], OURS[2]):
             f = ImageFont.truetype(path, px * SS)
             d.text((S(40), y), f"{name} {px}px", font=note, fill=MUT)
-            d.text((S(230), y), "эхо тоже выше сыр   жовтий вечір їжа   "
+            d.text((S(230), y), "эхо борьба выше сыр   боротьба вечір їжа   "
                    "git commit -m 'ежа' v2.1", font=f, fill=FG)
             y += S(30)
         y += S(10)
