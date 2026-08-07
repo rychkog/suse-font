@@ -83,7 +83,7 @@ TIERS = [
     (0x040D, "Igrave-cy", 2, "Ii-cy + gravecomb.case"),
     # ---- lowercase -----------------------------------------------------
     (0x0430, "a-cy", 1, "a"),
-    (0x0431, "be-cy", 3, "drawn: bowl + ascender + flag"),
+    (0x0431, "be-cy", 2, "о + the six's rising stroke + a flag"),
     (0x0432, "ve-cy", 3, "drawn: two lobes at x-height"),
     (0x0433, "ge-cy", 3, "drawn: stem + arm at x-height"),
     (0x0491, "gheupturn-cy", 2, "ge-cy + upturn"),

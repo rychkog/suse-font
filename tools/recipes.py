@@ -1663,6 +1663,148 @@ def Ze_lc(pr):
     return translate(out, dx=300.0 - (ax0 + want / 2.0))
 
 
+# How far the flag reaches, as a share of the letter's own width. The panel's
+# figure over the 50 faces that draw б, and flat: bucketed by the face's own
+# lowercase stem it reads 0.925, 0.915, 0.908, 0.915 -- there is no slope in it
+# to find. Panel-only; this face has no letter that puts an arm on a rising
+# diagonal, so there is no host reading to prefer.
+BE_REACH = 0.915
+
+# The share of its own arm this face's corner takes: 122 into E and F's 461 at
+# ExtraBold, which is what г's own docstring records. Used as a ceiling on the
+# flag's corner, whose arm is a third the length.
+ARM_CORNER = 0.26
+
+
+def Be_lc(pr):
+    """б -- о's bowl, the six's rising stroke, and a flag.
+
+    The one Ukrainian letter with no capital to derive from and no Latin
+    lowercase of its shape. Б is a different drawing -- a stem with a top arm
+    and a lower bowl -- so the case pair donates nothing. But the letter is not
+    therefore drawn: dissected against the panel it comes apart into three
+    parts, and this face already draws two of them.
+
+    **The bowl is о.** Over the 50 panel faces that draw both, б's bowl is
+    1.000 of о's width with the middle half inside 0.988 to 1.000 -- the
+    tightest reading available anywhere in this letter, tighter than anything
+    it offers against b or against the six. So the bowl is taken whole, and its
+    overshoot comes with it.
+
+    **The rising stroke is the six's.** Not the six's outline -- the six fails
+    the к test twice over: б against the six divided by о against the zero is
+    1.020 rather than the 1.000-within-a-thousandth that licensed к, and the
+    six's own bowl carries the digit set's narrowness that З has just had taken
+    out of it. What the six donates is the stroke itself, which this face draws
+    dead straight at a constant slope, at a hair under the lowercase stem, and
+    at a lean that is already a б's: the panel's б drifts 0.449 of its width
+    between bowl and top, and this face's six drifts 0.430 at Thin, inside the
+    б population's 0.366 to 0.592. The panel probe that separated the two said
+    only that no face draws that side as a vertical stem -- a straight diagonal
+    drifts as much as a curve does, and this face's hand is the straight one.
+
+    **The flag is new**, and it is the only part of the letter that is. It ends
+    where the panel puts it, cuts square at the right, and takes the face's own
+    lowercase bar for its weight rather than any panel figure -- the panel's is
+    1.04 to 1.48 of t's crossbar and this face holds its own lowercase
+    horizontals inside 0.94 to 1.13 of it, so the host wins and `signature.py`
+    reads the result as one of the face's own horizontals. Its top sits flat on
+    b's own ascender with no overshoot: the panel's lower quartile for б's top
+    against b's is exactly 1.000, the faces above it are the ones that round
+    the flag's top, and this face cuts its terminals flat.
+
+    Where the flag meets the rise, one stroke turns, so it rounds.
+    """
+    base = getattr(pr, "_pr", pr)
+    six = [_flatten(p) for p in base.paths("six")]
+    ys = [q[1] for p in six for q in p]
+    y0, y1 = min(ys), max(ys)
+
+    def centre(y):
+        r = runs(six, y)
+        return (r[0][0] + r[0][1]) / 2.0 if len(r) == 1 else None
+
+    # the stroke, off the six: slope and perpendicular weight, per master
+    ya, yb = y0 + (y1 - y0) * 0.72, y0 + (y1 - y0) * 0.92
+    ca, cb = centre(ya), centre(yb)
+    slope = (cb - ca) / (yb - ya)
+    r = runs(six, ya)
+    perp = (r[0][1] - r[0][0]) / math.hypot(1.0, slope) / base.stem
+
+    # ...and the junction, which the six also answers, but not as a position:
+    # as a rule. Measured against its own bowl, the six's rise does not sit at
+    # some fraction of the bowl's width -- **its left edge IS the bowl's left
+    # edge**, the two closing to within a unit over the whole upper half of the
+    # letter at both masters. The bowl's wall becomes the rise. Transplanting a
+    # fraction instead put the stroke outside о entirely, because it was read
+    # on a bowl of a different shape; tangency transfers to any bowl.
+    bowl = clone_all(pr.paths("o"))
+    ob = [_flatten(p) for p in bowl]
+    bx0, _, bx1, otop = bbox(bowl)
+    asc = bbox(pr.paths("b"))[3]
+    s = perp * pr.stem
+    hw = s * math.hypot(1.0, slope) / 2.0
+    ytop = asc - pr.bar
+
+    # Tangent in the proper sense -- where the bowl's own wall runs at the
+    # rise's slope, not where the bowl is widest. Taking the widest point makes
+    # the rise touch at the bowl's waist and cut clean across the counter above
+    # it; matching the slope is what puts the two edges along each other, which
+    # is what the six does.
+    cuts = [(y, runs(ob, y)) for y in
+            (otop * k / 100.0 for k in range(8, 99))]
+    cuts = [(y, r[0][0]) for y, r in cuts if r]
+    wall = [((cuts[i + 1][1] - cuts[i - 1][1])
+             / (cuts[i + 1][0] - cuts[i - 1][0]), cuts[i])
+            for i in range(1, len(cuts) - 1)]
+    ytan, ltan = min(wall, key=lambda t: abs(t[0] - slope))[1]
+    cx = ltan + hw - slope * (ytan - ytop)
+
+    # It stops where its edge parts company with the bowl's. Below the tangent
+    # the wall turns toward the vertical while the rise keeps its slope, so the
+    # rise falls away to the left and hangs out of the silhouette -- which is
+    # what taking it down to the bowl's widest did, a spur past the sidebearing
+    # at both masters. Tangency gives a stretch, not a point: the six's two
+    # edges hold to within a unit over a fifth of the letter, and this walks
+    # down that stretch and stops at its end.
+    ybot = ytan
+    for y, left in sorted(cuts, reverse=True):
+        if y > ytan:
+            continue
+        if cx + slope * (y - ytop) - hw < left - 1.0:
+            break
+        ybot = y
+    # The rise and the flag are one stroke, so they are one contour. Built as
+    # two, the flag's top-left corner had nowhere to turn: its left edge is
+    # only as tall as the bar, the face's corner is about as long as the bar,
+    # and the two nodes landed on top of each other.
+    xr = bx0 + BE_REACH * (bx1 - bx0)
+    xa = cx + slope * (asc - ytop)          # the rise's centre at the top
+
+    # The turn is not a right angle -- the rise leans, so it swings through
+    # about 54 degrees into the flag -- and it is short of arm on both sides,
+    # so the radius is a ceiling twice over: the face's reduced corner, and the
+    # share of its own arm the face gives E and F.
+    ro = min(RADIUS * corner_radius(pr), ARM_CORNER * (xr - (xa - hw)))
+    ln = math.hypot(1.0, slope)
+    corner = (xa - hw, asc)
+    ns = [node(cx + slope * (ybot - ytop) - hw, ybot),
+          node(corner[0] - ro * slope / ln, corner[1] - ro / ln)]
+    ns += arc_to(corner[0] - ro * slope / ln, corner[1] - ro / ln,
+                 corner[0] + ro, corner[1], corner[0], corner[1])
+    ns += [node(xr, asc), node(xr, ytop),
+           node(xa + hw, ytop),
+           node(cx + slope * (ybot - ytop) + hw, ybot)]
+    stroke = path(ns)
+    out = bowl + [stroke if area(stroke) > 0 else reverse(stroke)]
+
+    # Only the built stroke is normalised. The bowl came from о with its
+    # counter already wound the other way, and forcing every contour
+    # counter-clockwise turns that counter into ink -- which is exactly what it
+    # did: a solid black bowl at both masters.
+    return out
+
+
 def Ii(pr, top=None, bottom=0.0, donor="N"):
     """И -- two stems with a diagonal rising from the left foot to the right
     shoulder. Drawn, not N flipped: mirroring reverses the terminal cuts.
@@ -2290,7 +2432,7 @@ RECIPES = {
     "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
     "yeru-cy": lc(Yeru), "ka-cy": Ka, "em-cy": lc(Em),
-    "ze-cy": lc(Ze_lc),
+    "ze-cy": lc(Ze_lc), "be-cy": lc(Be_lc),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }
