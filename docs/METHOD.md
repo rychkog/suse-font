@@ -1116,6 +1116,25 @@ the reference outline and look at where it shows. Three rounds went on solving
 leans and radii for a junction the letter does not have, because that picture
 was never made.
 
+**And the fourth round found the same class one level down.** Knowing the
+letter is b, its top was built as a flat flag on the ascender — which put the
+letter's **highest point at 0.14 of its width where every one of the 50 panel
+faces puts it between 0.71 and 0.85**, and ran flat over 0.87 of the branch
+against a panel 0.09 to 0.29. Every scalar the letter had been checked against
+was fine; the silhouette read as a bracket. The literature says it in one line
+— Type Journal: the branch makes *"one strict movement to the right and
+upwards"* — and so does a single measure, **where across its own width the
+letter is tallest**. A letter has a small number of such shape-level
+questions, and they are cheap: ask where the extremes are before measuring
+anything between them.
+
+That article also settles which of the two constructions a face should use,
+and it is not a matter of taste: *"a letter o with a branch attached to it"*
+versus *"the bowl and branch have a common spine"*, decided by **the joint the
+face's own ovals already make with its verticals**. This one joins b, d, p and
+q rigidly, so б is the spine construction. The panel measurement and the rule
+agree, which is the only reason to trust either.
+
 So this is the second time §8's *ask whether the Latin already draws the letter*
 has paid, and the second time it was reached only after the letter had been
 drawn the hard way. к was planned for three rounds as К at x-height; б was
