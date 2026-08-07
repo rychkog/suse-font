@@ -1047,6 +1047,35 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
+### A probe that walks in from an edge finds the edge
+
+б was rejected by eye three times, and the second rejection was caused by a
+probe, not by the drawing.
+
+The question was where б's flag begins. The probe walked **down from the top**
+looking for the first run narrow enough to be the rise alone, and called that
+the rise's arrival. On a flag whose top is rounded — which is most of them —
+the first narrow run going down is the **flag's own tip**, far to the right. So
+it reported the panel's rise arriving at 0.72 of the width and its flag running
+0.21, and ours arriving at 0.59 with a flag of 0.32.
+
+Both numbers said ours had the *longer* flag while every render said the
+opposite, and the letter was rebuilt on the strength of them. Measured properly
+— the widest single run above the bowl, which is the flag by construction — the
+panel's flag begins at **0.35** of the width falling to **0.16**, and runs
+**0.51 to 0.76**. Ours began at 0.55 and ran 0.37. Half the flag was missing,
+which is exactly what the eye had said.
+
+**Tell: a probe that scans in from an edge stops at the first thing it meets,
+and near an edge that is usually a terminal, a tip or an overshoot rather than
+the feature.** Scan the whole range and take the extremum instead — the widest
+run, the longest span — which cannot be fooled by what happens to be nearest.
+
+**Second tell, and it is the one that should have fired first: the numbers
+disagreed with the picture.** When a measurement says a letter is fine and the
+render says it is not, the measurement is the thing to re-derive. It was
+treated as the tiebreaker for a whole round.
+
 ### A junction transfers as a rule, not as a position
 
 б was the letter this project kept calling the hard one: no capital to derive
@@ -1057,14 +1086,13 @@ The **bowl is о**, whole. Over the 50 panel faces that draw both, б's bowl is
 1.000 of о's width with the middle half inside 0.988 to 1.000 — tighter than
 anything б offers against b or against the six.
 
-The **rise is the six's**, and this needed the dissection sheet rather than
-another scalar. A probe reported "straight 0, curved 50" and that reading is
-not what it looks like: it tested whether the left side drifts more than 0.05
-of the width, so it proves only that **no face draws that side as a vertical
-stem**. A straight diagonal drifts as much as a curve does. This face draws its
-six's rise dead straight at a constant slope, and its drift is 0.430 at Thin —
-*inside* the panel's б band of 0.366 to 0.592. The straight rise is not a
-departure from the panel; it is the face's own hand landing inside it.
+The **rise is not the six's**, though it was built that way twice. A six's rise
+holds one slope the whole way and never turns; every б in the panel swings from
+a lean of about 0.49 to a slope between 2.9 and 3.7 in its top third. A rise
+with no turn in it reads as a six, and that is what the eye called it. What the
+rise actually is here is **solved**, not set: the flag's start is the panel's
+figure, tangency to the bowl is the host's rule, and the lean is the one free
+variable that satisfies both.
 
 The **junction** is where the transferable lesson is. Read as a *position* —
 how far along its own bowl's width the six's centreline crosses that bowl's
