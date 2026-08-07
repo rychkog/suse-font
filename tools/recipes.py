@@ -1670,6 +1670,24 @@ def Ze_lc(pr):
 # diagonal, so there is no host reading to prefer.
 BE_REACH = 0.915
 
+# Where the flag begins, as a share of the letter's own width -- which is to
+# say where the rise arrives. This is the figure that decides whether the
+# letter reads as a б at all: too far right and there is no flag left, only a
+# nub on a diagonal, and the eye calls it a six. It moves hard with weight, so
+# it is a line and not a constant: fitted over the 50 faces, its residual is a
+# third smaller than a flat constant's.
+#
+# The rise's lean is NOT set. It is solved for, so that the rise both lands
+# here and stays tangent to the bowl -- two constraints, one free variable.
+# Setting the lean instead and letting the flag take whatever was left is what
+# produced the six: the six's own 0.71 arrived at 0.55 of the width at Thin
+# where the panel wants 0.35.
+BE_FLAG = (0.3983, -1.5649)
+
+# The rise's weight, perpendicular, against the face's own lowercase stem. The
+# panel's median, middle half 0.932 to 1.066 -- so a stroke, at stem weight.
+BE_STROKE = 0.992
+
 # The share of its own arm this face's corner takes: 122 into E and F's 461 at
 # ExtraBold, which is what г's own docstring records. Used as a ceiling on the
 # flag's corner, whose arm is a third the length.
@@ -1677,13 +1695,11 @@ ARM_CORNER = 0.26
 
 
 def Be_lc(pr):
-    """б -- о's bowl, the six's rising stroke, and a flag.
+    """б -- о's bowl, a flag where the panel puts it, and a rise between them.
 
     The one Ukrainian letter with no capital to derive from and no Latin
     lowercase of its shape. Б is a different drawing -- a stem with a top arm
-    and a lower bowl -- so the case pair donates nothing. But the letter is not
-    therefore drawn: dissected against the panel it comes apart into three
-    parts, and this face already draws two of them.
+    and a lower bowl -- so the case pair donates nothing.
 
     **The bowl is о.** Over the 50 panel faces that draw both, б's bowl is
     1.000 of о's width with the middle half inside 0.988 to 1.000 -- the
@@ -1691,17 +1707,39 @@ def Be_lc(pr):
     it offers against b or against the six. So the bowl is taken whole, and its
     overshoot comes with it.
 
-    **The rising stroke is the six's.** Not the six's outline -- the six fails
-    the к test twice over: б against the six divided by о against the zero is
-    1.020 rather than the 1.000-within-a-thousandth that licensed к, and the
-    six's own bowl carries the digit set's narrowness that З has just had taken
-    out of it. What the six donates is the stroke itself, which this face draws
-    dead straight at a constant slope, at a hair under the lowercase stem, and
-    at a lean that is already a б's: the panel's б drifts 0.449 of its width
-    between bowl and top, and this face's six drifts 0.430 at Thin, inside the
-    б population's 0.366 to 0.592. The panel probe that separated the two said
-    only that no face draws that side as a vertical stem -- a straight diagonal
-    drifts as much as a curve does, and this face's hand is the straight one.
+    **What decides whether the letter reads as б at all is where the flag
+    begins**, and that took three tries to find because the first two readings
+    of it were wrong.
+
+    The six was tried as the donor for the rise, on the grounds that this face
+    already draws a stroke leaving a bowl. It does, and it is the wrong stroke:
+    a six's rise holds one slope the whole way and never turns, while every б
+    in the panel swings from a lean of about 0.49 to a slope between 2.9 and
+    3.7 in its top third. Built at the six's constant 0.71 the rise arrived at
+    0.55 of the width at Thin, leaving a quarter of the letter for the flag,
+    and the silhouette read as a six with a nub on it -- which is exactly what
+    a silhouette with no turn in it is.
+
+    The probe that was supposed to catch this made it worse. Walking DOWN from
+    the top for the first narrow run and calling it the rise finds, on a flag
+    with a rounded top, the flag's own tip -- far to the right. It reported the
+    panel's rise arriving at 0.72 and its flag at 0.21, which made our flag
+    look LONGER than the panel's while every render said the opposite. Measured
+    where the flag actually is -- the widest run above the bowl -- the panel's
+    flag runs 0.51 to 0.76 of the width and begins at 0.35 falling to 0.16.
+    See F6.
+
+    So the flag is set, at `BE_FLAG`, and **the rise's lean is solved for**: it
+    has to land there and stay tangent to the bowl, two constraints and one
+    free variable. Setting the lean and letting the flag take what was left is
+    what produced the six.
+
+    **Tangency is the six's own rule**, and it is the one thing the six really
+    does donate. Measured against its own bowl its rise has no offset to speak
+    of -- its left edge IS the bowl's left edge, the two closing to within a
+    unit over the whole upper half at both masters. The bowl's wall becomes the
+    rise. That is a statement about any bowl and any lean, so it survived every
+    change of the rest.
 
     **The flag is new**, and it is the only part of the letter that is. It ends
     where the panel puts it, cuts square at the right, and takes the face's own
@@ -1715,49 +1753,52 @@ def Be_lc(pr):
 
     Where the flag meets the rise, one stroke turns, so it rounds.
     """
-    base = getattr(pr, "_pr", pr)
-    six = [_flatten(p) for p in base.paths("six")]
-    ys = [q[1] for p in six for q in p]
-    y0, y1 = min(ys), max(ys)
-
-    def centre(y):
-        r = runs(six, y)
-        return (r[0][0] + r[0][1]) / 2.0 if len(r) == 1 else None
-
-    # the stroke, off the six: slope and perpendicular weight, per master
-    ya, yb = y0 + (y1 - y0) * 0.72, y0 + (y1 - y0) * 0.92
-    ca, cb = centre(ya), centre(yb)
-    slope = (cb - ca) / (yb - ya)
-    r = runs(six, ya)
-    perp = (r[0][1] - r[0][0]) / math.hypot(1.0, slope) / base.stem
-
-    # ...and the junction, which the six also answers, but not as a position:
+    # The junction is the six's, and the six's alone -- not as a position but
     # as a rule. Measured against its own bowl, the six's rise does not sit at
-    # some fraction of the bowl's width -- **its left edge IS the bowl's left
+    # some fraction of the bowl's width: **its left edge IS the bowl's left
     # edge**, the two closing to within a unit over the whole upper half of the
     # letter at both masters. The bowl's wall becomes the rise. Transplanting a
     # fraction instead put the stroke outside о entirely, because it was read
-    # on a bowl of a different shape; tangency transfers to any bowl.
+    # on a bowl of a different shape; tangency transfers to any bowl, and to
+    # any lean.
     bowl = clone_all(pr.paths("o"))
     ob = [_flatten(p) for p in bowl]
     bx0, _, bx1, otop = bbox(bowl)
     asc = bbox(pr.paths("b"))[3]
-    s = perp * pr.stem
-    hw = s * math.hypot(1.0, slope) / 2.0
     ytop = asc - pr.bar
 
-    # Tangent in the proper sense -- where the bowl's own wall runs at the
-    # rise's slope, not where the bowl is widest. Taking the widest point makes
-    # the rise touch at the bowl's waist and cut clean across the counter above
-    # it; matching the slope is what puts the two edges along each other, which
-    # is what the six does.
     cuts = [(y, runs(ob, y)) for y in
             (otop * k / 100.0 for k in range(8, 99))]
     cuts = [(y, r[0][0]) for y, r in cuts if r]
     wall = [((cuts[i + 1][1] - cuts[i - 1][1])
              / (cuts[i + 1][0] - cuts[i - 1][0]), cuts[i])
             for i in range(1, len(cuts) - 1)]
-    ytan, ltan = min(wall, key=lambda t: abs(t[0] - slope))[1]
+
+    # Solve the lean for the two things it has to satisfy at once: the rise
+    # lands where the flag begins, and it stays tangent to the bowl.
+    #
+    # Tangency is the six's rule, and in the proper sense -- where the bowl's
+    # own wall runs at the rise's slope, not where the bowl is widest. Taking
+    # the widest point makes the rise touch at the bowl's waist and cut clean
+    # across the counter above it; matching the slope is what puts the two
+    # edges along each other, which is what the six does.
+    want = bx0 + (BE_FLAG[0] + BE_FLAG[1] * pr.stem / 1000.0) * (bx1 - bx0)
+
+    def land(sl):
+        """Where the rise's left edge reaches the flag, at this lean."""
+        h = BE_STROKE * pr.stem * math.hypot(1.0, sl) / 2.0
+        yt, lt = min(wall, key=lambda t: abs(t[0] - sl))[1]
+        return lt + h - sl * (yt - ytop) - h, yt, lt, h
+
+    lo, hi = 0.02, 3.0
+    for _ in range(40):
+        mid = (lo + hi) / 2.0
+        if land(mid)[0] < want:
+            lo = mid
+        else:
+            hi = mid
+    slope = (lo + hi) / 2.0
+    _, ytan, ltan, hw = land(slope)
     cx = ltan + hw - slope * (ytan - ytop)
 
     # It stops where its edge parts company with the bowl's. Below the tangent
@@ -1781,20 +1822,32 @@ def Be_lc(pr):
     xr = bx0 + BE_REACH * (bx1 - bx0)
     xa = cx + slope * (asc - ytop)          # the rise's centre at the top
 
-    # The turn is not a right angle -- the rise leans, so it swings through
-    # about 54 degrees into the flag -- and it is short of arm on both sides,
-    # so the radius is a ceiling twice over: the face's reduced corner, and the
-    # share of its own arm the face gives E and F.
-    ro = min(RADIUS * corner_radius(pr), ARM_CORNER * (xr - (xa - hw)))
+    # **The turn is the letter.** Built as a small chamfer on a straight
+    # diagonal, б reads as a six with a nub on it -- which is exactly what the
+    # panel says the difference is: every б in it swings from a lean of about
+    # 0.49 below to a slope between 2.9 and 3.7 in its top third, while this
+    # face's six holds one slope the whole way and never turns at all. The rise
+    # arrives where it does *because* of the turn, not because of the lean:
+    # the panel's rise reaches 0.69-0.76 of the width off a lean that would
+    # only carry it half that far.
+    #
+    # So the turn gets both of the face's own radii, the way г's corner does --
+    # the outer off L, the inner off L's own inner turn. Only the outer is
+    # capped, and by the arm it has to fit into rather than by `RADIUS`.
     ln = math.hypot(1.0, slope)
-    corner = (xa - hw, asc)
+    ro = min(corner_radius(pr), (xr - (xa - hw)) * 0.75)
+    ri = min(inner_radius(pr), (xr - (xa + hw)) * 0.75)
+    outer = (xa - hw, asc)
+    inner = (cx + hw, ytop)
     ns = [node(cx + slope * (ybot - ytop) - hw, ybot),
-          node(corner[0] - ro * slope / ln, corner[1] - ro / ln)]
-    ns += arc_to(corner[0] - ro * slope / ln, corner[1] - ro / ln,
-                 corner[0] + ro, corner[1], corner[0], corner[1])
-    ns += [node(xr, asc), node(xr, ytop),
-           node(xa + hw, ytop),
-           node(cx + slope * (ybot - ytop) + hw, ybot)]
+          node(outer[0] - ro * slope / ln, outer[1] - ro / ln)]
+    ns += arc_to(outer[0] - ro * slope / ln, outer[1] - ro / ln,
+                 outer[0] + ro, outer[1], outer[0], outer[1])
+    ns += [node(xr, asc), node(xr, ytop), node(inner[0] + ri, inner[1])]
+    ns += arc_to(inner[0] + ri, inner[1],
+                 inner[0] - ri * slope / ln, inner[1] - ri / ln,
+                 inner[0], inner[1])
+    ns += [node(cx + slope * (ybot - ytop) + hw, ybot)]
     stroke = path(ns)
     out = bowl + [stroke if area(stroke) > 0 else reverse(stroke)]
 
