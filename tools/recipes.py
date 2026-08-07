@@ -1959,18 +1959,6 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
             + mirror_x(clone_all(left), 300.0))
 
 
-# м's vertex, as a fraction of М's own -- each measured against its own line,
-# so this is the shift the letter takes across the case and nothing else. The
-# panel's median over the 51 faces that draw both; its middle half is wide,
-# 0.308 to 0.889, so the panel is saying "well short of М's depth" rather than
-# fixing a value, and the median is taken because it is the only figure in
-# that band the panel actually supports. Two readings agree on where that
-# lands: applied to this face's own М it puts the vertex at 0.206 of the
-# x-height at Thin and 0.182 at ExtraBold, against a panel median for м's
-# vertex, read directly, of 0.180.
-EM_VERTEX = 0.639
-
-
 def Em(pr, top=None, bottom=0.0):
     """м -- М's construction at x-height, rebuilt from M's own figures.
 
@@ -2030,24 +2018,40 @@ def Em(pr, top=None, bottom=0.0):
 
     # ...and rebuilt in this case's box, at this case's stroke.
     #
-    # Both strokes take the face's own crowding reduction on top of М's
-    # figures. М is four strokes across a cell that is 700 tall; м is four
-    # strokes across the same cell 472 tall, so its diagonals lean harder and
-    # the wedge between each upright and its diagonal is the tightest white in
-    # the letter. Left at М's weights that wedge closes to 24 units at Regular
-    # where this face's own Latin never goes below 28 -- and Regular is where
-    # it shows, because both masters are clear and the failure is in the blend.
-    # `crowd3` is the same reduction the face gives m's third stem against n,
-    # which Ж's arms already take for the same reason.
-    us = upright * pr.stem * L(pr).crowd3
+    # The uprights are М's own figure and nothing else. `crowd3` was applied
+    # here as well and it is the wrong stroke to apply it to: М's 0.845 of the
+    # stem IS this face's reduction for four strokes across a cell, so taking
+    # m's three-stem reduction on top counted the same crowding twice and left
+    # the uprights at 0.704 of n's stem at ExtraBold. The panel is tight on
+    # exactly this figure -- over the 51 faces that draw both, м's upright
+    # against n is 1.000 of М's against H, middle half inside 0.979 to 1.035 --
+    # and the letter read visibly leaner than п and и beside it, which is what
+    # 0.704 against their 1.000 looks like. See F3.
+    us = upright * pr.stem
+
+    # The diagonals do take it. They are the strokes the shorter cell actually
+    # crowds: the box is М's, so the same width has to be crossed over two
+    # thirds of the height and each diagonal leans half again as hard, putting
+    # far more of its width into the wedge between it and its upright. This is
+    # the same reduction the face gives m's third stem against n, and the same
+    # one Ж's arms take.
     ds = diag * pr.stem * L(pr).crowd3
 
-    # The vertex is М's own height, scaled by the shift the panel gives the
-    # letter across the case. Both diagonals run to (300, yv), so the flat cut
-    # sits exactly where their centrelines meet -- М's own rule that two
-    # strokes crossing stay square, and the reason the vertex is cut rather
-    # than pointed.
-    yv = bottom + h * mvert * EM_VERTEX
+    # The vertex is М's own height as a fraction of its own line -- м is М at
+    # x-height in this too. Both diagonals run to (300, yv), so the flat cut
+    # sits exactly where their centrelines meet: М's own rule that two strokes
+    # crossing stay square, and the reason the vertex is cut rather than
+    # pointed.
+    #
+    # The panel puts м's vertex at 0.639 of М's, and this face cannot have
+    # that and the upright weight above at the same time -- the letter is
+    # monospaced at М's width and cannot widen, so a deeper vertex leans the
+    # diagonals harder and shuts the wedge to six units at Bold. Of the two
+    # readings the upright weight is the one the panel is tight on; the
+    # vertex's own middle half runs 0.308 to 0.889, which rules out the
+    # extremes rather than fixing a value. So the host wins here, and м is
+    # М's proportion exactly.
+    yv = bottom + h * mvert
     out = [rect(left, bottom, left + us, top),
            rect(right - us, bottom, right, top)]
     for x in (left + us / 2.0, right - us / 2.0):
