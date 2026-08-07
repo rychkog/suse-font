@@ -1047,6 +1047,55 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
+### A clone inherits the donor's *set*, not only its shape — and a control pair says which is which
+
+З is the face's own digit three, and the question "is a three really a good З"
+turned out to have two separate answers.
+
+**The shape: yes, and there is a real test.** Over the 51 panel faces that draw
+both, the two letters put their lobes in the same proportion — 0.928 upper to
+lower for З, 0.926 for the three, middle halves overlapping — and end their
+strokes at the same angles. The one construction that would disqualify a three
+is the **flat-topped** one, drawn with a straight diagonal shoulder instead of
+a round upper bowl: **13 of the 51 faces draw that, and no Cyrillic З in the
+panel does.** This face's three is not one of them — its upper terminal leans
+1.97 at Thin and 2.21 at ExtraBold, inside a З population holding 1.61 to 2.02
+and nowhere near the flat-topped three's zero. So the borrowing is sound, and
+now provably rather than by assertion.
+
+**The width: no.** Half the panel draws З wider than its own three, which looks
+like a З-specific figure to reproduce. **It is not, and the control says so.**
+Divide each face's З/3 by its own **O/0** — two letters nobody claims are
+different drawings — and the median is exactly **1.000**, middle half 0.972 to
+1.025. The whole gap is the digit set being drawn narrow, and it says nothing
+about З at all.
+
+But it says a great deal about the clone, because this face draws its digits
+narrow *and widens them less with weight than its round letters*: 13 per cent
+from Thin to ExtraBold against the capitals' 18. Cloned whole, З came out at
+**0.937 of O** at ExtraBold against a panel bucket holding 0.974 to 1.007, and
+з at 0.925 of o against 0.933 to 1.022. One cause, both cases, the heavy end
+only — invisible at Thin, where the two happen to agree.
+
+**So a cloned donor carries every decision that was made about the donor's own
+set, not only the drawing.** A digit brings the digit set's width policy; a
+capital brings the capital's. Ask what family the donor belongs to and whether
+that family's rules are the recipient's rules, and check it **at both masters**
+— this one is exactly right at Thin and four per cent out at ExtraBold.
+
+The fix is not a redraw. The outline stays the three's and the width becomes
+the face's own O's, `squash_x` putting the difference into the whites and
+leaving the wall alone. `ZE_ROUND` — 0.9814 for the capital against O, 0.9829
+for the lowercase against o. Both are flat: fitted as a line in the stem the
+slope is nothing, and the two agreeing to two parts in a thousand across the
+case is the panel saying this is one figure rather than two.
+
+**The general instrument is the control pair.** When the panel appears to say
+that A relates to B in some particular way, find the pair in the same two
+families that nobody disputes and divide by it. Whatever survives is about A
+and B; whatever cancels was about the families. It cost one probe here and
+overturned the reading.
+
 ### Bringing a capital down to the lowercase takes both axes, and the same trick on each
 
 `squash` — compress cap-height artwork without thinning the horizontal bars —
