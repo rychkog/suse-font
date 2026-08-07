@@ -36,11 +36,11 @@ OURS = [("Thin", "fonts/ttf/SUSEMono-Thin.ttf"),
         ("Bold", "fonts/ttf/SUSEMono-Bold.ttf"),
         ("ExtraBold", "fonts/ttf/SUSEMono-ExtraBold.ttf")]
 
-# з к м б are not drawn yet, so no string here may contain one -- a .notdef
-# box in a review sheet reads as a broken glyph and costs the round it appears
-# in. This one caught з on its first render.
-CAPS_ROW = "ГЕЖЗИЙЛПТУФЦЧШЩЭЮЯ  KVWXZEFTLS"
-LC_ROW = "гежийлптуфцчшщэюя  kvwxzeftls"
+# б is not drawn yet, so no string here may contain one -- a .notdef box in a
+# review sheet reads as a broken glyph and costs the round it appears in. This
+# rule caught з on its first render, back when з was the undrawn one.
+CAPS_ROW = "ГЕЖЗИЙКЛМПТУФЦЧШЩЭЮЯ  KVWXZEFTLS"
+LC_ROW = "гежзийклмптуфцчшщэюя  kvwxzeftls"
 
 
 def lab(sz):

@@ -60,6 +60,10 @@ BELOW_MEDIAN = 0.97
 # that added this tool.
 EXEMPT = "вВюЮ"
 
+# Most a run may lose in width between `across`'s two scanlines and still be a
+# stroke rather than a terminal running out. Derived where it is used.
+TAPER = 0.15
+
 # ю and Ю are exempt too, and unlike в this one is a trade rather than a
 # measurement artefact -- worth stating so it can be revisited rather than
 # inherited.
@@ -131,6 +135,22 @@ def across(polys, y, d=6.0):
         # Ъ read 0.339 of its own stem that way, and the Latin o, a donor that
         # cannot be wrong, read 0.799. Steep samples are dropped, not guessed.
         if abs(slope) > 0.5:
+            continue
+        # A run that is losing width fast between the two lines is a terminal
+        # running out, not a stroke. The lean test above cannot see it: a tip
+        # tapers symmetrically, so its centre does not move and its slope
+        # reads zero. Left in, it reported whatever width the sampling grid
+        # happened to catch on the way to nothing -- the face's own c read
+        # 0.407 of the stem and its own e 0.431, and halving the sample step
+        # moved both to 0.36, which is the window's own floor rather than any
+        # figure in the drawing. See METHOD F6.
+        #
+        # The ceiling is the face's own: 95 per cent of the runs it offers
+        # here change width by no more than 0.061 of themselves over these
+        # twelve units, and every taper and junction sliver it draws exceeds
+        # 0.34. Anything between the two gives identical readings, so this
+        # sits a factor of two clear of both.
+        if abs((a1 - a0) - (b1 - b0)) / w > TAPER:
             continue
         out.append(w / math.hypot(1.0, slope))
     return out

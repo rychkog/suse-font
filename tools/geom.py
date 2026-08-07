@@ -217,6 +217,63 @@ def squash(paths, bands, y_from, y_to, y_base=0.0):
     return piecewise_y(paths, knots)
 
 
+def piecewise_x(paths, knots):
+    """`piecewise_y` across the other axis. Same map, same collapsing rule."""
+    ks = []
+    for a, b in sorted(knots):
+        if ks and abs(a - ks[-1][0]) < 1e-9:
+            ks[-1] = (a, b)
+        else:
+            ks.append((a, b))
+    if len(ks) < 2:
+        return clone_all(paths)
+
+    def f(x):
+        if x <= ks[0][0]:
+            (a0, b0), (a1, b1) = ks[0], ks[1]
+            return b0 + (x - a0) * (b1 - b0) / (a1 - a0)
+        for (a0, b0), (a1, b1) in zip(ks, ks[1:]):
+            if a0 <= x <= a1:
+                return b0 + (x - a0) * (b1 - b0) / (a1 - a0)
+        (a0, b0), (a1, b1) = ks[-2], ks[-1]
+        return b0 + (x - a0) * (b1 - b0) / (a1 - a0)
+
+    return _map_points(paths, lambda x, y: (f(x), y))
+
+
+def squash_x(paths, bands, x_from, x_to, x_base):
+    """`squash` across the other axis: narrow artwork without thinning walls.
+
+    The vertical counterpart exists because a plain vertical scale thins the
+    horizontal bars. A plain horizontal scale has the same fault the other way
+    round -- it thins the vertical walls -- and a letter derived from a wider
+    donor needs both halves of the trick, one per axis.
+
+    `bands` are source x-ranges to carry across unchanged; the field between
+    them absorbs the difference. Unlike `squash` the base is not the origin,
+    so it is passed rather than defaulted: a letter is narrowed about its own
+    left edge, not about zero.
+    """
+    bands = sorted(bands)
+    fixed = sum(hi - lo for lo, hi in bands)
+    span_src = x_from - x_base
+    span_dst = x_to - x_base
+    if span_src - fixed <= 0:
+        factor = 1.0
+    else:
+        factor = (span_dst - fixed) / float(span_src - fixed)
+    knots = [(x_base, x_base)]
+    cur_s, cur_d = x_base, x_base
+    for lo, hi in bands:
+        cur_d += (lo - cur_s) * factor
+        knots.append((lo, cur_d))
+        cur_d += hi - lo
+        knots.append((hi, cur_d))
+        cur_s = hi
+    knots.append((x_from, x_to))
+    return piecewise_x(paths, knots)
+
+
 def area(p):
     """Signed area; positive is counter-clockwise, the outer-contour direction
     this source uses. Negative means the contour subtracts."""

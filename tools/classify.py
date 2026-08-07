@@ -92,7 +92,7 @@ TIERS = [
     (0x0451, "io-cy", 2, "ie-cy + dieresiscomb"),
     (0x0454, "e-cy", 3, "drawn: c + middle arm at x-height"),
     (0x0436, "zhe-cy", 3, "drawn at lowercase weight"),
-    (0x0437, "ze-cy", 3, "drawn at lowercase weight"),
+    (0x0437, "ze-cy", 2, "the three, reweighted to the lowercase on both axes"),
     (0x0438, "ii-cy", 3, "drawn at lowercase weight"),
     (0x0456, "i-cy", 1, "i"),
     (0x0457, "yi-cy", 2, "idotless + dieresiscomb"),
