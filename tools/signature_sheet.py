@@ -21,7 +21,13 @@ from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 from fontTools.ttLib import TTFont  # noqa: E402
 from panel import font_dirs  # noqa: E402
 
+# Draw at SS times the layout and deliver at OUT times it. Downsampling all
+# the way to 1 threw away resolution the render had already paid for and the
+# sheets read as pixelated the moment they were zoomed; delivering at 2 keeps
+# two samples per output pixel, which is as much antialiasing as a screen at
+# this density can show.
 SS = 4
+OUT = 2
 W, H = 1660, 1655
 BG, FG, MUT, HOT = (250, 250, 249), (24, 24, 24), (140, 140, 140), (176, 32, 32)
 
@@ -146,7 +152,8 @@ def main():
             y += S(30)
         y += S(10)
 
-    img.resize((W, H), Image.LANCZOS).save("tools/out/signature.png")
+    img.resize((W * OUT, H * OUT), Image.LANCZOS).save(
+        "tools/out/signature.png")
 
 
 if __name__ == "__main__":

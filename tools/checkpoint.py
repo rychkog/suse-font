@@ -34,53 +34,75 @@ LABEL = "/mnt/c/Windows/Fonts/segoeui.ttf"
 W = 1500
 PAD = 24
 
+# Everything on this sheet is drawn SCALE times larger, because a sheet
+# rendered at its delivered size pixelates the moment it is zoomed and the
+# whole point of it is to be looked at closely.
+#
+# The reading-size blocks are the exception and must NOT be drawn larger: 14px
+# set at 28px is not what 14px looks like -- it is a different rasterization,
+# with different hinting and a different stem-to-pixel fit, which is precisely
+# what those rows exist to show. They are rendered at their true size and then
+# enlarged with nearest-neighbour, so every rendered pixel becomes a block and
+# the row stays an honest picture of the rasterizer's output.
+SCALE = 2
+
 
 def present(weight="Regular"):
     cm = TTFont(FONT % weight).getBestCmap()
     return [(cp, chr(cp)) for cp, _, _, _ in TIERS if cp in cm]
 
 
-def grid(chars, weight="Regular", cols=12, cell=104):
+def grid(chars, weight="Regular", cols=12, cell=104 * SCALE):
     rows = (len(chars) + cols - 1) // cols
-    im = Image.new("RGB", (cols * cell, rows * cell + 8), "white")
+    im = Image.new("RGB", (cols * cell, rows * cell + 8 * SCALE), "white")
     d = ImageDraw.Draw(im)
-    big = ImageFont.truetype(FONT % weight, 58)
-    small = ImageFont.truetype(LABEL, 15)
+    big = ImageFont.truetype(FONT % weight, 58 * SCALE)
+    small = ImageFont.truetype(LABEL, 15 * SCALE)
     for i, (cp, ch) in enumerate(chars):
         r, c = divmod(i, cols)
         x, y = c * cell, r * cell
         d.rectangle([x, y, x + cell - 1, y + cell - 1], outline=(228, 228, 228))
-        d.text((x + 6, y + 4), str(i + 1), font=small, fill=(150, 150, 150))
+        d.text((x + 6 * SCALE, y + 4 * SCALE), str(i + 1), font=small,
+               fill=(150, 150, 150))
         bb = d.textbbox((0, 0), ch, font=big)
         d.text((x + (cell - (bb[2] - bb[0])) / 2 - bb[0],
-                y + 22), ch, font=big, fill=(0, 0, 0))
+                y + 22 * SCALE), ch, font=big, fill=(0, 0, 0))
     return im
 
 
-def line_block(title, rows, height_hint=0):
-    """rows: list of (label, font, size, text)."""
+def line_block(title, rows, real=False):
+    """rows: list of (label, font, size, text).
+
+    `real` marks a block whose sizes are the sizes the font is actually read
+    at. Those are drawn at their true pixel size and enlarged afterwards; see
+    SCALE.
+    """
+    k = 1 if real else SCALE
     tmp = Image.new("RGB", (10, 10))
     dt = ImageDraw.Draw(tmp)
-    lab = ImageFont.truetype(LABEL, 15)
-    h = 30
+    lab = ImageFont.truetype(LABEL, 15 * k)
+    h = 30 * k
     sizes = []
     for label, fp, size, text in rows:
-        f = ImageFont.truetype(fp, size)
+        f = ImageFont.truetype(fp, size * k)
         bb = dt.textbbox((0, 0), text, font=f)
         sizes.append((f, bb))
-        h += max(bb[3] - bb[1], size) + 22
-    im = Image.new("RGB", (W, h), "white")
+        h += max(bb[3] - bb[1], size * k) + 22 * k
+    im = Image.new("RGB", (W * k, h), "white")
     d = ImageDraw.Draw(im)
-    d.text((0, 4), title, font=ImageFont.truetype(LABEL, 17), fill=(60, 60, 60))
-    y = 30
+    d.text((0, 4 * k), title, font=ImageFont.truetype(LABEL, 17 * k),
+           fill=(60, 60, 60))
+    y = 30 * k
     for (label, fp, size, text), (f, bb) in zip(rows, sizes):
-        d.text((0, y + 2), label, font=lab, fill=(140, 140, 140))
-        d.text((150, y), text, font=f, fill=(0, 0, 0))
-        y += max(bb[3] - bb[1], size) + 22
+        d.text((0, y + 2 * k), label, font=lab, fill=(140, 140, 140))
+        d.text((150 * k, y), text, font=f, fill=(0, 0, 0))
+        y += max(bb[3] - bb[1], size * k) + 22 * k
+    if k != SCALE:
+        im = im.resize((im.width * SCALE, im.height * SCALE), Image.NEAREST)
     return im
 
 
-def matched(pairs, weights=("Regular", "Bold"), size=58):
+def matched(pairs, weights=("Regular", "Bold"), size=58 * SCALE):
     """Each lowercase scaled so its x-height equals the capital's cap height.
 
     The one view that answers "does this lowercase belong to that capital".
@@ -89,22 +111,23 @@ def matched(pairs, weights=("Regular", "Bold"), size=58):
     actually in question.
     """
     tmp = Image.new("RGB", (10, 10))
-    lab = ImageFont.truetype(LABEL, 15)
-    head = ImageFont.truetype(LABEL, 17)
+    lab = ImageFont.truetype(LABEL, 15 * SCALE)
+    head = ImageFont.truetype(LABEL, 17 * SCALE)
     rowh = int(size * 1.75)
-    im = Image.new("RGB", (W, 30 + rowh * len(weights)), "white")
+    im = Image.new("RGB", (W * SCALE, 30 * SCALE + rowh * len(weights)),
+                   "white")
     d = ImageDraw.Draw(im)
-    d.text((0, 4), "Each lowercase scaled so its x-height equals the "
+    d.text((0, 4 * SCALE), "Each lowercase scaled so its x-height equals the "
            "capital's cap height -- size removed, silhouette left",
            font=head, fill=(60, 60, 60))
-    y = 30
+    y = 30 * SCALE
     for wt in weights:
         f = TTFont(FONT % wt)
         k = f["OS/2"].sCapHeight / float(f["OS/2"].sxHeight)
         big = ImageFont.truetype(FONT % wt, size)
         small = ImageFont.truetype(FONT % wt, int(round(size * k)))
         d.text((0, y + rowh // 3), wt, font=lab, fill=(140, 140, 140))
-        x = 150
+        x = 150 * SCALE
         for i in range(0, len(pairs), 2):
             d.text((x, y), pairs[i], font=big, fill=(0, 0, 0))
             # the capital's own advance, so the two sit side by side rather
@@ -116,13 +139,14 @@ def matched(pairs, weights=("Regular", "Bold"), size=58):
     return im
 
 
-def stack(images, gap=26):
+def stack(images, gap=26 * SCALE):
     w = max(i.width for i in images)
     h = sum(i.height for i in images) + gap * (len(images) - 1)
-    out = Image.new("RGB", (w + 2 * PAD, h + 2 * PAD), "white")
-    y = PAD
+    pad = PAD * SCALE
+    out = Image.new("RGB", (w + 2 * pad, h + 2 * pad), "white")
+    y = pad
     for i in images:
-        out.paste(i, (PAD, y))
+        out.paste(i, (pad, y))
         y += i.height + gap
     return out
 
@@ -171,13 +195,13 @@ def main():
          ("JetBrains Bold", JB % "Bold", 40, ru)]))
 
     parts.append(line_block(
-        "Real sizes (twenty-two lowercase; б з к м still to come)",
+        "Real sizes (б and з still to come)",
         [("14px UA", FONT % "Regular", 14, ua),
          ("14px RU", FONT % "Regular", 14, ru),
          ("12px UA", FONT % "Regular", 12, ua),
          ("12px RU", FONT % "Regular", 12, ru),
          ("14px caps", FONT % "Regular", 14, caps),
-         ("14px bold", FONT % "Bold", 14, sentence)]))
+         ("14px bold", FONT % "Bold", 14, sentence)], real=True))
 
     parts.append(line_block(
         "Mixed Latin and Cyrillic in one line -- where a bolted-on script shows",
@@ -188,11 +212,13 @@ def main():
          ("JetBrains 18px", JB % "Regular", 18,
           ok("git commit -m 'юність' v2.1 build/ґрунт-єднати.log")),
          ("18px caps", FONT % "Regular", 18,
-          "git commit -m ПОЛЕ FIXED ЦВІТЕ v2.1 ВІТЕР build/ДМЕ.log")]))
+          "git commit -m ПОЛЕ FIXED ЦВІТЕ v2.1 ВІТЕР build/ДМЕ.log")],
+        real=True))
 
     out = stack(parts)
     out.save("tools/out/checkpoint.png")
     print(f"tools/out/checkpoint.png  {out.size}  ({len(chars)} glyphs)")
 
 
-main()
+if __name__ == "__main__":
+    main()
