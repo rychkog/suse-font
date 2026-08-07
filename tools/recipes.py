@@ -22,9 +22,10 @@ from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   area, LINE,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
-                  fit)
+                  squash_x, piecewise_y, scale_x, fit)
 from latin_metrics import Latin
 from params import Lower, _flatten
+from probe import runs, vruns
 
 # Multiple of the face's own corner radius, for the letters whose arm is too
 # short to carry the whole thing.
@@ -1528,6 +1529,79 @@ def Ze(pr, top=None):
     return clone_all(pr.paths("three"))
 
 
+def Ze_lc(pr):
+    """з -- the same digit three, brought down to the lowercase.
+
+    З is the face's own three and this is that same outline, because the
+    alternative is the one thing already known not to work here: built from
+    generated arcs the capital had a visible seam where the lobes met and the
+    waist read as a break. There is no lowercase three to take instead, and no
+    Latin lowercase of this shape at all, so the letter has to be *derived* --
+    and derived is not scaled. A capital scaled down is the fault this project
+    names first; what follows is a reweighting that happens to change the size.
+
+    The face makes it awkward in a specific way. At Thin the two cases share
+    their strokes exactly -- 29 and 29, 28 and 28 -- and differ most in the
+    box, the lowercase being 0.884 of the capital's. At ExtraBold the box has
+    nearly closed, 0.956, and it is the strokes that differ: 150 against 161
+    and 106 against 135. So no single scale can serve, and neither can one
+    scale per axis: on each axis the stroke and the size want different
+    factors. Each axis therefore takes two stages -- the weight first, at the
+    face's own ratio, then the size, with the stroke already correct and
+    pinned so the second stage cannot touch it.
+
+    Vertically that is `squash`, which was written for exactly this and has
+    waited for its letter. Horizontally it is `squash_x`, the same trick
+    turned on its side, which this is the first use of: a plain horizontal
+    scale thins the walls the way a plain vertical scale thins the bars.
+    """
+    base = getattr(pr, "_pr", pr)
+    src = [_flatten(p) for p in base.paths("three")]
+    xs = [q[0] for p in src for q in p]
+    ys = [q[1] for p in src for q in p]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+
+    # The three horizontal strokes -- the crown of each lobe and the waist --
+    # found rather than named, by cutting down the letter where it is flattest.
+    # Anywhere in the middle third gives three clean runs; the flattest of them
+    # is the one clear of every curve's turn.
+    flat = min(((sum(b - a for a, b in v), v) for v in
+                (vruns(src, x0 + (x1 - x0) * k / 100.0) for k in range(35, 56))
+                if len(v) == 3), key=lambda t: t[0])[1]
+
+    # ...and the one stroke whose thickness is measured across: the wall at
+    # the lobes' widest, where a horizontal cut crosses it square.
+    ymax = max(range(5, 96),
+               key=lambda k: runs(src, y0 + (y1 - y0) * k / 100.0)[-1][1])
+    wall = [b - a for a, b in
+            runs(src, y0 + (y1 - y0) * ymax / 100.0)][-1]
+
+    # The lowercase's own overshoot, off o -- not the three's, scaled by
+    # accident. A round letter sits below the line and above it by a figure
+    # this face holds across the case, and audit reads exactly that.
+    ob = bbox(base.paths("o"))
+    over = (-ob[1] + (ob[3] - base.xh)) / 2.0
+
+    # y: the bars to lowercase weight, then the rest of the way to x-height.
+    k = pr.bar / float(base.bar)
+    out = piecewise_y(clone_all(base.paths("three")),
+                      [(y0, -over), (y1, -over + (y1 - y0) * k)])
+    bands = [(-over + (a - y0) * k, -over + (b - y0) * k) for a, b in flat]
+    out = squash(out, bands, -over + (y1 - y0) * k, pr.cap + over, -over)
+
+    # x: the walls to lowercase weight about the cell's centre, then the width
+    # to the lowercase's own box. At ExtraBold the first stage overshoots the
+    # width the box asks for and the second widens the letter back out, which
+    # is the same arithmetic run the other way and needs no special case.
+    ax0 = 300.0 + (x0 - 300.0) * pr.stem / float(base.stem)
+    ax1 = 300.0 + (x1 - 300.0) * pr.stem / float(base.stem)
+    out = scale_x(out, pr.stem / float(base.stem))
+    want = (x1 - x0) * (pr.capR - pr.capL) / float(base.capR - base.capL)
+    aw = wall * pr.stem / float(base.stem)
+    out = squash_x(out, [(ax1 - aw, ax1)], ax1, ax0 + want, ax0)
+    return translate(out, dx=300.0 - (ax0 + want / 2.0))
+
+
 def Ii(pr, top=None, bottom=0.0, donor="N"):
     """И -- two stems with a diagonal rising from the left foot to the right
     shoulder. Drawn, not N flipped: mirroring reverses the terminal cuts.
@@ -2155,6 +2229,7 @@ RECIPES = {
     "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
     "yeru-cy": lc(Yeru), "ka-cy": Ka, "em-cy": lc(Em),
+    "ze-cy": lc(Ze_lc),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }

@@ -426,6 +426,23 @@ weights is a probe, not a glyph** — the two masters interpolate linearly, so a
 drawn quantity moves monotonically between them and one that does not is
 measuring different features at different weights.
 
+A terminal running out is not a stroke, and `strokes.py` could not tell them
+apart. Its lean test cannot: a tip tapers symmetrically, so its centre does not
+move and its slope reads zero. Its width window cannot either, because a tip
+passes through every width on its way to nothing — so the number reported was
+whatever the sampling grid happened to catch. з flagged at 0.374 of the stem;
+the face's own **c** read 0.407 and its own **e** 0.431 on the same probe, and
+those two are the Latin unchanged.
+
+**Tell, and it is a general one: halve the sampling step.** A reading of the
+drawing does not move. c went to 0.360, e to 0.363, э to 0.335 — all sliding
+toward the window's own floor of a third of a stem, which is a property of the
+probe and not of any letter. Fixed by rejecting a run that loses width fast
+between the two scanlines, at a ceiling read off the face: 95 per cent of its
+own runs change by no more than 0.061 of themselves over those twelve units,
+and every taper it draws exceeds 0.34. After the fix c reads 0.969, e 0.885,
+э 0.971 and з 0.892, and none of them moves when the step is halved.
+
 ### F6b · A reference set that cannot express the answer
 
 A subtler relative of F6: the probe reads correctly, the reference is honestly
@@ -1030,6 +1047,37 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
+### Bringing a capital down to the lowercase takes both axes, and the same trick on each
+
+`squash` — compress cap-height artwork without thinning the horizontal bars —
+was written early and then sat unused for the whole project, because every
+letter that needed it turned out to have a lowercase donor or a parametric
+recipe. з is the one that does not: З **is** the face's own digit three, there
+is no lowercase three, there is no Latin lowercase of that shape at all, and
+the parametric route is the one thing already known to fail here — built from
+generated arcs the capital had a visible seam where the lobes met.
+
+What the letter then showed is that one axis is never enough, and neither is
+one factor per axis. This face makes the two cases differ in *different things
+at different weights*: at Thin the strokes are shared exactly, 29 and 29, 28
+and 28, and the box differs most, the lowercase being 0.884 of the capital's;
+at ExtraBold the box has nearly closed at 0.956 and it is the strokes that
+differ, 150 against 161 and 106 against 135. So on each axis the stroke and
+the size want different factors, and each axis takes two stages: **the weight
+first, at the face's own ratio, then the size, with the stroke already correct
+and pinned so the second stage cannot touch it.**
+
+Horizontally that needed `squash_x`, which is `squash` turned on its side and
+is new. A plain horizontal scale thins the vertical walls exactly the way a
+plain vertical scale thins the horizontal bars, and a letter derived from a
+wider donor has both faults at once.
+
+The face's own o confirms the shape of it rather than merely permitting it: o
+is not an affine of O. A plain scale of O would give it a crown of 96 and a
+wall of 159; o's are 111 and 150. Its crown thins *less* than its height and
+its wall thins *more* than its width — which is the two squashes, one per
+axis, in the face's own hand.
+
 ### A constraint that forces a trade-off is usually a missing figure
 
 м cost four rounds, and three of them were spent trading two readings against
@@ -1084,6 +1132,6 @@ the top of the vertical bars.*
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
   width fit running generous mid-axis, which two masters cannot bend.
-- **11 glyphs undrawn**: б з and the Serbian Ђ Љ Њ Ћ ђ љ њ ћ џ. б is the hard
+- **10 glyphs undrawn**: б and the Serbian Ђ Љ Њ Ћ ђ љ њ ћ џ. б is the hard
   one — no capital, no Latin donor.
 - **Checkpoint C: the italic.**

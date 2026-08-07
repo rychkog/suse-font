@@ -45,7 +45,9 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*(none)*
+| Glyph | Shown | What it is |
+| --- | --- | --- |
+| **з** | 2026-08-07 | The face's own digit three, reweighted to the lowercase on both axes. З **is** the three unchanged, there is no lowercase three, and no Latin lowercase of that shape at all; the parametric route is the one already known to fail here, since built from generated arcs the capital had a visible seam where the lobes met. So the letter is derived, and derived is not scaled: on each axis the weight goes first, at the face's own ratio, then the size, with the stroke already correct and pinned. Vertically that is `squash`, written early and unused until now; horizontally `squash_x`, which is new. The face's own o says this is the right shape of transform — o is not an affine of O, its crown thinning less than its height and its wall more than its width. Tier 2, not the tier 3 it was listed as. **To record if approved:** at Thin з is 0.884 of З's width, below the panel's middle half of 0.919–1.000 — but that is exactly the face's own lowercase box against its capital box, and its own o/O is the same 0.884. Host over panel. |
 
 ## Not recorded
 
