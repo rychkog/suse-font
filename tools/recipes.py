@@ -1959,6 +1959,17 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
             + mirror_x(clone_all(left), 300.0))
 
 
+# м's vertex, as a fraction of М's own -- each measured against its own line,
+# so this is the shift the landmark takes across the case and nothing else.
+# The panel's median over the 51 faces that draw both; its middle half is
+# wide, 0.308 to 0.889, so the panel rules out the two extremes rather than
+# fixing a value, and the median is the only figure inside that band it
+# actually supports. Applied to this face's own М it puts the vertex at 0.206
+# of the x-height at Thin and 0.182 at ExtraBold, against a panel median for
+# м's vertex read directly -- a separate reading -- of 0.180.
+EM_VERTEX = 0.639
+
+
 def Em(pr, top=None, bottom=0.0):
     """м -- М's construction at x-height, rebuilt from M's own figures.
 
@@ -2016,6 +2027,14 @@ def Em(pr, top=None, bottom=0.0):
     diag = (la[2] + ra_[2]) / 2.0 / base.stem
     mvert = (ya + (ra_[0] - la[0]) / (la[1] - ra_[1])) / base.cap
 
+    # ...and how far into its upright the diagonal's outer top corner sits,
+    # read off М by running its own centreline up to the cap line. It cannot
+    # be read with a scanline: at the top the two shapes are one run, and the
+    # corner in question is buried inside the upright.
+    _cx = la[0] + la[1] * (base.cap - ya)
+    inset = (_cx - la[2] * math.hypot(1.0, la[1]) / 2.0 - left) \
+        / (upright * base.stem)
+
     # ...and rebuilt in this case's box, at this case's stroke.
     #
     # The uprights are М's own figure and nothing else. `crowd3` was applied
@@ -2037,29 +2056,37 @@ def Em(pr, top=None, bottom=0.0):
     # one Ж's arms take.
     ds = diag * pr.stem * L(pr).crowd3
 
-    # The vertex is М's own height as a fraction of its own line -- м is М at
-    # x-height in this too. Both diagonals run to (300, yv), so the flat cut
-    # sits exactly where their centrelines meet: М's own rule that two strokes
-    # crossing stay square, and the reason the vertex is cut rather than
-    # pointed.
-    #
-    # The panel puts м's vertex at 0.639 of М's, and this face cannot have
-    # that and the upright weight above at the same time -- the letter is
-    # monospaced at М's width and cannot widen, so a deeper vertex leans the
-    # diagonals harder and shuts the wedge to six units at Bold. Of the two
-    # readings the upright weight is the one the panel is tight on; the
-    # vertex's own middle half runs 0.308 to 0.889, which rules out the
-    # extremes rather than fixing a value. So the host wins here, and м is
-    # М's proportion exactly.
-    yv = bottom + h * mvert
+    # The vertex is М's own height, moved by the shift the panel gives that
+    # landmark across the case: over the 51 faces that draw both, м's vertex
+    # against its own x-height is EM_VERTEX of М's against its own cap. Both
+    # diagonals run to (300, yv), so the flat cut sits exactly where their
+    # centrelines meet -- М's own rule that two strokes crossing stay square,
+    # and the reason the vertex is cut rather than pointed.
+    yv = bottom + h * mvert * EM_VERTEX
     out = [rect(left, bottom, left + us, top),
            rect(right - us, bottom, right, top)]
-    for x in (left + us / 2.0, right - us / 2.0):
-        s = (300.0 - x) / (yv - top)
-        hw = ds * math.hypot(1.0, s)
-        out.append(path([node(x - hw / 2.0, top), node(x + hw / 2.0, top),
-                         node(300.0 + hw / 2.0, yv),
-                         node(300.0 - hw / 2.0, yv)]))
+    for sign, edge in ((1.0, left), (-1.0, right)):
+        # Where the diagonal meets the top of its upright is М's figure too,
+        # and it is not the upright's centre. Centring it there is what put a
+        # step on BOTH sides of every upright at the x-height -- the diagonal
+        # poking a unit past the outer edge at the light end and sinking
+        # inside it at the heavy end, which reads as a nick in the corner
+        # rather than as a stroke leaving a stem. М sets its diagonal's outer
+        # top corner INSIDE the upright, so the outer edge runs clean to the
+        # top and the whole junction opens inward: one step, on the side the
+        # stroke is going.
+        #
+        # The top span's centre fixes the lean and the lean fixes the span's
+        # width, so the two are solved together; three passes settle it to
+        # well under a unit.
+        x0 = edge + sign * inset * us
+        hw = ds
+        for _ in range(4):
+            s = (300.0 - (x0 + sign * hw / 2.0)) / (yv - top)
+            hw = ds * math.hypot(1.0, s)
+        out.append(path([node(x0, top), node(x0 + sign * hw, top),
+                         node(300.0 + sign * hw / 2.0, yv),
+                         node(300.0 - sign * hw / 2.0, yv)]))
     return [p if area(p) > 0 else reverse(p) for p in out]
 
 

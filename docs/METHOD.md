@@ -1030,35 +1030,42 @@ The six pairs in `audit.py` are the six whose letters are made of corners.
 That is why they are the six, and the list should not be grown without a
 figure the face itself supplies.
 
-### When two panel readings conflict, the tight one wins and the loose one gives
+### A constraint that forces a trade-off is usually a missing figure
 
-м cost three rounds, and every one of them was a fight between the same two
-readings, neither of which can be had in full in this cell.
+м cost four rounds, and three of them were spent trading two readings against
+each other that never actually conflicted.
 
-The panel gives both. **м's upright against n is 1.000 of М's against H**,
-middle half inside 0.979 to 1.035 — as tight a reading as this project has
-found. **м's vertex against its own x-height is 0.639 of М's against its own
-cap** — median over the same 51 faces, but with a middle half of 0.308 to
-0.889, which rules out the extremes and fixes nothing.
+The readings: **м's upright against n is 1.000 of М's against H**, middle half
+inside 0.979 to 1.035, as tight as anything in this project. **м's vertex
+against its own x-height is 0.639 of М's against its own cap**, middle half
+0.308 to 0.889 — loose enough to rule out the extremes and fix nothing else.
+Held together they appeared impossible: the letter is monospaced at М's width
+and cannot widen, so at the panel's vertex with the panel's upright the wedge
+between diagonal and upright shut to six units at Bold. Every round after that
+was an argument about which reading to bend, and each answer was rejected —
+`crowd3` on the uprights starved them (F3), the baseline read as standing on a
+point, М's own vertex fraction left the letter shallow.
 
-They conflict because the letter cannot widen: it is monospaced at М's width,
-so a deeper vertex leans the diagonals harder, and past a point the wedge
-between each diagonal and its upright shuts. At the panel's vertex with the
-panel's upright weight that wedge is **six units at Bold**. Something has to
-give, and the answer is not to split the difference — it is to give the
-reading the panel is loose about. м sits at М's own vertex fraction exactly,
-with М's own upright, and the diagonals alone take `crowd3`.
+None of it was the trade-off it looked like. **The diagonal was leaving the
+upright in the wrong place.** It was centred on the upright's centre, which
+put a step on *both* sides of every stem at the x-height — poking a unit past
+the outer edge at the light end, sinking inside it at the heavy end. М does
+not do that: it sets the diagonal's outer top corner *inside* the upright, so
+the outer edge runs clean to the top and the junction opens only inward, on
+the side the stroke is going. That figure is 0.306 of the upright at Thin and
+0.727 at ExtraBold, and it cannot be read with a scanline — at the top the two
+shapes are one run and the corner is buried. It comes off М's own centreline
+run up to the cap line.
 
-The two wrong turns are worth keeping because they are symmetrical. First the
-vertex went to М's fraction with `crowd3` on **both** strokes, which starved
-the uprights — see F3. Then it went to the **baseline**, which opened every
-counter, passed every gate, and answered to nothing: the baseline is below the
-lower quartile of every face in the reference. Taking the capital as the
-answer and taking the constraint as the answer are the same mistake.
+With the junction right, the wedge at the panel's own vertex went from six
+units to forty-two at Bold, and every reading fits at once with room to spare.
 
-**So: rank the panel's readings by how tight they are before deciding which
-one to bend.** A median with a middle half a third of its own width wide is
-not evidence against a median with a middle half of six per cent.
+**So when two sourced figures cannot both be had, look for the third figure
+that was never read before deciding which of the two to give up.** The tell is
+that the trade-off is steep — a few per cent of one reading costing tens of
+per cent of the other — which is what a geometry fault looks like from inside
+a parameter sweep. The user saw it in one glance: *the V does not start from
+the top of the vertical bars.*
 
 ---
 
