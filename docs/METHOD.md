@@ -1617,5 +1617,12 @@ the top of the vertical bars.*
   already at the panel's ceiling at ExtraBold — and the residual is the linear
   width fit running generous mid-axis, which two masters cannot bend.
 - **9 glyphs undrawn**, all Serbian: Ђ Љ Њ Ћ ђ љ њ ћ џ. **Ukrainian and
-  Russian are complete.**
+  Russian are complete, and б — the last of them, and the only glyph in the
+  font whose outline comes from another face — was approved on 2026-08-09.**
+- **б's landing is solved per master and asserted, not chosen.** It lands 41
+  degrees apart at the two ends of the axis and happens to fall in the same
+  segment of the bowl. If o's outer contour is ever redrawn with different
+  extrema, `be_from_sudo.py` will stop rather than emit two masters whose
+  nodes do not correspond — that is the intended behaviour, and the fix is to
+  re-seat the arc, not to relax the assertion.
 - **Checkpoint C: the italic.**
