@@ -111,6 +111,23 @@ def wall(path, xh):
     return None if m is None else width(edt(m))
 
 
+def junction(mask, wall):
+    """The widest disc anywhere in the letter, over the bowl's own wall.
+
+    There is no region decision in this one, which is the point. `branch_of`
+    has to say where the branch stops being bowl, and the place a stroke most
+    often goes wrong -- where it merges into the bowl -- is exactly the place
+    that decision excludes. It did: with the branch reading a flat 0.86 at
+    every weight, this read 2.42 at Thin against a panel ninetieth percentile
+    of 1.39, and the blob was at the heel, outside the rows `branch_of` keeps.
+
+    `wall` is read off the face's own o and passed in. Measured off the letter
+    itself it is contaminated by the very fault being looked for -- the heavier
+    the blob, the wider the "wall", and the less of it the reading sees.
+    """
+    return width(edt(mask)) / wall
+
+
 def branch_rows(mask):
     """Which rows are branch and which are still bowl.
 
