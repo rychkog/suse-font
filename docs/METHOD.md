@@ -681,6 +681,41 @@ that were not asked. Overlay the two outlines and look. It took one picture to
 find what three panel comparisons missed, and it should have been the first
 move rather than the fourth.
 
+**A donor's axis buys shape, not weight — once it is only supplying a part.**
+The third round on this letter was the branch reading nearly twice the weight
+of the bowl it grows out of: 1.73 of the bowl's wall at Thin, against a panel
+holding 0.85 to 0.99 taken nearest-neighbour by stem. The axis was still being
+solved against the donor's own bowl wall, which had made sense while the bowl
+was the donor's, and left the one part that survived the cut unmeasured.
+
+Solving the axis against the branch instead does not work either, and the
+reason generalises. This face's Thin is far lighter than the donor's lightest
+cut — its bowl wall is a sixteenth of the x-height where the donor's lightest
+is a tenth — so buying that weight off the axis means extrapolating a long way
+past the end, and a glyph does not thin gracefully out there. Between t −0.8
+and t −1.0 the branch's root fell from 1.30 to 0.74 while its terminal went to
+a hairline: that is an outline coming apart, not a lighter one. §1's rule about
+clamping a fit to the range it was fitted over applies to a donor's own axis
+too.
+
+**Fix:** clamp the axis to the donor's ends, one per master, and take the
+weight from a separate lever — move the stroke's underside toward its outer
+edge, each point by a share of *its own* distance across the stroke. A share,
+not a fixed offset: this branch is twice as thick at its middle as at its
+terminal, and taking a constant off both leaves the terminal a hairline while
+the middle is still right. Weight first, at the face's own ratio, then shape —
+which is what з already does to the digit three, in §8.
+
+**And the measure has to survive the thing it measures.** The first gauge for
+this was a scanline with a slope correction, and it was worse than useless: it
+read a near-horizontal stroke at four times its weight, and when the stroke was
+thinned to a sliver it barely moved, so a bisection against it ran to the end
+of its bracket and reported success. The honest measure was already in the
+code — cast a ray from each point of one edge along its own normal to the other
+edge. No scanline, no correction, and it makes the solve closed-form instead of
+bisected. A measure that needs a correction factor is a measure that has not
+been posed properly.
+
 ---
 
 ---
