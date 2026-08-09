@@ -1,4 +1,4 @@
-"""Take Sudo's б, extrapolate it to this face's weights and fit it to its box.
+"""Take Sudo's б for its branch, and build the bowl from this face's own o.
 
 Sudo (https://github.com/jenskutilek/sudo-font, Jens Kutilek) is under the SIL
 Open Font License 1.1, which is what lets it be an outline donor; SUSE Mono is
@@ -11,10 +11,13 @@ Writes `tools/be_donor.py`. Run it from the repository root:
 
 What it does, in order:
 
-  * solves the donor's own weight axis so its o's wall matches this face's, by
-    extrapolating point for point past both ends of that axis -- Sudo runs
-    from a wall a tenth of the x-height to just under a quarter, and this face
-    needs a sixteenth at Thin and three tenths at ExtraBold;
+  * takes the donor at its own two weights and no further, one for each master.
+    Its axis used to be extrapolated, which is right when the donor supplies
+    the whole letter and wrong now that it supplies one stroke: this face's
+    Thin wants a branch 0.92 of a 29-unit bowl wall and Sudo's own lightest,
+    fitted to this cell, draws 2.0 of it, so reaching this face's weight that
+    way means extrapolating until the stroke falls apart -- which it does,
+    the root collapsing and the terminal thinning to a hairline;
   * anchors the outline on two heights this face owns, the baseline under the
     bowl and the top of o, so the overshoot and the x-height are this face's;
   * stretches what is above the x-height on its own to reach this face's
@@ -30,7 +33,12 @@ What it does, in order:
     sixty faces б's counter matches its OWN o to within 0.014 -- median 0.001,
     width ratio 1.00 -- which makes it the one relation about this letter the
     panel is unanimous on. So the bowl is built from this face's o, squashed
-    to the height the donor gave the bowl, and the branch is spliced onto it.
+    to the height the donor gave the bowl, and the branch is spliced onto it;
+  * and reweights the branch to this face, by moving its underside toward its
+    outer edge -- each point by a share of its OWN distance across the stroke,
+    so the taper survives. The panel puts a branch at 0.92 of its own bowl's
+    wall at this face's Thin and 0.97 at its ExtraBold, taken
+    nearest-neighbour by stem.
 """
 import math
 import sys
@@ -277,6 +285,27 @@ LAND, LEAVE = 5, 14
 # root moves rigidly and the move fades out over the segments above it.
 ROOT = 12
 
+# What the branch should weigh, over the bowl's own wall. The panel's median
+# taken nearest-neighbour by stem, per master -- the reading is not flat, and
+# a flat one would be F4. The comparison is against the bowl rather than
+# against the stem because that is the one a reader actually makes: the two
+# strokes are adjacent and each is seen against the other.
+BRANCH = (0.92, 0.97)
+
+# Which point on the donor's own axis each master takes its SHAPE from. Its
+# ends, and no further: the axis is clamped to the range it was fitted over
+# (METHOD §1) and the weight comes from `reweight` instead.
+#
+# It used to be extrapolated, which is what a donor's axis is for when it is
+# supplying the whole letter. It is not any more -- only the branch is the
+# donor's -- and the branch cannot be bought this way. This face's Thin wants a
+# branch 0.92 of a 29-unit bowl wall; Sudo's own lightest, fitted to this cell,
+# draws 2.19 of it, so reaching this face's weight means extrapolating until
+# the stroke falls apart. It does: between t -0.8 and t -1.0 the branch's root
+# drops from 1.30 to 0.74 and its terminal thins to a hairline, which is the
+# outline degenerating rather than getting lighter.
+T = (0.0, 1.0)
+
 
 def seg_end(s):
     return s[1][-1]
@@ -453,39 +482,129 @@ def measure(paths, pr):
     return floor_and_wall([poly(p) for p in paths])
 
 
-def solve(a, b, work, pr):
-    """Weight from the horizontal, width from the wall -- in that order.
+def branch_weight(paths, wall):
+    """The branch's own thickness, where it runs clear of the bowl.
 
-    They separate cleanly and that is the whole trick. A horizontal does not
-    care how wide the letter is stretched, so the donor's axis can be solved
-    against it alone; a vertical wall scales exactly with the stretch, so the
-    width follows in closed form once the weight is fixed.
-
-    Solved the other way round -- weight against the wall, width against the
-    cell -- neither lands: the fit stretches this letter a fifth wider than
-    the donor drew it, a fifth thickens every vertical by the same amount,
-    and the horizontal is left an eighth heavy at Thin and a third heavy at
-    ExtraBold.
+    Read above the bowl and below the terminal, and corrected for the run's
+    own lean, so a stroke crossing the scanline at an angle reads its real
+    thickness and not its horizontal footprint. The median of the samples
+    rather than any one of them: the branch tapers, and one scanline picked by
+    hand is a landmark squeezed out of a curve. (F10.)
     """
-    wf, ww = floor_and_wall([_flatten(q, 48) for q in pr.paths("o")])
-    lo_t, hi_t = -1.2, 2.6
-    for _ in range(22):
-        mid = 0.5 * (lo_t + hi_t)
-        _, paths = shape(a, b, mid, work, pr)
-        f, w = measure(paths, pr)
-        # Weighted to the WALL, not evenly between wall and floor. The floor
-        # has room to go heavy and the wall does not have room to go light:
-        # the face's own letters hold their horizontal between 0.94 and 1.05
-        # of its own at Thin but between 1.00 and 1.13 at ExtraBold, so a
-        # horizontal that runs heavy is inside the face's habit at the end of
-        # the axis where this letter was reading thin next to в and о.
-        if w < ww:
-            lo_t = mid
+    ps = [poly(p) for p in paths]
+    hole = sorted(ps, key=lambda p: -abs(_area(p)))[1]
+    top = max(q[1] for q in hole) + wall
+    hi = max(q[1] for p in ps for q in p)
+    step = (hi - top) * 0.02
+    out = []
+    for i in range(1, 20):
+        y = top + (hi - top) * i / 20.0
+        r, r2 = runs(ps, y), runs(ps, y + step)
+        if len(r) != 1 or len(r2) != 1:
+            continue
+        w = r[0][1] - r[0][0]
+        dx = 0.5 * ((r2[0][0] + r2[0][1]) - (r[0][0] + r[0][1]))
+        out.append(w * step / math.hypot(dx, step))
+    return sorted(out)[len(out) // 2] if out else 0.0
+
+
+def _area(p):
+    return 0.5 * sum(x0 * y1 - x1 * y0 for (x0, y0), (x1, y1)
+                     in zip(p, p[1:] + p[:1]))
+
+
+def walk(start, segs, steps=12):
+    """A run of segments as a polyline."""
+    pts, at = [start], start
+    for kind, p in segs:
+        if kind == "curve":
+            for s in range(1, steps + 1):
+                pts.append(bez(at, p[0], p[1], p[2], s / float(steps)))
+            at = p[2]
         else:
-            hi_t = mid
-    t = 0.5 * (lo_t + hi_t)
-    _, paths = shape(a, b, t, work, pr)
-    return (t, 1.0) + measure(paths, pr)
+            pts.append(p[0])
+            at = p[0]
+    return pts
+
+
+def ray(o, d, poly):
+    """How far from o, along d, the polyline is. None if it is not ahead."""
+    best = None
+    for i in range(len(poly) - 1):
+        ax, ay = poly[i]
+        ex, ey = poly[i + 1][0] - ax, poly[i + 1][1] - ay
+        den = d[0] * ey - d[1] * ex
+        if abs(den) < 1e-9:
+            continue
+        fx, fy = ax - o[0], ay - o[1]
+        s = (fx * ey - fy * ex) / den
+        u = (fx * d[1] - fy * d[0]) / den
+        if s > 1e-6 and -1e-9 <= u <= 1.0 + 1e-9 and (best is None or s < best):
+            best = s
+    return best
+
+
+def gauge(sg):
+    """The branch's own thickness, and the normals it was measured along.
+
+    Straight off the outline: from each point of the underside, along its own
+    inward normal, to the outer edge. That is the stroke's real thickness
+    wherever it is taken, and it needs no scanline and no slope correction --
+    the correction was the unreliable part, reading a near-horizontal stroke as
+    four times its own weight and moving barely at all when the stroke was
+    thinned to a sliver.
+    """
+    outer = walk(seg_end(sg[LEAVE]), sg[LEAVE + 1:])
+    pts = [sg[0][1][0]] + [q for _kind, ps in sg[1:LAND + 1] for q in ps]
+    out = []
+    for i, q in enumerate(pts):
+        p0, p1 = pts[max(0, i - 1)], pts[min(len(pts) - 1, i + 1)]
+        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+        h = math.hypot(dx, dy) or 1.0
+        n = (dy / h, -dx / h)
+        out.append((q, n, ray((q[0], q[1]), n, outer)))
+    d = sorted(v[2] for v in out if v[2])
+    return d[len(d) // 2], out
+
+
+def reweight(sg, k):
+    """Scale the branch's thickness by k, moving only its underside.
+
+    Proportionally, not by a fixed offset. The branch tapers -- twice as thick
+    at its middle as at its terminal -- so taking a constant off both leaves
+    the terminal a hairline while the middle is still right. Each point moves
+    along its own inward normal by a share of its own distance to the outer
+    edge, which is a change of weight rather than of shape, and is what the
+    face's own з does to the digit three.
+    """
+    out = []
+    for q, n, d in gauge(sg)[1]:
+        s = (1.0 - k) * d if d else 0.0
+        out.append((q[0] + n[0] * s, q[1] + n[1] * s))
+    new = list(sg)
+    new[0] = ("start", [out[0]])
+    i = 1
+    for si in range(1, LAND + 1):
+        kind, ps = sg[si]
+        new[si] = (kind, out[i:i + len(ps)])
+        i += len(ps)
+    return new
+
+
+def solve(a, b, work, pr, mi):
+    """How much the branch has to be thinned to weigh what it should.
+
+    The axis is no longer the lever -- it is clamped to the donor's own ends
+    and only buys the shape. What is left is one number, in closed form: each
+    point of the underside keeps k of its own distance to the outer edge, so
+    the stroke ends up k times as thick, everywhere, and k is what the face
+    wants over what the donor drew.
+    """
+    ww = floor_and_wall([_flatten(q, 48) for q in pr.paths("o")])[1]
+    blend(a, b, T[mi], be_glyph(work))
+    sg = fit_segs(segments(work), work, pr)[0]
+    got = gauge(sg)[0]
+    return BRANCH[mi] * ww / got, got, ww
 
 
 def thicken_floor(paths, want):
@@ -530,12 +649,13 @@ def build():
     made = []
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
-        t, _k, floor, wall = solve(a, b, work, pr)
-        print("  master %d  axis %.3f  donor floor %.1f  wall %.1f"
-              % (mi, t, floor, wall))
-        blend(a, b, t, be_glyph(work))
-        sg = fit_segs(segments(work), work, pr)
-        made.append((t, splice(square_terminal(sg[0]), pr), pr))
+        k, got, wall = solve(a, b, work, pr, mi)
+        print("  master %d  donor axis %.2f   branch %.1f thinned to %.2f"
+              "  = %.1f over bowl wall %.1f, wanted %.2f"
+              % (mi, T[mi], got, k, got * k, wall, BRANCH[mi]))
+        blend(a, b, T[mi], be_glyph(work))
+        sg = reweight(fit_segs(segments(work), work, pr)[0], k)
+        made.append((k, splice(square_terminal(sg), pr), pr))
     drop = degenerate(made[0][1], made[1][1])
     out = []
     for t, cs, pr in made:
