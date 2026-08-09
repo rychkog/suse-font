@@ -793,6 +793,19 @@ claim, and a claim needs a measurement.** "Intended", "normal", "as expected",
 "that's the flare" — each is a place where a number should be. The panel can
 answer almost all of them, cheaply, and it disagrees more often than not.
 
+**And the same class again, in a comment rather than a report, holding a
+constant down for two rounds.** `DE_BODY` narrowed Д's body to 0.86 of its
+box, and the comment beside it said every step outward pushes the body over
+the plinth until the legs disappear beneath it. Nothing had measured the
+plinth. Measured, ours already jutted **further** than the panel's at every
+weight — 0.574 of a stem against 0.466 at ExtraBold, a plinth 1.475 of its
+body against the panel's 1.337 — while the body it was starving sat 10 to 17
+per cent under the panel's at every weight including Thin. The constant was
+protecting the one reading that had room to spare, at the cost of the one that
+did not, and both moved the right way the moment either was measured. **A
+comment that says why a constant cannot move is a claim with a number
+missing.**
+
 **A fifth, and it is the one that ended the letter: two fixes holding each
 other up are one decision, and neither can be judged alone.** After all of the
 above, the junction still carried a blob — the widest disc anywhere in the
@@ -1660,16 +1673,21 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
-- **д and Д's counter closes as the face gets heavier, and it is the largest
-  thing `relations.py` found.** Nothing at Thin; at Regular the lowercase
-  counter is 18 per cent under the panel and its aspect 17 under; at Bold 28
-  and 26; at ExtraBold the aspect is **39 per cent** under and the capital's
-  counter 35. Every departure is in the same direction and grows monotonically
-  with weight, which is §2's "diagnosing it gets ugly when bold" exactly, and
-  the same shape as Я's and Ъ's faults: the span the counter is cut out of is
-  fixed while the strokes bounding it grow. §2 step 0 is the one to run — find
-  what the triangle's interior is a span OF, and check whether that span moves
-  with the weight. **Neither letter is approved**, so this is workable.
+- **д and Д — fixed on 2026-08-09, awaiting a verdict.** `relations.py` found
+  the counter closing monotonically with weight, 39 per cent under the panel
+  by ExtraBold and nothing wrong at Thin. §2 step 0 found why: the body the
+  counter is cut out of was 10 to 17 per cent under the panel's at **every**
+  weight, Thin included, and only became visible at the heavy end because that
+  is where the walls are thick enough to eat what is left. It grew at the
+  panel's own rate — 1.30 against 1.27 — so the rate was never the fault. The
+  level was. `DE_BODY` is now `DE_FIT`, linear in the stem and clamped, solved
+  per case per master against the panel's own span by `de.py --solve`, and the
+  plinth's jut is measured from the body's edges rather than from the two-stem
+  box. Span now lands on the panel at all four weights and the ExtraBold
+  lowercase counter went 0.266 to 0.359 of its span against a panel 0.398.
+  **What is still outside** is the jut at the heavy end, 0.391 of a stem
+  against the panel's 0.466: the plinth is against the sidebearing and this
+  face has no more cell to give. Not approved yet — shown, not signed off.
 - **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
   0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
   inside at 0.951. Eight units. `relations.py` independently reaches the same
