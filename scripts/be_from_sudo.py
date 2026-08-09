@@ -275,31 +275,16 @@ def poly(nodes, steps=24):
 # two segments are the seam.
 LAND, LEAVE = 5, 14
 
-# How far up the branch the landing's move is felt. The underside has to end
-# on the oval and the donor ends it somewhere else, so the last stretch of it
-# moves -- and moving only the end point drags that stretch straight. What it
-# costs is the FLARE: the donor widens the branch as it enters the bowl, which
-# is what makes the stroke look grown out of the bowl rather than laid across
-# it, and dragging the end point turned a segment leaning 78 degrees into one
-# standing at 88 and parallel to the branch's own outer edge. So the whole
-# root moves rigidly and the move fades out over the segments above it.
 # Where the branch's underside comes down onto the oval, in degrees round it.
-# None means the donor's own. Solved rather than taken: the donor lands where
-# its own straight wall was, and on an oval that closes the aperture against
-# the outer wall instead of running it down into the counter -- which is the
-# whole of the seam fault, and it shows at the light master because the mass
-# it leaves is a fixed size against a wall that grows fivefold.
+# None means "wherever the branch itself reaches it" -- see `land_on`. A number
+# overrides that, which is what the sweep in `tools/seam.py` needs; it is not
+# how the letter is built.
+#
+# The landing used to be the donor's own angle, with the underside's end point
+# TRANSLATED onto the oval and the move faded out over the three points above
+# it. Both halves of that are gone. The translation is what forced the
+# exemption below, and the exemption is what put the blob at the junction.
 LANDING = (None, None)
-
-ROOT = 3
-
-# How many points at the landing end keep the donor's own weight. One, which
-# is none: the panel does not flare a branch into the bowl. Measured on the
-# raster over 60 faces the stroke's weight at the heel is 0.89 of the bowl's
-# wall against 0.86 along its body -- flat, within the noise. Exempting four
-# points here to protect a flare that does not exist put this face's Thin at
-# 1.41 of its bowl's wall where the panel's ninetieth percentile is 0.98.
-HEEL = 3
 
 # What the branch should weigh, over the bowl's own wall. The panel's median
 # taken nearest-neighbour by stem, per master -- the reading is not flat, and
@@ -402,6 +387,51 @@ def bowl(pr, top):
             for s, sg in (to_segs(p) for p in ps)]
 
 
+# Every landing angle `splice` has solved this run, so `build` can report the
+# one that ended up in the outline. It is not chosen any more, so the only way
+# to know where the branch meets the bowl is to read it back.
+LANDED = []
+
+
+def land_on(l0, branch, os_, osg):
+    """Where the underside, carried on along its own tangent, meets the oval.
+
+    The underside has to end on the bowl and, once it has been thinned to this
+    face's weight, it does not. What used to happen is that its end point was
+    TRANSLATED there and the move faded out over the three points above it --
+    which meant the end point could not be thinned at all, because the
+    translation would only drag it back out again. So the last stretch of the
+    stroke kept the donor's own weight while the rest of it was cut to a
+    third, and the junction carried a blob 2.4 times the bowl's wall at Thin
+    against a panel holding 1.06 to 1.39. It was not a fillet and it was not
+    the landing angle: it was the donor's root, unthinned, sitting in the
+    corner. Both masters showed it in proportion to how much thinning they
+    needed -- Thin 2.44, ExtraBold, which needs none, 1.28.
+
+    So nothing is translated. The stroke is thinned through to its end and
+    then simply continues in the direction it was already going until it
+    reaches the oval, which is what a stroke growing out of a bowl does. Where
+    it lands falls out of that rather than being chosen, and it lands lower
+    the lighter the master, which is also what the panel draws.
+
+    Cast both ways along the tangent and take the nearer crossing: at Thin the
+    thinned end sits outside the oval and the stroke runs on to meet it, at
+    ExtraBold it needs no thinning and already sits a little inside, where
+    running on would only take it deeper.
+    """
+    kind, pts = branch[0]
+    dx, dy = l0[0] - pts[0][0], l0[1] - pts[0][1]
+    h = math.hypot(dx, dy) or 1.0
+    d = (dx / h, dy / h)
+    oval = walk(os_, osg, 24)
+    fwd, back = ray(l0, d, oval), ray(l0, (-d[0], -d[1]), oval)
+    if fwd is None and back is None:
+        return l0
+    if back is not None and (fwd is None or back < fwd):
+        return (l0[0] - d[0] * back, l0[1] - d[1] * back)
+    return (l0[0] + d[0] * fwd, l0[1] + d[1] * fwd)
+
+
 def splice(donor, pr, _land=None):
     """The donor's branch, carried onto an arc of this face's own o.
 
@@ -423,22 +453,33 @@ def splice(donor, pr, _land=None):
         + donor[1:LAND + 1]
     l0, branch = rev(b_start, b_segs)
 
-    # the segment of the oval the landing falls in -- the upper left quadrant
-    # at both masters, so the two layers split the same segment and keep the
-    # same nodes
+    # Where the underside reaches the oval, not where the donor's own did.
+    # The branch has just been thinned to this face's weight, which at Thin is
+    # a third of what the donor drew, so its end no longer sits on the oval at
+    # all -- and the letter's whole seam fault was in what used to be done
+    # about that. See `land_on`.
+    want = clock(land_on(l0, branch, os_, osg), c) if _land is None else _land
+
+    # The segment of the oval the landing falls in. This has to be the SAME
+    # segment at both masters, and it is no longer obvious that it is: the
+    # landing used to be the donor's own angle at both, and now it is solved
+    # per master and comes out 41 degrees apart. `arc` is rotated to start
+    # just past j, so a different j would give the two masters the same node
+    # COUNT with node five meaning a different place on the bowl -- which
+    # every mechanical check would pass and every interpolated weight would
+    # be wrong. `build` asserts the two agree.
     at, j = os_, None
     for i, s in enumerate(osg):
         a, b = clock(at, c), clock(seg_end(s), c)
-        if a < clock(l0, c) < b:
+        if a < want < b:
             j = i
             break
         at = seg_end(s)
+    LANDED.append((want, j))
 
-    # the oval, split where the underside comes down. Its angle rather than
-    # its point: the donor lands 16 per cent outside the oval at
-    # Thin and 3 per cent inside it at ExtraBold, and an angle is the same
-    # relation at both.
-    want = clock(l0, c) if _land is None else _land
+    # the oval, split there. Its angle rather than its point, so that a
+    # landing solved on one master and one solved on the other are the same
+    # relation to the bowl rather than two arbitrary coordinates.
     lo, hi = 0.0, 1.0
     for _ in range(40):
         t = 0.5 * (lo + hi)
@@ -449,19 +490,11 @@ def splice(donor, pr, _land=None):
     part = split(at, osg[j], 0.5 * (lo + hi))
     arc = osg[j + 1:] + osg[:j] + [("curve", part)]
 
-    # The root moves onto the oval whole, and the move fades out above it, so
-    # the branch keeps the shape it enters the bowl with.
-    dx, dy = part[2][0] - l0[0], part[2][1] - l0[1]
-    out, i = [], 0
-    for kind, pts in branch:
-        moved = []
-        for q in pts:
-            w = 1.0 if i < 3 else max(0.0, 1.0 - (i - 3) / float(ROOT))
-            moved.append((q[0] + dx * w, q[1] + dy * w))
-            i += 1
-        out.append((kind, moved))
-
-    return [[("start", [seg_end(osg[j])])] + arc + out,
+    # and the underside runs on to meet it. A line, because it is the
+    # underside's own tangent carried on, so the angle the stroke enters the
+    # bowl at is the donor's exactly -- which is what the translation could
+    # not do. The branch itself is not moved at all any more.
+    return [[("start", [seg_end(osg[j])])] + arc + [("line", [l0])] + branch,
             [("start", [cs])] + csg]
 
 
@@ -600,15 +633,15 @@ def reweight(sg, k):
     """
     rows = gauge(sg)[1]
     out = []
-    for i, (q, n, d) in enumerate(rows):
-        # nothing moves at the landing itself. The underside runs terminal
-        # first and lands last, and the landing is where the stroke merges
-        # into the bowl -- moving it means the splice then has to drag it back
-        # onto the oval, and that drag is a translation of the whole underside,
-        # which undoes the thinning exactly. It did: the branch measured 0.92
-        # of the bowl's wall in the intermediate and 1.73 once built.
-        taper = min(1.0, (len(rows) - 1 - i) / float(HEEL))
-        s = (1.0 - k) * d * taper if d else 0.0
+    for _i, (q, n, d) in enumerate(rows):
+        # Every point moves, the landing included. It used to be held back,
+        # because the splice then translated it onto the oval and that drag
+        # undid the thinning; now the splice does not translate anything, so
+        # the exemption has nothing left to protect and the blob it left at
+        # the junction is gone. The panel agrees there is nothing to protect:
+        # a branch weighs 0.89 of the bowl's wall at its heel against 0.86
+        # along its body, which is flat within the noise.
+        s = (1.0 - k) * d if d else 0.0
         out.append((q[0] + n[0] * s, q[1] + n[1] * s))
     new = list(sg)
     new[0] = ("start", [out[0]])
@@ -693,7 +726,7 @@ def build():
     a, b = list(be_glyph(lo).coordinates), list(be_glyph(hi).coordinates)
     font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
     work = load(LO)
-    made = []
+    made, landed = [], []
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
         k, got, wall = solve(a, b, work, pr, mi)
@@ -702,7 +735,15 @@ def build():
               % (mi, T[mi], k, got, BRANCH[mi]))
         blend(a, b, T[mi], be_glyph(work))
         sg = reweight(fit_segs(segments(work), work, pr)[0], k)
+        del LANDED[:]
         made.append((k, splice(square_terminal(sg), pr, LANDING[mi]), pr))
+        landed.append(LANDED[-1])
+        print("            lands at %.0f degrees round the bowl, in the "
+              "bowl's segment %d" % LANDED[-1])
+    if len({j for _a, j in landed}) != 1:
+        raise SystemExit("the masters landed in different segments of the "
+                         "bowl, %s -- their nodes no longer mean the same "
+                         "thing and the interpolation is nonsense" % landed)
     drop = degenerate(made[0][1], made[1][1])
     out = []
     for t, cs, pr in made:

@@ -63,7 +63,16 @@ output — findings have been hidden that way, including a broken interpolation.
    relation holds. `audit.py --selftest` must stay clean.
 4. **A flat proportion constant is suspect** until the panel has been bucketed
    by weight. That is how ф was found.
-5. **A figure read off a donor outline is checked at both masters**, in units,
+5. **Two constants that justify each other are one decision.** If a constant's
+   reason names another step of the pipeline — "nothing moves here, because
+   the next step would drag it back" — the pair has to be judged, and usually
+   replaced, together. Held apart, each looks correct and the letter stays
+   wrong; that is what put a blob at б's junction for three rounds.
+6. **Read a two-master construction at the weights in between.** Both masters
+   sat inside the panel while Regular was outside it, because a fault that
+   scales with how much correction a master needs is smallest exactly where it
+   is being looked at. `tools/seam.py` does this by blending, with no build.
+7. **A figure read off a donor outline is checked at both masters**, in units,
    before it is used. Two figures a donor holds can sit a stroke apart at Thin
    and a tenth of the cap apart at ExtraBold — Я took R's leg top for R's bowl
    floor on exactly that basis, and only came apart at the heavy end. See
