@@ -12,6 +12,15 @@ face on the sheet.
 
 One render per column and one distance transform per render -- the masks come
 from `seam.py`'s blend, so no build is needed and the whole sheet is seconds.
+
+**The numbers on this sheet are not the ones for the ledger.** Ours are filled
+from the recipe's own polygons and the panel's are rendered from font files,
+which are two rasterisers; at Thin that is worth six hundredths, 1.46 here
+against 1.40 for the shipped font. The like-for-like reading is the built font
+through the panel's own lens, which is what `seam.py --check` prints and what
+`docs/APPROVALS.md` quotes. This sheet is for seeing WHERE the disc sits and
+WHAT it rests on -- the thing a number cannot show -- and its labels are there
+to rank the columns, not to be quoted.
 """
 
 import sys
