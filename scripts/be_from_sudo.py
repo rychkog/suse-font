@@ -21,9 +21,18 @@ What it does, in order:
     ascender, because Sudo's б stands 1.34 x-heights and this face's lowercase
     stands 1.50 to 1.57;
   * fits the width to o's, because the cell is not optional;
-  * and squares the terminal, because this face cuts 213 of its 242 terminals
-    at exactly 0 or 90 degrees and the donor cuts this one oblique.
+  * squares the terminal, because this face cuts 213 of its 242 terminals at
+    exactly 0 or 90 degrees and the donor cuts this one oblique;
+  * and then throws the donor's bowl away and keeps only its branch, because
+    the bowl is where a donor's own design language sits. Sudo draws rounded
+    rectangles: its counter fills 0.854 of its own box and so does its o's, so
+    the letter is right for Sudo and wrong here, where o fills 0.810. Across
+    sixty faces б's counter matches its OWN o to within 0.014 -- median 0.001,
+    width ratio 1.00 -- which makes it the one relation about this letter the
+    panel is unanimous on. So the bowl is built from this face's o, squashed
+    to the height the donor gave the bowl, and the branch is spliced onto it.
 """
+import math
 import sys
 
 sys.path.insert(0, "tools")
@@ -33,7 +42,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
 import glyphsLib
-from geom import bbox
+from geom import area, bbox
 from params import Params, Lower, _flatten
 from probe import contours, runs, vruns
 
@@ -178,25 +187,48 @@ def remap(paths, sbot, stop, obot, otop, asc, fx0, fx1):
             for p in pts]
 
 
-def widen(paths, k, x0, x1):
-    """Stretch about the cell's middle, keeping the letter centred in it."""
-    mid = (x0 + x1) / 2.0
-    return [[(mid + (x - mid) * k, y, ty, sm) for x, y, ty, sm in p]
-            for p in paths]
+def fit_segs(sg, work, pr):
+    """The donor's segments in this face's units -- `remap`, on segments.
+
+    The solve reads the donor's own bowl and so runs on node lists, but the
+    splice has to cut curves and needs them whole; the three moves are the
+    same ones, in the same order.
+    """
+    be = contours(work, "б", work.getBestCmap(), work.getGlyphSet())
+    o = contours(work, "o", work.getBestCmap(), work.getGlyphSet())
+    sbot = min(q[1] for p in be for q in p)
+    stop = max(q[1] for p in o for q in p)
+    ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
+    k = (oy1 - oy0) / (stop - sbot)
+    top = max(oy0 + (q[1] - sbot) * k
+              for c in sg for _kind, ps in c for q in ps)
+    xs = [q[0] for c in sg for _kind, ps in c for q in ps]
+    lo, hi = min(xs), max(xs)
+    kx = (ox1 - ox0) / (hi - lo)
+
+    def f(q):
+        y = oy0 + (q[1] - sbot) * k
+        if y > oy1:
+            y = oy1 + (y - oy1) * (pr.asc - oy1) / (top - oy1)
+        return (ox0 + (q[0] - lo) * kx, y)
+
+    return [[(kind, [f(q) for q in ps]) for kind, ps in c] for c in sg]
 
 
-def square_terminal(paths):
+def square_terminal(sg):
     """The terminal is the outline's own closing segment -- pull it upright.
 
     The donor starts its outer contour at one end of the cut and finishes at
-    the other, so the two nodes to move are the first and the last. Both go to
-    the outer one, which keeps the letter's reach rather than shortening it.
+    the other, so the two points to move are the contour's first and last.
+    Both go to the outer one, which keeps the letter's reach rather than
+    shortening it.
     """
-    p = paths[0]
-    x = max(p[0][0], p[-1][0])
-    p[0] = (x,) + p[0][1:]
-    p[-1] = (x,) + p[-1][1:]
-    return paths
+    a, b = sg[0][1][0], seg_end(sg[-1])
+    x = max(a[0], b[0])
+    sg[0] = ("start", [(x, a[1])])
+    kind, pts = sg[-1]
+    sg[-1] = (kind, pts[:-1] + [(x, b[1])])
+    return sg
 
 
 def poly(nodes, steps=24):
@@ -223,6 +255,148 @@ def poly(nodes, steps=24):
             pts.append(cur)
             i += 1
     return pts
+
+
+# --- splicing the donor's branch onto this face's own bowl -----------------
+
+# The donor's outer contour is a single loop through both the bowl and the
+# branch, and its segment k ends on on-curve node 3k. The bowl's arc is
+# segments 6..14: it begins where the branch's underside comes back down onto
+# the bowl and ends at the letter's leftmost node, which is where the bowl's
+# left wall stops being the bowl and becomes the branch's outer edge. Those
+# two segments are the seam.
+LAND, LEAVE = 5, 14
+
+
+def seg_end(s):
+    return s[1][-1]
+
+
+def rev(start, segs):
+    """A run of segments walked backwards -> (start, segments)."""
+    pts = [start] + [seg_end(s) for s in segs]
+    out = []
+    for i in range(len(segs) - 1, -1, -1):
+        kind, p = segs[i]
+        out.append(("curve", [p[1], p[0], pts[i]]) if kind == "curve"
+                   else ("line", [pts[i]]))
+    return pts[-1], out
+
+
+def to_segs(p):
+    """A Glyphs contour in the same (start, segments) shape `segments` gives."""
+    ns = list(p.nodes)
+    k = next(i for i, n in enumerate(ns) if n.type != "offcurve")
+    ns = ns[k:] + ns[:k]
+    out, pend = [], []
+    for n in ns[1:] + [ns[0]]:
+        q = (n.position.x, n.position.y)
+        if n.type == "offcurve":
+            pend.append(q)
+        elif pend:
+            out.append(("curve", pend + [q]))
+            pend = []
+        else:
+            out.append(("line", [q]))
+    return (ns[0].position.x, ns[0].position.y), out
+
+
+def bez(p0, p1, p2, p3, t):
+    u = 1.0 - t
+    return (u**3 * p0[0] + 3*u*u*t * p1[0] + 3*u*t*t * p2[0] + t**3 * p3[0],
+            u**3 * p0[1] + 3*u*u*t * p1[1] + 3*u*t*t * p2[1] + t**3 * p3[1])
+
+
+def split(p0, seg, t):
+    """de Casteljau. Returns the controls of the piece before t, ending on it."""
+    p1, p2, p3 = seg[1]
+    m = lambda a, b: (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+    a0, a1, a2 = m(p0, p1), m(p1, p2), m(p2, p3)
+    b0, b1 = m(a0, a1), m(a1, a2)
+    return [a0, b0, m(b0, b1)]
+
+
+def clock(pt, c):
+    """Where a point sits round the bowl, in degrees, 0 at three o'clock."""
+    cx, cy, ax, ay = c
+    return math.degrees(math.atan2((pt[1] - cy) / ay,
+                                   (pt[0] - cx) / ax)) % 360.0
+
+
+def bowl(pr, top):
+    """This face's own o, squashed to the height the donor gave the bowl.
+
+    A squash is affine, so the counter keeps o's fill exactly -- which is the
+    whole point, that figure being the one the panel is unanimous on. What it
+    does not keep is the horizontal at the bowl's floor, and `thicken_floor`
+    puts that back afterwards by squeezing the counter, which is affine again.
+    """
+    ps = sorted(pr.paths("o"), key=lambda p: -abs(area(p)))
+    _x0, y0, _x1, y1 = bbox(ps)
+    k = (top - y0) / (y1 - y0)
+
+    def f(q):
+        return (q[0], y0 + (q[1] - y0) * k)
+
+    return [(f(s), [(kind, [f(q) for q in pts]) for kind, pts in sg])
+            for s, sg in (to_segs(p) for p in ps)]
+
+
+def splice(donor, pr, land, leave):
+    """The donor's branch, carried onto an arc of this face's own o.
+
+    The branch is kept whole and the bowl is thrown away. The arc runs from
+    the bowl's leftmost node the long way round -- down, right, over the top --
+    to where the branch's underside comes back down, so the letter reads as a
+    complete oval with a stroke growing out of its upper left, which is what
+    every face in the panel draws.
+    """
+    top = max(seg_end(s)[1] for s in donor[LAND + 1:LEAVE + 1])
+    (os_, osg), (cs, csg) = bowl(pr, top)
+    xs = [q[0] for _k, pts in osg for q in pts]
+    ys = [q[1] for _k, pts in osg for q in pts]
+    c = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0,
+         (max(xs) - min(xs)) / 2.0, (max(ys) - min(ys)) / 2.0)
+
+    # where the underside lands, in the oval's own terms: the donor's own
+    # angle, pulled onto the oval. Read as an angle rather than copied as a
+    # point because the donor lands 16 per cent outside the oval at Thin and
+    # 3 per cent inside it at ExtraBold, and an angle is the same relation at
+    # both.
+    b_start = seg_end(donor[LEAVE])
+    b_segs = donor[LEAVE + 1:] + [("line", [donor[0][1][0]])] \
+        + donor[1:LAND + 1]
+    l0, branch = rev(b_start, b_segs)
+    want = clock(l0, c)
+
+    at, j = os_, None
+    for i, s in enumerate(osg):
+        a, b = clock(at, c), clock(seg_end(s), c)
+        if a < want < b:
+            j = i
+            break
+        at = seg_end(s)
+    lo, hi = 0.0, 1.0
+    for _ in range(40):
+        t = 0.5 * (lo + hi)
+        if clock(bez(at, *osg[j][1], t), c) < want:
+            lo = t
+        else:
+            hi = t
+    part = split(at, osg[j], 0.5 * (lo + hi))
+    arc = osg[j + 1:] + osg[:j] + [("curve", part)]
+
+    # the underside's last node moves onto the oval with its handle, so the
+    # stroke arrives on the bowl rather than beside it
+    dx, dy = part[2][0] - l0[0], part[2][1] - l0[1]
+    kind, pts = branch[0]
+    branch[0] = (kind, [(pts[0][0] + dx, pts[0][1] + dy)]
+                 if kind == "line" else
+                 [(pts[0][0] + dx, pts[0][1] + dy),
+                  (pts[1][0] + dx * 0.5, pts[1][1] + dy * 0.5), pts[2]])
+
+    return [[("start", [seg_end(osg[j])])] + arc + branch,
+            [("start", [cs])] + csg]
 
 
 def shape(a, b, t, work, pr, drop=frozenset()):
@@ -309,15 +483,23 @@ def thicken_floor(paths, want):
     p = paths[1]
     ys = [y for _x, y, _t, _s in p]
     mid = (min(ys) + max(ys)) / 2.0
-    k = 1.0
-    for _ in range(30):
-        out = paths[:1] + [[(x, mid + (y - mid) * k, ty, sm)
-                            for x, y, ty, sm in p]] + paths[2:]
-        got = floor_and_wall([poly(q) for q in out])[0]
-        if got >= want:
-            return out
-        k -= 0.01
-    return out
+
+    def at(k):
+        return paths[:1] + [[(x, mid + (y - mid) * k, ty, sm)
+                             for x, y, ty, sm in p]] + paths[2:]
+
+    # bisected rather than stepped. A step small enough not to overshoot is a
+    # step small enough to be slow, and overshooting by one step put the
+    # horizontal at 30 against this face's own 28 -- which the signature
+    # reads as a weight error, because it is one.
+    lo, hi = 0.7, 1.0
+    for _ in range(24):
+        k = 0.5 * (lo + hi)
+        if floor_and_wall([poly(q) for q in at(k)])[0] < want:
+            hi = k
+        else:
+            lo = k
+    return at(0.5 * (lo + hi))
 
 
 def want_wall(pr):
@@ -328,27 +510,22 @@ def build():
     lo, hi = load(LO), load(HI)
     a, b = list(be_glyph(lo).coordinates), list(be_glyph(hi).coordinates)
     font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
-    works, segs = [], []
     work = load(LO)
-    wide = []
+    made = []
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
-        t, k, bar, wall = solve(a, b, work, pr)
-        print("  master %d  axis %.3f  floor %.1f  wall %.1f  widen %.3f"
-              % (mi, t, bar, wall, k))
-        sg, _ = shape(a, b, t, work, pr)
-        works.append((t, load(LO), pr))
-        blend(a, b, t, be_glyph(works[-1][1]))
-        segs.append(sg)
-        wide.append(k)
-    drop = degenerate(segs[0], segs[1])
+        t, _k, floor, wall = solve(a, b, work, pr)
+        print("  master %d  axis %.3f  donor floor %.1f  wall %.1f"
+              % (mi, t, floor, wall))
+        blend(a, b, t, be_glyph(work))
+        sg = fit_segs(segments(work), work, pr)
+        made.append((t, splice(square_terminal(sg[0]), pr, LAND, LEAVE), pr))
+    drop = degenerate(made[0][1], made[1][1])
     out = []
-    for (t, w, pr), k in zip(works, wide):
-        _, paths = shape(a, b, t, w, pr, drop)
-        ox0, _y0, ox1, _y1 = bbox(pr.paths("o"))
+    for t, cs, pr in made:
         want = floor_and_wall([_flatten(q, 48) for q in pr.paths("o")])[0]
-        paths = thicken_floor(widen(paths, k, ox0, ox1), want)
-        out.append((t, square_terminal(paths)))
+        out.append((t, thicken_floor(
+            [to_nodes(c, drop, ci) for ci, c in enumerate(cs)], want)))
     return out
 
 
@@ -361,12 +538,16 @@ def main():
             'the donor at build time so the repository builds without a font\n',
             'that lives outside it.\n',
             '\n',
+            'The bowl is this face\'s own o, squashed to the height the donor\n',
+            'gave it; only the branch is the donor\'s.\n',
+            '\n',
             'One entry per master, in source order: contours of\n',
             '(x, y, type, smooth). Both masters carry the same nodes in the\n',
             'same order.\n',
             '"""\n\nBE = [\n']
     body = []
-    for t, paths in build():
+    made = build()
+    for t, paths in made:
         body.append("    # the donor's own weight axis at %.3f\n    [\n" % t)
         for p in paths:
             body.append("        [\n")
@@ -376,7 +557,7 @@ def main():
             body.append("        ],\n")
         body.append("    ],\n")
     open(OUT, "w").write("".join(head) + "".join(body) + "]\n")
-    print("%s  %s" % (OUT, [[len(p) for p in ps] for _, ps in build()]))
+    print("%s  %s" % (OUT, [[len(p) for p in ps] for _, ps in made]))
 
 
 if __name__ == "__main__":
