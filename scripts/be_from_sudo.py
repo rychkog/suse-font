@@ -283,6 +283,14 @@ LAND, LEAVE = 5, 14
 # it, and dragging the end point turned a segment leaning 78 degrees into one
 # standing at 88 and parallel to the branch's own outer edge. So the whole
 # root moves rigidly and the move fades out over the segments above it.
+# Where the branch's underside comes down onto the oval, in degrees round it.
+# None means the donor's own. Solved rather than taken: the donor lands where
+# its own straight wall was, and on an oval that closes the aperture against
+# the outer wall instead of running it down into the counter -- which is the
+# whole of the seam fault, and it shows at the light master because the mass
+# it leaves is a fixed size against a wall that grows fivefold.
+LANDING = (None, None)
+
 ROOT = 3
 
 # How many points at the landing end keep the donor's own weight. One, which
@@ -394,7 +402,7 @@ def bowl(pr, top):
             for s, sg in (to_segs(p) for p in ps)]
 
 
-def splice(donor, pr):
+def splice(donor, pr, _land=None):
     """The donor's branch, carried onto an arc of this face's own o.
 
     The branch is kept whole and the bowl is thrown away. The arc runs from
@@ -426,11 +434,11 @@ def splice(donor, pr):
             break
         at = seg_end(s)
 
-    # the oval, split where the donor's own underside comes down. Its angle
-    # rather than its point: the donor lands 16 per cent outside the oval at
+    # the oval, split where the underside comes down. Its angle rather than
+    # its point: the donor lands 16 per cent outside the oval at
     # Thin and 3 per cent inside it at ExtraBold, and an angle is the same
     # relation at both.
-    want = clock(l0, c)
+    want = clock(l0, c) if _land is None else _land
     lo, hi = 0.0, 1.0
     for _ in range(40):
         t = 0.5 * (lo + hi)
@@ -629,7 +637,7 @@ def solve(a, b, work, pr, mi):
     sg = fit_segs(segments(work), work, pr)[0]
 
     def ratio(k):
-        cs = splice(square_terminal(reweight(sg, k)), pr)
+        cs = splice(square_terminal(reweight(sg, k)), pr, LANDING[mi])
         ps = [poly(to_nodes(c, frozenset(), ci), 40)
               for ci, c in enumerate(cs)]
         rows = W.branch_of(W.mask_of(ps, scale))
@@ -694,7 +702,7 @@ def build():
               % (mi, T[mi], k, got, BRANCH[mi]))
         blend(a, b, T[mi], be_glyph(work))
         sg = reweight(fit_segs(segments(work), work, pr)[0], k)
-        made.append((k, splice(square_terminal(sg), pr), pr))
+        made.append((k, splice(square_terminal(sg), pr, LANDING[mi]), pr))
     drop = degenerate(made[0][1], made[1][1])
     out = []
     for t, cs, pr in made:
