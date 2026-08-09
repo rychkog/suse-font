@@ -783,6 +783,74 @@ claim, and a claim needs a measurement.** "Intended", "normal", "as expected",
 "that's the flare" — each is a place where a number should be. The panel can
 answer almost all of them, cheaply, and it disagrees more often than not.
 
+**A fifth, and it is the one that ended the letter: two fixes holding each
+other up are one decision, and neither can be judged alone.** After all of the
+above, the junction still carried a blob — the widest disc anywhere in the
+letter read 2.47 of the bowl's wall at Thin and 1.52 at Regular, against a
+panel of 62 faces holding p10 1.06, median 1.24, p90 1.39. Both masters had
+looked settled for two rounds because Bold and ExtraBold were inside at 1.33
+and 1.29 and nobody had read the weights in between.
+
+The two parts, each with its own recorded reason and each defensible:
+
+- the splice **translated** the underside's end point onto the oval, because
+  the underside has to end on the bowl and, drawn for a straight wall, it does
+  not;
+- the reweight therefore **exempted** that end point from the thinning,
+  because the translation would drag it straight back out and undo the
+  thinning exactly — which had been measured, and was true.
+
+Together they say: the last stretch of the branch keeps the donor's own
+weight. At ExtraBold the donor needs no thinning at all and that costs
+nothing. At Thin the stroke is cut to 0.33 of what the donor drew and the
+exempt stretch is therefore three times too heavy — sitting exactly in the
+corner where the two strokes meet. The fault scaled with (1 − k), which is
+why it read 2.44 at Thin and 1.28 at ExtraBold, and why every fix aimed at
+the *junction* missed: nothing was wrong with the junction.
+
+A sweep of the landing angle had already reported that no angle satisfies both
+the mass and the branch's thinnest point, and that conclusion was correct.
+It was also useless, because the landing angle was not the lever — moving it
+only dragged the same unthinned root somewhere else.
+
+**Fix: remove both at once, and replace them with a construction rather than a
+correction.** Thin the stroke through to its end, exempting nothing; then let
+the underside simply run on along its own tangent until it reaches the oval,
+and splice there. Nothing is translated, so nothing needs exempting, and the
+tangent is the donor's own, so the angle the stroke enters the bowl at is
+preserved exactly — which is what the rigid-root-plus-fade was built to
+protect in the first place. **Where it lands is then not chosen at all.** It
+falls out of the geometry, at 152 degrees round the bowl at Thin and 111 at
+ExtraBold: the lighter the stroke, the lower it meets the bowl, which is what
+the panel draws. The mass went to 1.40, 1.30, 1.30, 1.31 across the four
+weights — flat, where before it swung by a factor of two.
+
+**Tell:** a constant whose justification names another part of the
+construction instead of a measurement. "Nothing moves here, because the next
+step would drag it back" is not a fact about the letter; it is a fact about
+the pipeline, and it means the two steps are one decision wearing two hats.
+Judge them together or replace them together.
+
+**Corollary, and it is a new hazard the fix introduced:** a landing solved per
+master can fall in a *different segment* of the host contour at each, and the
+arc is rotated to start there — so the two masters would carry the same node
+COUNT with node five meaning a different place on the bowl. Every mechanical
+check passes and every interpolated weight is nonsense. Ours land 41 degrees
+apart and, as it happens, in the same segment; `be_from_sudo.py` now asserts
+it rather than relying on it. §8's "node parity says nothing about size" has a
+sibling: **node parity says nothing about correspondence either.**
+
+**What would have caught it sooner:** drawing the disc. `seam.py` reported the
+mass *and* its position, which was already the fix for an earlier round's "a
+right number in the wrong place" — and it still was not enough, because the
+position was two fractions of the counter's box and the question was which two
+edges the disc was touching. `tools/blob.py` draws the largest inscribed disc
+on the glyph it was measured in and marks the two boundaries it rests against,
+ours beside the panel's at one scale. The blob's contacts were the bowl's
+outer edge and the aperture's tip, which is where they are in every panel face
+too — so the junction's *shape* was never the fault, only the ink between
+those two edges. One picture, again, and again it should have been first.
+
 ---
 
 ---
@@ -800,6 +868,9 @@ answer almost all of them, cheaply, and it disagrees more often than not.
 | `harmony.py` | the bowl family read as a family — reach, wall, counter, each against our own median *and* the panel | no |
 | `weights.py` | stroke weight off the RENDERED glyph -- distance transform, ours and the panel through one lens | no |
 | `bowls.py` | a bowl's counter against the face's own o -- fill, width, height, bucketed by stem | no |
+| `seam.py` | б's junction at **all four** weights without a build, by blending the two masters; `--check` proves the blend against the built fonts | no |
+| `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
+| `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
