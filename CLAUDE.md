@@ -139,8 +139,9 @@ that only records that something happened is not worth the line.
 For a genuinely hard or ambiguous question, get a second opinion: spawn a
 subagent with the Agent tool and `model: "fable"`. Worth it for a design
 judgement the measurements do not settle, a finding that might be a probe
-artefact, a construction with no obvious donor (б is the open case), or a
-choice between two constructions that both pass every gate.
+artefact, a construction with no obvious donor (the Serbian nine are the open
+case; б was, and is settled), or a choice between two constructions that both
+pass every gate.
 
 Give it **the measurements and the specific question** — it has none of this
 session's context, so "what do you think of ф" gets nothing useful while "the

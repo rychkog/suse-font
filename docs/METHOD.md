@@ -649,7 +649,37 @@ reason to prefer this shape of fix over tuning the donor's curves.
 each face's own o* rather than in absolute terms. That reading is unanimous in
 a way panel readings rarely are — 60 faces, median fill difference 0.001,
 tenth to ninetieth percentile −0.014 to +0.014, width ratio median 1.00 — and
-it says the bowl is not a design decision at all. See `bowl_fill` in §4.
+it says the bowl is not a design decision at all. See `bowls.py` in §4.
+
+**The seam is its own fault, and it cost a second round.** Cutting the donor
+down is half the job; the kept part then has to be re-seated onto a host shape
+it was not drawn for, and the obvious way to do that is wrong. Sudo's underside
+ends on Sudo's straight wall; ours has to end on an oval, so the end point
+moves. Moving *only the end point* — with its handle, which keeps the tangent
+and looks safe — drags the whole last segment straight: a stretch leaning 78
+degrees stood up at 88 and ran parallel to the branch's own outer edge. What
+that destroys is the FLARE, the widening where the stroke enters the bowl, and
+the flare is the entire difference between a stroke that grew out of the bowl
+and two strokes laid over each other. The user saw it immediately; every gate
+passed; three separate probes said nothing was wrong. The aperture's opening
+angle read 40 degrees against a panel median of 39. The wall's thickness at
+the landing read 0.97 of the stem, identical to the rest of the bowl, against
+a panel tenth percentile of 0.40. The corner's turn read *gentler* than the
+panel median. All three were measuring real quantities, and none of them was
+the one that had changed.
+
+**Fix:** move the root RIGIDLY and fade the move out over the segments above
+it. Then the geometry the donor drew at the seam survives intact and only the
+part far enough away to be unnoticed absorbs the difference.
+
+**Tell:** any re-seating where an end point moves and its neighbours do not.
+Ask what the segment's *shape* was doing, not just where its ends were.
+
+**And a second-order one, worth as much as the fix.** When the eye reports a
+fault and the probes all come back clean, the probes are answering questions
+that were not asked. Overlay the two outlines and look. It took one picture to
+find what three panel comparisons missed, and it should have been the first
+move rather than the fourth.
 
 ---
 
