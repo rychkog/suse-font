@@ -1,0 +1,22 @@
+# Measurement only. Deliberately NOT in requirements.in: the font build must
+# stay reproducible and lean, and a clone should be able to build the family
+# without any of this.
+#
+# These exist because four hand-written gauges in a row measured a model of the
+# glyph rather than the glyph, and each reported a confident wrong number --
+# see docs/METHOD.md F11. Where a mature library does the job, use it.
+#
+#   scipy         exact Euclidean distance transform (the stroke-weight
+#                 reading) and enclosed-region fill (counters), both in C
+#   scikit-image  medial_axis: a centreline and its half-width in one call,
+#                 as an independent second opinion on the centreline this
+#                 project derives from the contours
+#   shapely       a correct, well-tested offsetter, used to CHECK that a
+#                 re-stroked centreline came out where it should
+#   pytest        so the instrument's self-test is a test rather than a
+#                 script nobody re-runs
+
+scipy>=1.11
+scikit-image>=0.22
+shapely>=2.0
+pytest>=8.0
