@@ -283,7 +283,15 @@ LAND, LEAVE = 5, 14
 # it, and dragging the end point turned a segment leaning 78 degrees into one
 # standing at 88 and parallel to the branch's own outer edge. So the whole
 # root moves rigidly and the move fades out over the segments above it.
-ROOT = 12
+ROOT = 3
+
+# How many points at the landing end keep the donor's own weight. One, which
+# is none: the panel does not flare a branch into the bowl. Measured on the
+# raster over 60 faces the stroke's weight at the heel is 0.89 of the bowl's
+# wall against 0.86 along its body -- flat, within the noise. Exempting four
+# points here to protect a flare that does not exist put this face's Thin at
+# 1.41 of its bowl's wall where the panel's ninetieth percentile is 0.98.
+HEEL = 1
 
 # What the branch should weigh, over the bowl's own wall. The panel's median
 # taken nearest-neighbour by stem, per master -- the reading is not flat, and
@@ -577,9 +585,17 @@ def reweight(sg, k):
     edge, which is a change of weight rather than of shape, and is what the
     face's own з does to the digit three.
     """
+    rows = gauge(sg)[1]
     out = []
-    for q, n, d in gauge(sg)[1]:
-        s = (1.0 - k) * d if d else 0.0
+    for i, (q, n, d) in enumerate(rows):
+        # nothing moves at the landing itself. The underside runs terminal
+        # first and lands last, and the landing is where the stroke merges
+        # into the bowl -- moving it means the splice then has to drag it back
+        # onto the oval, and that drag is a translation of the whole underside,
+        # which undoes the thinning exactly. It did: the branch measured 0.92
+        # of the bowl's wall in the intermediate and 1.73 once built.
+        taper = min(1.0, (len(rows) - 1 - i) / float(HEEL))
+        s = (1.0 - k) * d * taper if d else 0.0
         out.append((q[0] + n[0] * s, q[1] + n[1] * s))
     new = list(sg)
     new[0] = ("start", [out[0]])
@@ -600,11 +616,29 @@ def solve(a, b, work, pr, mi):
     the stroke ends up k times as thick, everywhere, and k is what the face
     wants over what the donor drew.
     """
-    ww = floor_and_wall([_flatten(q, 48) for q in pr.paths("o")])[1]
+    import weights as W
+    scale = W.XH / float(pr.cap)
+    wall = 2.0 * W.edt(W.mask_of([_flatten(q, 96) for q in pr.paths("o")],
+                                 scale)).max()
     blend(a, b, T[mi], be_glyph(work))
     sg = fit_segs(segments(work), work, pr)[0]
-    got = gauge(sg)[0]
-    return BRANCH[mi] * ww / got, got, ww
+
+    def ratio(k):
+        cs = splice(square_terminal(reweight(sg, k)), pr)
+        ps = [poly(to_nodes(c, frozenset(), ci), 40)
+              for ci, c in enumerate(cs)]
+        rows = W.branch_of(W.mask_of(ps, scale))
+        return sorted(v / wall for v in rows)[len(rows) // 2]
+
+    lo_k, hi_k = 0.05, 1.6
+    for _ in range(14):
+        mid = 0.5 * (lo_k + hi_k)
+        if ratio(mid) < BRANCH[mi]:
+            lo_k = mid
+        else:
+            hi_k = mid
+    k = 0.5 * (lo_k + hi_k)
+    return k, ratio(k), 1.0
 
 
 def thicken_floor(paths, want):
@@ -650,9 +684,9 @@ def build():
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
         k, got, wall = solve(a, b, work, pr, mi)
-        print("  master %d  donor axis %.2f   branch %.1f thinned to %.2f"
-              "  = %.1f over bowl wall %.1f, wanted %.2f"
-              % (mi, T[mi], got, k, got * k, wall, BRANCH[mi]))
+        print("  master %d  donor axis %.2f  thinned to %.2f"
+              "   branch measures %.2f of the bowl's wall, wanted %.2f"
+              % (mi, T[mi], k, got, BRANCH[mi]))
         blend(a, b, T[mi], be_glyph(work))
         sg = reweight(fit_segs(segments(work), work, pr)[0], k)
         made.append((k, splice(square_terminal(sg), pr), pr))

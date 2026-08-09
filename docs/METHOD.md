@@ -706,15 +706,57 @@ terminal, and taking a constant off both leaves the terminal a hairline while
 the middle is still right. Weight first, at the face's own ratio, then shape —
 which is what з already does to the digit three, in §8.
 
-**And the measure has to survive the thing it measures.** The first gauge for
-this was a scanline with a slope correction, and it was worse than useless: it
-read a near-horizontal stroke at four times its weight, and when the stroke was
-thinned to a sliver it barely moved, so a bisection against it ran to the end
-of its bracket and reported success. The honest measure was already in the
-code — cast a ray from each point of one edge along its own normal to the other
-edge. No scanline, no correction, and it makes the solve closed-form instead of
-bisected. A measure that needs a correction factor is a measure that has not
-been posed properly.
+**And the measure has to survive the thing it measures.** Two gauges were
+built for this stroke and both were wrong, in the same way and for the same
+reason: each read the *model* of the glyph rather than the glyph.
+
+- A **scanline with a slope correction** read a near-horizontal stroke at four
+  times its weight, and barely moved when the stroke was thinned to a sliver,
+  so a bisection against it ran to its bracket end and reported success.
+- A **ray cast between the two contours** was better posed and still wrong. It
+  said the branch had been thinned to 0.92 of the bowl's wall. Built, it
+  measured 1.73. The gauge was telling the truth about the intermediate and
+  the intermediate was not what shipped: a later step re-seated the branch's
+  root onto the bowl by translating it, and after thinning, the root sat far
+  enough away that the translation dragged the whole underside back out and
+  undid the thinning exactly. Every number in between was correct. None of
+  them was measured on the artefact.
+
+**Fix, and it is a rule not a patch: measure the rendered glyph.**
+`tools/weights.py` rasterises the letter, takes the exact Euclidean distance
+from every ink pixel to the nearest non-ink pixel, and reads the stroke's
+thickness as twice that — the largest disc that fits inside the ink at a point
+IS the weight there, whatever direction the stroke runs, whatever contour it
+came from, and after every transform the pipeline applies. It decides nothing
+and so can be wrong about nothing. The same code renders the panel, which is
+what makes ours and theirs the same quantity.
+
+**Tell:** a solve whose target is computed anywhere other than the end of the
+pipeline. If the number is taken before the last step that moves points, it is
+a prediction, and a prediction is not a measurement however carefully it is
+derived. Close the loop: bisect the lever against the finished artefact even
+when that costs a rasterise per iteration. It costs seconds and it is the
+difference between shipping 0.93 and shipping 1.73.
+
+**What it cost:** three rounds on one stroke, each ending in a confident report
+with a number in it, and each of those numbers wrong. The user caught all
+three by eye.
+
+**A fourth, from the same root: an unmeasured word in a report is a guess.**
+Having fixed the weight along the branch's body, the heel still read 1.41 of
+the bowl's wall, and the report called that "the flare where it meets the
+bowl, which is intended and normal." Nothing had measured it. Measured, the
+panel does not flare a branch into its bowl at all: over 60 faces the weight
+at the heel is 0.89 of the bowl's wall against 0.86 along the body, flat
+within the noise, ninetieth percentile 0.98. The flare was four points of the
+underside deliberately exempted from the thinning to protect something that
+does not exist. Removing the exemption put the whole profile inside the panel
+— 0.81, 0.89, 0.98, 0.98 from terminal to heel at Thin.
+
+The general form: **any word in a report that names a design intention is a
+claim, and a claim needs a measurement.** "Intended", "normal", "as expected",
+"that's the flare" — each is a place where a number should be. The panel can
+answer almost all of them, cheaply, and it disagrees more often than not.
 
 ---
 
@@ -731,6 +773,8 @@ been posed properly.
 | `strokes.py` | lightest stroke ÷ own stem vs 49 faces | yes |
 | `probe.py` | scanline runs on **built** fonts + panel comparison and fitting | no |
 | `harmony.py` | the bowl family read as a family — reach, wall, counter, each against our own median *and* the panel | no |
+| `weights.py` | stroke weight off the RENDERED glyph -- distance transform, ours and the panel through one lens | no |
+| `bowls.py` | a bowl's counter against the face's own o -- fill, width, height, bucketed by stem | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
