@@ -879,6 +879,7 @@ those two edges. One picture, again, and again it should have been first.
 | `weights.py` | stroke weight off the RENDERED glyph -- distance transform, ours and the panel through one lens | no |
 | `bowls.py` | a bowl's counter against the face's own o -- fill, width, height, bucketed by stem | no |
 | `seam.py` | б's junction at **all four** weights without a build, by blending the two masters; `--check` proves the blend against the built fonts | no |
+| `relations.py` | §2's four relations — width/adv, counter aspect, counter/stem, solid band — over every drawn glyph at all four weights, each as a multiple of the face's own Latin. `--selftest` against shapes of known answer; `--calibrate` prints the host's own departures, which ARE the bar | no |
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
@@ -1659,9 +1660,24 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
+- **д and Д's counter closes as the face gets heavier, and it is the largest
+  thing `relations.py` found.** Nothing at Thin; at Regular the lowercase
+  counter is 18 per cent under the panel and its aspect 17 under; at Bold 28
+  and 26; at ExtraBold the aspect is **39 per cent** under and the capital's
+  counter 35. Every departure is in the same direction and grows monotonically
+  with weight, which is §2's "diagnosing it gets ugly when bold" exactly, and
+  the same shape as Я's and Ъ's faults: the span the counter is cut out of is
+  fixed while the strokes bounding it grow. §2 step 0 is the one to run — find
+  what the triangle's interior is a span OF, and check whether that span moves
+  with the weight. **Neither letter is approved**, so this is workable.
 - **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
   0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
-  inside at 0.951. Eight units, and not yet explained.
+  inside at 0.951. Eight units. `relations.py` independently reaches the same
+  letters from a different reading and adds **Ы** to them, so it is a family
+  and not two glyphs: at ExtraBold Б, Ь, Я and я all read 12 to 16 per cent
+  under, and Ы and Ъ 19 at Bold. Я, я and Ъ ъ are approved and their counter
+  readings were recorded as outside AT approval, so the live part of this
+  thread is **Б, Ь and Ы**, which are not approved. Still not explained.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear

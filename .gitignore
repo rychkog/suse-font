@@ -42,3 +42,4 @@ Thumbs.db
 # generated: fontbakery reports, rendered proofs, Python caches
 out
 __pycache__
+tools/out/relations_panel_*.json
