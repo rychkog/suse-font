@@ -389,6 +389,16 @@ Every one of these was announced as a defect before being caught:
   runs ascender to descender — and it will misreport б once б exists.
   **Still broken.**
 
+- A one-off census of which letters cut a terminal obliquely reported **zero
+  Cyrillic letters out of forty-nine** and five Latin ones. `params.paths()`
+  is keyed by glyph NAME, and Latin names are their own characters while
+  Cyrillic ones are not, so every Cyrillic lookup raised `KeyError` into a
+  `try/except Exception: continue` and the letter was silently skipped. Read
+  by name instead, the Cyrillic answer is one at Thin and three at ExtraBold.
+  **Corrected.** The tell was that the number was a round zero and the loop
+  never said how many glyphs it had managed to read; a census that does not
+  report its own denominator cannot be checked, and this one was one line away
+  from being published as "the Cyrillic has no expressive terminals at all".
 - Я's first probe assumed a cut through the bowl gives **three** runs — wall,
   counter, stem. Я's bowl hangs off the stem, so the stem *is* the bowl's
   right side and the cut gives two. The probe returned **zero** faces out of
@@ -1266,6 +1276,27 @@ master. **A flag that moves between two letters drawn from one outline is a
 fact about the brackets, not about either letter** — the same shape as the
 pairwise test above, and the reason to reach for it before touching anything.
 
+### The set covers Belarusian as well as Ukrainian and Russian
+
+Asked and measured on the built fonts rather than inferred from the tier
+table, because the question comes up and the answer is cheap: all **64**
+Belarusian letters are in the cmap at all four weights, along with both
+apostrophes — U+2019 and U+0027, which the orthography needs for *сям'я* and
+*аб'ект* — and Ґ ґ, so Taraškievica is covered too. Nothing is missing. И, Щ
+and Ъ are present and simply unused by Belarusian.
+
+The letter that carries the language is **Ў ў**, and the two cases do not
+share a base: **ў is the Latin y plus a breve**, since Cyrillic у is a tier-1
+donor of y, while **Ў is the drawn Cyrillic У plus a case-height breve**. Both
+are `base + mark` composites, so `audit.py`'s composite rule already gates
+them — the mark must clear its base and sit within 12 units of the advance's
+centre — and both pass at every weight. At 12px the breve is a single pixel
+but it does separate ў from у.
+
+**Ў ў, І і and Ё ё are drawn and gate-clean but have never been reviewed.**
+Coverage is not approval, and the Belarusian-specific letter is one of the
+letters nobody has looked at.
+
 ### A family is read as a family, and the outliers are not all faults
 
 Reading the bowl letters together — `tools/harmony.py`, §4 — the family turned
@@ -1644,4 +1675,20 @@ the top of the vertical bars.*
   extrema, `be_from_sudo.py` will stop rather than emit two masters whose
   nodes do not correspond — that is the intended behaviour, and the fix is to
   re-seat the arc, not to relax the assertion.
+- **The Cyrillic's expressive terminals are deferred to the italic, on
+  purpose.** Measured by glyph, the Latin lowercase cuts a terminal obliquely
+  in five letters at Thin (a, e, g, k, s) and seven at ExtraBold (a, b, c, g,
+  k, p, s). The Cyrillic cuts one at Thin and three at ExtraBold — and к's is
+  the Latin k's own outline, inherited rather than chosen, while є's and э's
+  are open terminals at the heavy master only. **No Cyrillic letter chooses an
+  expressive terminal.** That is a real asymmetry: the Cyrillic is quieter than
+  the Latin it stands with, and g is the Latin's loudest moment by a distance.
+  The one letter with genuine construction latitude is **д** — seven of eight
+  panel faces draw the neutral triangle, and Sudo draws the cursive
+  single-storey form, which is structurally g's problem, a bowl with a
+  descending tail. Decided on 2026-08-09 not to spend it in the upright: the
+  cursive д is a strong statement in a terminal face, and Cyrillic italic
+  already takes different cursive forms for д, и, т and п, which is where the
+  script's character belongs and costs nothing in legibility. **Do not add
+  character to an upright Cyrillic glyph without raising this again.**
 - **Checkpoint C: the italic.**
