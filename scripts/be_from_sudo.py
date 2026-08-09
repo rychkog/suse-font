@@ -291,14 +291,19 @@ ROOT = 3
 # wall against 0.86 along its body -- flat, within the noise. Exempting four
 # points here to protect a flare that does not exist put this face's Thin at
 # 1.41 of its bowl's wall where the panel's ninetieth percentile is 0.98.
-HEEL = 1
+HEEL = 3
 
 # What the branch should weigh, over the bowl's own wall. The panel's median
 # taken nearest-neighbour by stem, per master -- the reading is not flat, and
 # a flat one would be F4. The comparison is against the bowl rather than
 # against the stem because that is the one a reader actually makes: the two
 # strokes are adjacent and each is seen against the other.
-BRANCH = (0.92, 0.97)
+#
+# Re-derived once weights.py could be trusted. The earlier pair, 0.92 and
+# 0.97, came from a reading that called the bowl's own crown "branch"; the
+# bands themselves moved with it, and at ExtraBold 0.97 sits outside a band
+# that actually runs 0.74 to 0.91.
+BRANCH = (0.88, 0.86)
 
 # Which point on the donor's own axis each master takes its SHAPE from. Its
 # ends, and no further: the axis is clamped to the range it was fitted over
@@ -618,8 +623,8 @@ def solve(a, b, work, pr, mi):
     """
     import weights as W
     scale = W.XH / float(pr.cap)
-    wall = 2.0 * W.edt(W.mask_of([_flatten(q, 96) for q in pr.paths("o")],
-                                 scale)).max()
+    wall = W.width(W.edt(W.mask_of([_flatten(q, 96) for q in pr.paths("o")],
+                                   scale)))
     blend(a, b, T[mi], be_glyph(work))
     sg = fit_segs(segments(work), work, pr)[0]
 
