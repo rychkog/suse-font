@@ -602,10 +602,12 @@ Three separate readings of б's top were taken this way and all three misled:
 **Fix:** measure the silhouette as a PROFILE. The top of the ink at each x is
 single valued; it needs no skeleton, no offsetting and no decision about which
 stroke is which; and it is exactly what the eye reads as the letter's gesture.
-`BE_PROFILE` in `recipes.py` holds 21 samples across the letter, median over
-the 59 panel faces that draw it, and the construction's two handles and its
-arrival angle are **solved against it at build time** rather than chosen. The
-fit lands within about 1% of the panel at every sample, at both masters.
+That construction of б was later abandoned for a donor outline and the profile
+table went with it, so there is nothing in `recipes.py` to look at now; what it
+did was hold 21 samples across the letter, median over the 59 panel faces that
+draw it, and **solve** the construction's two handles and its arrival angle
+against them at build time rather than choosing them. The fit landed within
+about 1% of the panel at every sample, at both masters.
 
 That last point matters on its own: the handles are lengths in units of the
 distance from the bowl to the terminal, and that distance is not the same
@@ -613,6 +615,41 @@ share of the two letters. Held as constants, one pair fitted the light cut
 four times worse than its own. Solving beats a table of per-master numbers,
 which is how a figure measured on one master gets carried onto another that
 never earned it. (F1.)
+
+### F11 · A donor's outline kept for the part the host already draws
+
+An outline donor is a legitimate answer when the host has no counterpart to
+build from. What it is not is a licence to keep the whole letter, because a
+donor's outline carries the donor's own design language, and most of the
+language sits in the round parts.
+
+Sudo's б came across whole. It is a good б — for Sudo, whose bowls are rounded
+rectangles: its counter fills 0.854 of its own box and so does its o's, which
+is internal consistency, not a defect. Dropped into a face whose o fills 0.810,
+the same outline read 0.845 and 0.851, and the eye saw it before any probe did
+— a straight left wall with the branch meeting it at a corner, where every
+other round letter in the face turns continuously.
+
+Every mechanical gate passed. It had to: the letter was self-consistent,
+correctly interpolated, correctly weighted, correctly fitted to the cell. What
+was wrong was a relation to a letter the checks were not comparing it against.
+
+**Tell:** a donated outline that includes a shape the host draws elsewhere —
+a bowl, a shoulder, an arch, a counter. If the host has an o, the donor's o is
+not needed and its presence is a fault waiting to be noticed.
+
+**Fix:** cut the donor down to the part that is genuinely missing. б keeps
+Sudo's branch and takes its bowl from this face's own o, squashed to the
+donor's bowl height and spliced at the two points where the donor's outline
+leaves the oval. A squash is affine, so the counter keeps o's fill *exactly* —
+the target is met by construction rather than by fitting, which is the whole
+reason to prefer this shape of fix over tuning the donor's curves.
+
+**What would have caught it sooner:** asking the panel what б's bowl is *for
+each face's own o* rather than in absolute terms. That reading is unanimous in
+a way panel readings rarely are — 60 faces, median fill difference 0.001,
+tenth to ninetieth percentile −0.014 to +0.014, width ratio median 1.00 — and
+it says the bowl is not a design decision at all. See `bowl_fill` in §4.
 
 ---
 
