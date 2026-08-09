@@ -742,6 +742,31 @@ difference between shipping 0.93 and shipping 1.73.
 with a number in it, and each of those numbers wrong. The user caught all
 three by eye.
 
+**And then the instrument was validated, and most of it had not been real.**
+`tools/weights.py --selftest` builds strokes whose width is true by
+construction -- shapely buffers a centreline by half of it -- and asserts the
+reading recovers them. It failed on its first run at +5 per cent: a pixel is
+ink when its centre is inside the outline, so twice the distance to the
+nearest non-ink pixel overstates a stroke by about one pixel. Nobody had ever
+shown any of the four gauges a shape whose answer was known.
+
+Two more faults surfaced in what the probe called "the branch". It took every
+raster row above the counter's top, but the bowl's own crown sits above its
+counter one wall thick -- 28 per cent of the kept rows at ExtraBold against a
+trim of 12 -- so those rows reported the wall. And the top was the minimum
+over EVERY enclosed region, while this letter encloses a single-pixel pocket
+at the seam, so one pixel was deciding where the branch began.
+
+Corrected, the branch had been within the panel for two rounds already. The
+1.73 that three rounds were spent chasing was substantially the region, not
+the letter. **A measurement that has not been checked against a known answer
+is not evidence, and acting on it costs more than not measuring at all** --
+because not measuring at least leaves the doubt visible.
+
+**Rule, and it is cheap:** every probe that produces a number a decision rests
+on gets a `--selftest` against ground truth. `audit.py` and `signature.py`
+already had one; the pattern was there to copy and was not copied.
+
 **A fourth, from the same root: an unmeasured word in a report is a guess.**
 Having fixed the weight along the branch's body, the heel still read 1.41 of
 the bowl's wall, and the report called that "the flare where it meets the
