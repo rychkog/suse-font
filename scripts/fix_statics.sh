@@ -6,7 +6,7 @@ echo "
  Post processing OTFs 
 ======================
 "
-for otf in $(ls fonts/otf/*.otf)
+for otf in fonts/otf/*.otf
 do
 	echo $otf
 	./scripts/fix-usWeightClass.py $otf
@@ -19,7 +19,7 @@ echo "
  Post processing TTFs 
 ======================
 "
-for ttf in $(ls fonts/ttf/*.ttf)
+for ttf in fonts/ttf/*.ttf
 do
 	echo $ttf
 	./scripts/fix-usWeightClass.py $ttf

@@ -132,6 +132,27 @@ def flatten_rec(rec, steps=16):
                     + 3 * mt * t * t * c2[0] + t**3 * p3[0],
                     mt**3 * p0[1] + 3 * mt * mt * t * c1[1]
                     + 3 * mt * t * t * c2[1] + t**3 * p3[1]))
+        elif op == "qCurveTo":
+            # pathops answers in quadratics wherever the input segment was
+            # one, which happens as soon as an outline comes from a TrueType
+            # donor rather than from a recipe. Dropped instead of flattened,
+            # the polygon loses whole stretches of the outline and the letter
+            # renders as a bowtie -- which read as a broken donor for an
+            # afternoon.
+            offs, end = list(args[:-1]), args[-1]
+            p0 = cur[-1]
+            for i, c in enumerate(offs):
+                nxt = end if i == len(offs) - 1 else (
+                    (c[0] + offs[i + 1][0]) / 2.0,
+                    (c[1] + offs[i + 1][1]) / 2.0)
+                for s in range(1, steps + 1):
+                    t = s / steps
+                    mt = 1 - t
+                    cur.append((mt * mt * p0[0] + 2 * mt * t * c[0]
+                                + t * t * nxt[0],
+                                mt * mt * p0[1] + 2 * mt * t * c[1]
+                                + t * t * nxt[1]))
+                p0 = nxt
         elif op in ("closePath", "endPath"):
             if cur:
                 polys.append(cur)

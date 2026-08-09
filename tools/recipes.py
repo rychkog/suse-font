@@ -26,6 +26,7 @@ from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
+from be_donor import BE as BE_DONOR
 
 # Multiple of the face's own corner radius, for the letters whose arm is too
 # short to carry the whole thing.
@@ -1663,164 +1664,35 @@ def Ze_lc(pr):
     return translate(out, dx=300.0 - (ax0 + want / 2.0))
 
 
-# Where the branch ends, as a share of the letter's own width. Panel median
-# over the 50 faces that draw б, quartiles 0.84 and 0.94.
-BE_TERM = 0.92
-
-# How far the spine carries on above the bowl's top before the turn, as a share
-# of the height from the bowl's top to the letter's top. Panel median,
-# quartiles 0.09 and 0.34 -- the widest of the three figures here, and the one
-# to move first if the letter reads wrong. The face itself cannot answer it:
-# nothing in the Latin puts a branch on a stem that is already carrying a bowl.
-BE_SPINE = 0.21
-
-# The branch's weight, against the face's own lowercase stem. Panel median,
-# quartiles 0.87 and 1.07 -- a stroke, at stem weight. It is NOT the lowercase
-# bar: built at `lcBar` the branch came out at 0.71 of the stem at ExtraBold,
-# which is a horizontal's weight in a stroke's job.
-BE_BRANCH = 0.95
-
-
-def _rise_to(ps, y0, y1, ok):
-    """The lowest y between y0 and y1 whose scanline satisfies `ok`.
-
-    Bisection, not a walk. Every corner found this way is found by a predicate
-    monotone in y, and a walk fine enough to place one to the unit costs three
-    hundred scanlines where twenty answer.
-    """
-    for _ in range(20):
-        mid = (y0 + y1) / 2.0
-        r = runs(ps, mid)
-        if r and ok(r):
-            y1 = mid
-        else:
-            y0 = mid
-    return y1
-
-
-def _g_turn(pr):
-    """The two radii of the turn in g's tail, read off the outline.
-
-    g's tail is the only place in this face where a stroke runs flush with its
-    bowl's own edge, turns, and carries on -- which is what б does above its
-    bowl. Reading the radii off the outline gets each master its own answer
-    rather than carrying one master's number to the other. They are not a
-    ratio: 94 and 67 at Thin against 125 and 25 at ExtraBold.
-    """
-    g = [_flatten(p) for p in pr.paths("g")]
-    gy = min(q[1] for p in g for q in p)
-    r = runs(g, gy * 0.30)
-    gstem, gright = r[-1][1] - r[-1][0], r[-1][1]
-    barx0 = runs(g, gy * 0.96)[0][0]
-    ro = _rise_to(g, gy, gy * 0.30, lambda t: t[-1][1] > gright - 1.0) - gy
-    ybar = _rise_to(g, gy, gy * 0.30, lambda t: t[0][0] > barx0 + 1.0)
-    ri = _rise_to(g, ybar, ybar + (-gy) * 0.5,
-                  lambda t: t[0][0] > gright - gstem - 1.0) - ybar
-    return ro, ri
-
-
-def _arc(cx, cy, r, a0, a1):
-    """One cubic along the circle of radius r about (cx, cy), a0 to a1.
-
-    `arc_to` turns between two axis-aligned tangents, which is every corner
-    this face has. б's branch is the exception: its turn has to leave at the
-    slope of the stroke it becomes, or the top of the letter carries a visible
-    angle where the two meet. The start point is assumed already placed.
-    """
-    k = 4.0 / 3.0 * math.tan((a1 - a0) / 4.0)
-    x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
-    x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
-    return [node(x0 - k * r * math.sin(a0), y0 + k * r * math.cos(a0),
-                 OFFCURVE),
-            node(x1 + k * r * math.sin(a1), y1 - k * r * math.cos(a1),
-                 OFFCURVE),
-            node(x1, y1, CURVE, True)]
-
-
 def Be_lc(pr):
-    """б -- b's spine and bowl, with a branch rising off the spine to the right.
+    """б -- Sudo's own, extrapolated to this face's weights and fitted to it.
 
-    **The letter is b's**, and that took four versions to see. Over the 50 panel
-    faces that draw both, б's left edge is b's left edge (off by 0.18 of a
-    lowercase stem, and to the left), its right edge is b's right edge (0.000,
-    middle half -0.017 to +0.008 of о's width), and its bowl's top is b's
-    bowl's top to within a twentieth of the x-height. The first three versions
-    cloned о and laid a stroke against its left flank, on the strength of б's
-    bowl measuring 1.000 of о's width -- a true reading that says nothing about
-    the bowl's shape, since б is as wide as о because b's stem plus b's bowl is
-    as wide as о. See METHOD, *A width equality is not a shape identity*.
+    Nine constructions were drawn for this letter before this one and none of
+    them was accepted, so the letter is no longer being drawn: it is taken
+    from a face that already has it. Sudo is under the SIL Open Font License,
+    which is what makes that legitimate, and it builds б the way this face's
+    own six is built -- one stroke out of the bowl's left wall rather than a
+    bowl hung on a stem.
 
-    **Type Journal's two constructions for this letter** are "a letter o with a
-    branch attached to it" and one where "the bowl and branch have a common
-    spine". Which to use is decided by the face rather than by taste: the same
-    joint the face's own ovals make with its verticals. This one joins b, d, p
-    and q rigidly, so б is the spine construction, and the o-with-a-branch --
-    which is what the first three versions were -- is the wrong one for it.
+    Sudo's axis does not reach either end of this one -- its wall runs from a
+    tenth of the x-height to just under a quarter, where this face needs a
+    sixteenth and three tenths -- so its own axis is extrapolated point for
+    point past both ends, and the weight is solved against the bowl's wall
+    rather than against the axis label. The outline is then anchored on o, so
+    the x-height, the overshoot and the baseline are this face's; stretched
+    above the x-height on its own, because Sudo's б stands 1.34 x-heights and
+    this face's lowercase stands 1.50 to 1.57; and fitted to o's width,
+    because the cell is not optional.
 
-    **The branch makes "one strict movement to the right and upwards"**, and
-    getting that wrong is what the fourth version did. Built as a flat flag on
-    the ascender it put the letter's highest point at 0.14 of the width where
-    every face on the panel puts it between 0.71 and 0.85, and ran flat over
-    0.87 of the branch where the panel runs flat over 0.09 to 0.29 of it. The
-    silhouette read as a bracket. So the branch climbs: the spine carries on
-    `BE_SPINE` of the way above the bowl's top, turns with g's own radius, and
-    then rises in a straight line to a terminal at `BE_TERM` of the width, where
-    it reaches the ascender and is cut square.
-
-    The turn is **tangent to the branch rather than square to the world** --
-    `_arc`, not `arc_to`. A quarter turn would end horizontal and leave a
-    visible angle where the branch takes over.
-
-    The terminal is cut **vertically**. The face cuts 213 of its 242 terminals
-    at exactly 0 or 90 degrees and earns an oblique one only on a diagonal; the
-    branch arrives shallow, so the square cut that is nearest to perpendicular
-    is the upright one -- the same choice the face's own six makes in reverse,
-    cutting its much steeper rise flat instead.
+    `tools/be_donor.py` holds the result and `scripts/be_from_sudo.py`
+    regenerates it.
     """
-    out = clone_all(pr.paths("b"))
-    x0, _, x1, asc = bbox(out)
-    otop = bbox(pr.paths("o"))[3]
-    band = asc - otop
-    ns = list(out[0].nodes)
-    # b's outer contour is one merged outline, stem and bowl together, and its
-    # only two nodes at the ascender are the stem's top corners. The contour
-    # arrives at them up the stem's right edge and leaves down its left, so
-    # replacing that pair in place puts the branch in without touching anything
-    # else -- the bowl, the counter and both sidebearings stay b's.
-    i = min(k for k, n in enumerate(ns) if abs(n.position.y - asc) < 0.5)
-    xR, xL = ns[i].position.x, ns[i + 1].position.x
-    xt = x0 + BE_TERM * (x1 - x0)
-    yspine = otop + BE_SPINE * band
-    ro, ri = _g_turn(pr)
-    ro = min(ro, (xt - xL) * 0.6, (asc - yspine) * 0.9)
-    ri = min(ri, (xt - xR) * 0.6)
-
-    # The turn's end and the branch's slope decide each other -- the branch
-    # runs from wherever the turn leaves off, and the turn leaves off wherever
-    # the circle's tangent matches the branch. Two constraints, one unknown,
-    # and it settles in a handful of rounds.
-    slope = (asc - yspine - ro) / (xt - xL - ro)
-    for _ in range(20):
-        a = math.pi - math.atan2(1.0, slope)
-        kx = xL + ro * (1.0 + math.cos(a))
-        ky = yspine + ro * math.sin(a)
-        slope = (asc - ky) / (xt - kx)
-
-    # The underside runs parallel, a stroke's width away measured square to the
-    # branch rather than straight down, and its own turn meets it at the same
-    # tangent. Where it joins the spine falls out of that.
-    tv = BE_BRANCH * pr.stem * math.hypot(1.0, slope)
-    jx = xR + ri * (1.0 + math.cos(a))
-    yjoin = asc - tv + slope * (jx - xt) - ri * math.sin(a)
-    yjoin = max(yjoin, ns[i - 1].position.y + 1.0)
-
-    turn = [node(xR, yjoin)]
-    turn += _arc(xR + ri, yjoin, ri, math.pi, a)
-    turn += [node(xt, asc - tv), node(xt, asc), node(kx, ky)]
-    turn += _arc(xL + ro, yspine, ro, a, math.pi)
-    ns[i:i + 2] = turn
-    return [path(ns, out[0].closed)] + out[1:]
-
+    base = getattr(pr, "_pr", pr)
+    ps = [path([node(x, y, ty, sm) for x, y, ty, sm in c])
+          for c in BE_DONOR[base.mi]]
+    ps.sort(key=lambda q: -abs(area(q)))
+    return ([ps[0] if area(ps[0]) > 0 else reverse(ps[0])]
+            + [q if area(q) < 0 else reverse(q) for q in ps[1:]])
 
 def Ii(pr, top=None, bottom=0.0, donor="N"):
     """И -- two stems with a diagonal rising from the left foot to the right
