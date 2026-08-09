@@ -1665,27 +1665,38 @@ def Ze_lc(pr):
 
 
 def Be_lc(pr):
-    """б -- Sudo's own, extrapolated to this face's weights and fitted to it.
+    """б -- this face's own o for the bowl, Sudo's branch spliced onto it.
 
-    Nine constructions were drawn for this letter before this one and none of
-    them was accepted, so the letter is no longer being drawn: it is taken
-    from a face that already has it. Sudo is under the SIL Open Font License,
-    which is what makes that legitimate, and it builds б the way this face's
-    own six is built -- one stroke out of the bowl's left wall rather than a
-    bowl hung on a stem.
+    Nine constructions were drawn for this letter and none of them was
+    accepted, so the branch is no longer being drawn: it is taken from a face
+    that already has it. Sudo is under the SIL Open Font License, which is
+    what makes that legitimate, and it builds б the way this face's own six is
+    built -- one stroke out of the bowl's left wall rather than a bowl hung on
+    a stem.
+
+    The BOWL is not the donor's, and taking it was the fault this letter cost
+    a round to find. A donor's outline carries the donor's own design language
+    and most of that language sits in the round parts: Sudo draws rounded
+    rectangles, so its б counter fills 0.854 of its box exactly as its o does,
+    and dropped into a face whose o fills 0.810 the same outline read 0.845.
+    Sixty panel faces hold б's counter within 0.014 of their OWN o's, median
+    0.001, at a counter width median of exactly 1.00 -- which makes the bowl
+    the one thing about this letter that is settled before it is drawn. So the
+    bowl is o, squashed to the height the donor gave it and spliced onto the
+    branch where the donor's outline leaves the oval. See METHOD F11.
 
     Sudo's axis does not reach either end of this one -- its wall runs from a
     tenth of the x-height to just under a quarter, where this face needs a
     sixteenth and three tenths -- so its own axis is extrapolated point for
-    point past both ends, and the weight is solved against the bowl's wall
-    rather than against the axis label. The outline is then anchored on o, so
-    the x-height, the overshoot and the baseline are this face's; stretched
-    above the x-height on its own, because Sudo's б stands 1.34 x-heights and
-    this face's lowercase stands 1.50 to 1.57; and fitted to o's width,
-    because the cell is not optional.
+    point past both ends, and the branch's weight is solved against the
+    donor's own bowl wall so it keeps the donor's proportion to a bowl of this
+    weight. The letter is anchored on o, so the x-height, the overshoot and
+    the baseline are this face's; stretched above the x-height on its own,
+    because Sudo's б stands 1.34 x-heights and this face's lowercase stands
+    1.50 to 1.57; and fitted to o's width, because the cell is not optional.
 
-    `tools/be_donor.py` holds the result and `scripts/be_from_sudo.py`
-    regenerates it.
+    `tools/be_donor.py` holds the result, `scripts/be_from_sudo.py`
+    regenerates it, and `tools/bowls.py` is the reading that judges it.
     """
     base = getattr(pr, "_pr", pr)
     ps = [path([node(x, y, ty, sm) for x, y, ty, sm in c])

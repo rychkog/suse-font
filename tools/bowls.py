@@ -22,6 +22,21 @@ ordinary and a differently-shaped one is not.
 Not a gate, because most of the letters below have a bowl only in the loose
 sense and the reading is only sharp for the ones that carry a real oval. It is
 the check that would have caught F11 a day earlier.
+
+**What it already says, so that a later pass does not read it as new.** These
+are standing, and none of them is an action:
+
+- **ф and ю are probe limits, not findings.** Neither letter's counter is a
+  single bowl -- ф's oval spans both lobes and ю's is the letter's whole right
+  half -- so their width and height rows compare two different shapes and mean
+  nothing. Their fill rows read -0.000 because both bowls ARE built from o,
+  which is the probe agreeing with itself.
+- **в, ь, ъ and я read fuller than the panel at ExtraBold**, by 0.04 to 0.07,
+  and в reads full at Thin too. That is one fact about four letters: this face
+  squares its small bowls harder than the panel does as it gets heavy. All
+  four are on record, в explicitly as the light one at 0.89-0.96 of the face's
+  own horizontal. Do not change any of them on this reading -- it is the same
+  shape of argument that changed Ґ twice. See APPROVALS.
 """
 
 import sys

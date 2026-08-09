@@ -267,6 +267,16 @@ def poly(nodes, steps=24):
 # two segments are the seam.
 LAND, LEAVE = 5, 14
 
+# How far up the branch the landing's move is felt. The underside has to end
+# on the oval and the donor ends it somewhere else, so the last stretch of it
+# moves -- and moving only the end point drags that stretch straight. What it
+# costs is the FLARE: the donor widens the branch as it enters the bowl, which
+# is what makes the stroke look grown out of the bowl rather than laid across
+# it, and dragging the end point turned a segment leaning 78 degrees into one
+# standing at 88 and parallel to the branch's own outer edge. So the whole
+# root moves rigidly and the move fades out over the segments above it.
+ROOT = 12
+
 
 def seg_end(s):
     return s[1][-1]
@@ -342,7 +352,7 @@ def bowl(pr, top):
             for s, sg in (to_segs(p) for p in ps)]
 
 
-def splice(donor, pr, land, leave):
+def splice(donor, pr):
     """The donor's branch, carried onto an arc of this face's own o.
 
     The branch is kept whole and the bowl is thrown away. The arc runs from
@@ -358,24 +368,27 @@ def splice(donor, pr, land, leave):
     c = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0,
          (max(xs) - min(xs)) / 2.0, (max(ys) - min(ys)) / 2.0)
 
-    # where the underside lands, in the oval's own terms: the donor's own
-    # angle, pulled onto the oval. Read as an angle rather than copied as a
-    # point because the donor lands 16 per cent outside the oval at Thin and
-    # 3 per cent inside it at ExtraBold, and an angle is the same relation at
-    # both.
     b_start = seg_end(donor[LEAVE])
     b_segs = donor[LEAVE + 1:] + [("line", [donor[0][1][0]])] \
         + donor[1:LAND + 1]
     l0, branch = rev(b_start, b_segs)
-    want = clock(l0, c)
 
+    # the segment of the oval the landing falls in -- the upper left quadrant
+    # at both masters, so the two layers split the same segment and keep the
+    # same nodes
     at, j = os_, None
     for i, s in enumerate(osg):
         a, b = clock(at, c), clock(seg_end(s), c)
-        if a < want < b:
+        if a < clock(l0, c) < b:
             j = i
             break
         at = seg_end(s)
+
+    # the oval, split where the donor's own underside comes down. Its angle
+    # rather than its point: the donor lands 16 per cent outside the oval at
+    # Thin and 3 per cent inside it at ExtraBold, and an angle is the same
+    # relation at both.
+    want = clock(l0, c)
     lo, hi = 0.0, 1.0
     for _ in range(40):
         t = 0.5 * (lo + hi)
@@ -386,16 +399,19 @@ def splice(donor, pr, land, leave):
     part = split(at, osg[j], 0.5 * (lo + hi))
     arc = osg[j + 1:] + osg[:j] + [("curve", part)]
 
-    # the underside's last node moves onto the oval with its handle, so the
-    # stroke arrives on the bowl rather than beside it
+    # The root moves onto the oval whole, and the move fades out above it, so
+    # the branch keeps the shape it enters the bowl with.
     dx, dy = part[2][0] - l0[0], part[2][1] - l0[1]
-    kind, pts = branch[0]
-    branch[0] = (kind, [(pts[0][0] + dx, pts[0][1] + dy)]
-                 if kind == "line" else
-                 [(pts[0][0] + dx, pts[0][1] + dy),
-                  (pts[1][0] + dx * 0.5, pts[1][1] + dy * 0.5), pts[2]])
+    out, i = [], 0
+    for kind, pts in branch:
+        moved = []
+        for q in pts:
+            w = 1.0 if i < 3 else max(0.0, 1.0 - (i - 3) / float(ROOT))
+            moved.append((q[0] + dx * w, q[1] + dy * w))
+            i += 1
+        out.append((kind, moved))
 
-    return [[("start", [seg_end(osg[j])])] + arc + branch,
+    return [[("start", [seg_end(osg[j])])] + arc + out,
             [("start", [cs])] + csg]
 
 
@@ -519,7 +535,7 @@ def build():
               % (mi, t, floor, wall))
         blend(a, b, t, be_glyph(work))
         sg = fit_segs(segments(work), work, pr)
-        made.append((t, splice(square_terminal(sg[0]), pr, LAND, LEAVE), pr))
+        made.append((t, splice(square_terminal(sg[0]), pr), pr))
     drop = degenerate(made[0][1], made[1][1])
     out = []
     for t, cs, pr in made:
