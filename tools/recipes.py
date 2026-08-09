@@ -747,52 +747,7 @@ def Dzhe(pr):
 # opened to fix. Д keeps the slant inside its span and narrows the body
 # instead, which is what gives the plinth something to jut past.
 EL_OUTWARD = 0.0
-
-# Д's body as a share of the two-stem box, linear in the stem and clamped to
-# the two masters it was fitted over (§1).
-#
-# This was a flat 0.86, and a flat proportion constant is suspect until the
-# panel has been bucketed by weight -- which is how ф was found and how this
-# was. `relations.py` found Д and д's counter closing monotonically with
-# weight, 39 per cent under the panel by ExtraBold and nothing wrong at Thin,
-# and §2 step 0 says find the SPAN the counter is cut out of before touching
-# the counter. `tools/de.py` reads it: the body is 10 to 17 per cent narrower
-# than the panel's at EVERY weight, Thin included. It grows at about the
-# panel's own rate -- 1.30 against 1.27 across the axis -- so the rate was
-# never the fault. The level was, all along; it only becomes visible at the
-# heavy end because that is where the walls are thick enough to eat what is
-# left.
-#
-# The reason it was held narrow does not survive being measured. The comment
-# here said every step outward pushes the body over the plinth until the legs
-# disappear beneath it -- but ours already juts FURTHER than the panel does,
-# 0.574 of a stem against 0.466 at ExtraBold, and its plinth is 1.475 of its
-# body against the panel's 1.337. The body was starved to protect a jut that
-# was already too big. Both readings move the right way together: solved, the
-# plinth ratio falls to 1.304 at ExtraBold and 1.414 at Thin, against panel
-# medians of 1.358 and 1.619.
-#
-# Solved by bisection on the RENDERED glyph against the panel's own median
-# span, per case per master, by `de.py --solve`. The two cases get their own
-# line because they do not share a target -- the panel wants the lowercase
-# body a shade WIDER than the capital's at the heavy end, 0.694 of the advance
-# against 0.683 -- and one line through the capital's points leaves д short at
-# both ends.
-#
-# The clamp travels with the fit rather than living in the function. Written
-# into `de_body` it silently pinned the solver's own probe value, so the
-# bisection ran to the end of its bracket while the span never moved at all
-# and reported a body of 1.400 as the answer. That is the bracket-end failure
-# METHOD already records twice, reached a third way.
-DE_FIT = {
-    "cap": (0.9968, -0.4181, 0.929, 0.985),
-    "lc": (1.1103, -0.9141, 0.973, 1.084),
-}
-
-
-def de_body(pr):
-    a, b, lo, hi = DE_FIT["lc" if getattr(pr, "lower", False) else "cap"]
-    return max(lo, min(hi, a + b * (pr.stem / 1000.0)))
+DE_BODY = 0.86
 
 # What share of the face's own leg lean Л takes. A and v measure a LATIN leg,
 # which spans a triangle rather than the full height, so some factor is needed
@@ -904,24 +859,10 @@ def De(pr, top=None):
     # It now scales with the stem and stops at the tightest sidebearing the
     # face allows, which is what actually binds here: at ExtraBold 0.6 of a
     # stem is 90 units and there is room for 37.
-    #
-    # And it is measured from the BODY's own edges, not from the two-stem box.
-    # Those used to be the same thing because the body was always narrower
-    # than the box; now that its width is solved against the panel it can
-    # reach past the box, and a plinth pinned to the box then juts by
-    # whatever is left over -- 1.17 stems at Thin against a panel 2.78, with
-    # the body sticking out past the plinth at the light end. Read off the
-    # body it is the size it was asked for wherever the body lands. The
-    # sidebearing clamp now applies at both ends; the left-only version worked
-    # only because nothing had ever pushed the right one out.
-    span = de_body(pr)
-    mid, half = (x0 + x1) / 2.0, (x1 - x0) * span / 2.0
-    bx0, bx1 = mid - half, mid + half
-    minsb = round(MIN_SB * 600.0)
     inset = min(max(round(0.045 * pr.cap), round(0.60 * pr.stem)),
-                bx0 - minsb, (600.0 - minsb) - bx1)
-    px0, px1 = bx0 - inset, bx1 + inset
-    body = El(pr, top=top, bottom=pr.bar, span=span)
+                x0 - round(MIN_SB * 600.0))
+    px0, px1 = x0 - inset, x1 + inset
+    body = El(pr, top=top, bottom=pr.bar, span=DE_BODY)
     return body + [rect(px0, 0.0, px1, pr.bar),
                    rect(px0, -foot, px0 + s, pr.bar),
                    rect(px1 - s, -foot, px1, pr.bar)]
