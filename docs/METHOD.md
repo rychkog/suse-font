@@ -1247,6 +1247,25 @@ the full lowercase stem; ы and ф take a deliberate reduction. с, э, з and �
 cannot be read this way at all — they are open, so the widest scanline's first
 run is a terminal or the stem, not a wall (F6).
 
+**And a corollary that reads a flag off the sheet.** б was added to
+`harmony.py`'s letter set after it was approved — it had never been in it, so
+the family reading had never been asked about the one letter whose bowl is
+literally о's. Asked, it answers that б is **identical to о on all three
+readings at all four weights**, to three decimals: reach 0.838 / 0.880 / 0.923
+/ 0.937, wall 1.000 / 1.000 / 1.008 / 1.000, white 11.97 / 3.62 / 1.83 / 1.49.
+It is not similar to о; it is о, which is what the construction says it should
+be and what nothing had yet checked.
+
+The instructive part is the one `!` it carries. At Regular б's reach is outside
+the panel's own **б** bracket, 0.880 against 0.882–0.920. At Thin the same
+reading is outside the panel's own **о** bracket, 0.838 against 0.842–0.895 —
+and б, at the identical 0.838, is inside, because the panel draws б a shade
+narrower than о and its bracket starts lower. One value, two letters, two
+brackets two thousandths apart, and which letter gets flagged depends on the
+master. **A flag that moves between two letters drawn from one outline is a
+fact about the brackets, not about either letter** — the same shape as the
+pairwise test above, and the reason to reach for it before touching anything.
+
 ### A family is read as a family, and the outliers are not all faults
 
 Reading the bowl letters together — `tools/harmony.py`, §4 — the family turned

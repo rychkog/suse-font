@@ -31,6 +31,15 @@ COMPANY = "Бб об 6 бо bo"
 WORDS = ("бублик", "обід", "робота", "будь")
 LINE = "git commit -m 'бібліотека'"
 
+# The bowl family, in the order harmony.py reads it, with the Latin b and o
+# it shares a line with on the end. This is the row б has to sit in: a letter
+# can pass every reading of its own and still be the one the eye stops at.
+FAMILY = "обвьъюфэзя bo"
+
+# The drawn lowercase, so б is seen among everything it ships with rather
+# than only among the letters it is related to.
+ALPHABET = "абвгдежзийклмнопрстуфхцчшщьюяєіїґ"
+
 SMALL = (12, 14)
 # What a 12px row is magnified by so the shape can be seen at all. Nearest,
 # not smooth: the point of this band is the pixels the rasteriser actually
@@ -123,12 +132,17 @@ def main():
     company = band("in company -- б, its capital, the о it is built from, "
                    "the 6 it is nearly, and the Latin it shares a line with",
                    [text_row(n, COMPANY, 130) for n in WEIGHTS])
+    family = band("the bowl family, in harmony.py's own order -- the row б "
+                  "has to sit in",
+                  [text_row(n, FAMILY, 96) for n in WEIGHTS])
+    alpha = band("among the whole drawn lowercase",
+                 [text_row(n, ALPHABET, 62) for n in WEIGHTS])
     words = band("in words",
                  [text_row(n, "  ".join(WORDS), 90) for n in WEIGHTS])
     small = band("at reading size -- as delivered, and magnified %d times"
                  % MAG,
                  [small_row(n, s) for n in WEIGHTS for s in SMALL])
-    out = stack([company, words, small])
+    out = stack([company, family, alpha, words, small])
     out.save("tools/out/be_sheet.png")
     print("wrote tools/out/be_sheet.png  %dx%d" % out.size)
 
