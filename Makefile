@@ -16,6 +16,16 @@ help:
 
 build: build.stamp
 
+# Mono only. `make build` removes fonts/ and then loops over EVERY
+# sources/config*.yaml, so a one-glyph change to SUSE Mono pays to rebuild the
+# whole proportional family as well -- and the rm is why an OOM kill mid-build
+# leaves no fonts at all. This target builds the one config the Cyrillic work
+# touches and leaves the rest of fonts/ alone.
+mono: venv
+	. venv/bin/activate; gftools builder sources/config-mono.yaml
+	. venv/bin/activate; ./scripts/fix_statics.sh
+	touch build.stamp
+
 venv: venv/touchfile
 
 venv-test: venv-test/touchfile

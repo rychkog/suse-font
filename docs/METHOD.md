@@ -534,6 +534,88 @@ Two smaller traps in the same act of reading a donor:
   only, or flatten. This is F6 one step earlier — in the source rather than in
   a probe.
 
+### F9 · A junction that cannot be unioned
+
+Two contours laid over each other have to be unioned, and a union is only as
+good as the angle at which the two boundaries cross. Where one stroke leaves
+another **tangentially**, they do not cross — they run alongside each other,
+and the union closes on a sliver no one drew.
+
+б's stroke leaves its bowl along the bowl's own tangent, which is what makes
+the two one figure rather than two shapes meeting at a seam. Built as a bowl
+with a stroke over it, the union came out with a one-degree spike of ink at
+the departure, where this face's own sharpest corner is 42 degrees. Four ways
+of forcing the two apart were tried and each bought one artefact with another:
+starting the stroke thin, sinking it bodily into the bowl (which crossed the
+inner wall and bit a white wedge out of the counter), snapping its edges onto
+the walls to coincide with them (two curves are only ever coincident to the
+precision they were flattened at), and holding the inner edge back at the
+counter (which then grazed *that*).
+
+The heavy master hid it. At ExtraBold the wall is thicker than the stroke and
+the two can be made to cross at 52 degrees or better; at Thin the wall and the
+stroke are the same width and no arrangement of them gives a crossing this
+face would draw.
+
+**Tell:** an overlap whose crossing angle cannot be improved by moving the
+overlap. If every parameter sweep returns the same sharpest angle, the angle
+is not a parameter — it is the geometry.
+
+**Fix:** stop unioning. Emit the letter as ONE contour, walked: round the
+donor's own wall from where the outer edge leaves it to where the inner edge
+does, out to the terminal and back. There is then no crossing to go wrong.
+`_be_paths` in `recipes.py` is the worked example.
+
+Two things the walk needs, and both were faults before they were fixed:
+
+- **The walk closes on the point it started from**, so that point is written
+  twice. Dropped, its two handles carry into the first node, which becomes the
+  curve's endpoint rather than the start of a line.
+- **Sample the donor's wall by ANGLE, not by arc length.** By arc length the
+  two masters put their nodes in different places, so the interpolation ran
+  between nodes that do not correspond: the letter kept its full overshoot at
+  both ends of the axis and lost half of it in the middle, sitting 4 units
+  below the baseline at Regular where this face sits 9 or 10. Node parity
+  passed throughout — it counts nodes, it cannot see that they mean different
+  things.
+
+---
+
+### F10 · A silhouette summarised instead of measured
+
+A landmark — an apex, a terminal, a place where something "goes flat" — is a
+scalar squeezed out of a curve, and the squeezing is where the error enters.
+Three separate readings of б's top were taken this way and all three misled:
+
+- an **apex band** at 0.71–0.85 of the width, read as the midpoint of a
+  plateau. There is no plateau. The top edge climbs from the bowl to the
+  terminal without a break, and the band was a summary of the climb. Built as
+  a plateau it made a letter that read as the digit 6 — which this face's own
+  6 also is, a bowl with a stroke rising to the right out of it.
+- a **lean**, divided by the stem, which reported the spine leaning further
+  right than the letter is wide. A lean is a share of the WIDTH; the stem got
+  into it because the spine's weight was on the mind at the time. (F5.)
+- a **flat point**, whose median sat at 0.71 of the width with quartiles from
+  0.52 to 0.76 — a spread wide enough to mean the population was not
+  describing one thing.
+
+**Fix:** measure the silhouette as a PROFILE. The top of the ink at each x is
+single valued; it needs no skeleton, no offsetting and no decision about which
+stroke is which; and it is exactly what the eye reads as the letter's gesture.
+`BE_PROFILE` in `recipes.py` holds 21 samples across the letter, median over
+the 59 panel faces that draw it, and the construction's two handles and its
+arrival angle are **solved against it at build time** rather than chosen. The
+fit lands within about 1% of the panel at every sample, at both masters.
+
+That last point matters on its own: the handles are lengths in units of the
+distance from the bowl to the terminal, and that distance is not the same
+share of the two letters. Held as constants, one pair fitted the light cut
+four times worse than its own. Solving beats a table of per-master numbers,
+which is how a figure measured on one master gets carried onto another that
+never earned it. (F1.)
+
+---
+
 ---
 
 ## 4 · Probe inventory
