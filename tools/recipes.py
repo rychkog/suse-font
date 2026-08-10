@@ -749,6 +749,33 @@ def Dzhe(pr):
 EL_OUTWARD = 0.0
 DE_BODY = 0.86
 
+# What Д's legs weigh, over the face's own stem, linear in the stem and
+# clamped to the two masters it was fitted over.
+#
+# They were the stem, flat, at every weight -- 1.009, 0.999, 1.008, 1.001
+# measured on the built font, where the panel goes 0.974, 0.918, 0.864, 0.932.
+# A leg hanging under a plinth is an interior stroke and §2 says interior
+# strokes thicken at about three quarters the rate the stem does; this one
+# took no reduction at all.
+#
+# It shows twice. The legs read fat and therefore short -- the eye's verdict
+# was "stubs" -- and the white BETWEEN them is what pays: 1.32 stems at
+# ExtraBold against a panel 1.82, because the plinth is against the
+# sidebearing and cannot grow, so the gap is whatever the legs leave. Once the
+# plinth cannot move, the legs' own weight is the only lever on the gap.
+#
+# Not to be confused with the body's walls, which were the first suspect and
+# are fine: measured perpendicular rather than as a horizontal footprint they
+# read 1.009, 0.985, 1.000, 0.993 against a panel 1.031, 1.029, 0.997, 0.986.
+# The horizontal footprint of a slanted leg is not its weight, and reading it
+# that way said 1.76 against 1.55 and sent a whole round at the wrong term.
+DE_LEG = (0.9832, -0.3182, 0.932, 0.974)
+
+
+def de_leg(pr):
+    a, b, lo, hi = DE_LEG
+    return max(lo, min(hi, a + b * (pr.stem / 1000.0)))
+
 # What share of the face's own leg lean Л takes. A and v measure a LATIN leg,
 # which spans a triangle rather than the full height, so some factor is needed
 # -- but 0.55 was never derived from anything. It threw away nearly half the
@@ -863,9 +890,13 @@ def De(pr, top=None):
                 x0 - round(MIN_SB * 600.0))
     px0, px1 = x0 - inset, x1 + inset
     body = El(pr, top=top, bottom=pr.bar, span=DE_BODY)
+    # The legs keep the plinth's own ends and take their weight inward, so
+    # the letter's width does not move and the white between them is what
+    # grows -- which is the reading that was wrong.
+    lw = round(s * de_leg(pr))
     return body + [rect(px0, 0.0, px1, pr.bar),
-                   rect(px0, -foot, px0 + s, pr.bar),
-                   rect(px1 - s, -foot, px1, pr.bar)]
+                   rect(px0, -foot, px0 + lw, pr.bar),
+                   rect(px1 - lw, -foot, px1, pr.bar)]
 
 
 def Ef(pr):
