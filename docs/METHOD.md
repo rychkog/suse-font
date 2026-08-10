@@ -1660,16 +1660,22 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
-- **д and Д's counter closes as the face gets heavier, and it is the largest
-  thing `relations.py` found.** Nothing at Thin; at Regular the lowercase
-  counter is 18 per cent under the panel and its aspect 17 under; at Bold 28
-  and 26; at ExtraBold the aspect is **39 per cent** under and the capital's
-  counter 35. Every departure is in the same direction and grows monotonically
-  with weight, which is §2's "diagnosing it gets ugly when bold" exactly, and
-  the same shape as Я's and Ъ's faults: the span the counter is cut out of is
-  fixed while the strokes bounding it grow. §2 step 0 is the one to run — find
-  what the triangle's interior is a span OF, and check whether that span moves
-  with the weight. **Neither letter is approved**, so this is workable.
+- **Д and д's LEAN — the open half of the counter, measured but untried.**
+  `relations.py` found the counter closing monotonically with weight, 39 per
+  cent under the panel by ExtraBold and nothing wrong at Thin. The legs were
+  half of it and are fixed and approved (2026-08-10). The counter is still
+  narrow, and `de.py` says why: ours leans harder than the panel at **all
+  eight** readings — 0.182 against 0.122 for the capital at ExtraBold, 0.240
+  against 0.191 for the lowercase — and the panel straightens its Д as it gets
+  bolder where ours holds its slant. The slant is a lever on the counter's
+  width that does **not** move the letter's width, which is what makes it the
+  right next attempt: widening the body and plinth was tried on 2026-08-09 and
+  rejected by eye, and the letter is approved at its current width
+  deliberately. Д's body is Л and л is approved with its own lean chosen for
+  its own reasons, but Д is not Л — it stands on a plinth, and `El()` already
+  lets Д set its span independently, so the same door is open for its slant
+  with nothing about л moving. **Д and д are now approved, so this needs a
+  fresh verdict before anything changes.**
 - **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
   0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
   inside at 0.951. Eight units. `relations.py` independently reaches the same
