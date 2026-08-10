@@ -113,7 +113,19 @@ def read_mask(m, adv_px, stem):
         # is against the sidebearing and cannot grow
         leg_w = float(cut + 1)
 
-    return {"wall/stem": wall / stem if stem else 0.0,
+    # How far the body's left edge travels across the counter's own height,
+    # as a share of that height. Д's counter is bounded on the left by a
+    # slanted leg, so the slant is a second lever on the counter's width --
+    # and one that does not touch the letter's width at all, which the first
+    # attempt did and was rejected for.
+    top_on = np.where(m[ct])[0]
+    bot_on = np.where(m[cb])[0]
+    lean = 0.0
+    if len(top_on) and len(bot_on) and cb > ct:
+        lean = float(top_on.min() - bot_on.min()) / float(cb - ct)
+
+    return {"lean": lean,
+            "wall/stem": wall / stem if stem else 0.0,
             "leg w/stem": leg_w / stem if stem else 0.0,
             "leg drop/xh": len(legs) / float(W.XH),
             "leg gap/stem": gap / stem if stem else 0.0,
@@ -127,8 +139,8 @@ def read_mask(m, adv_px, stem):
             "arm/stem": (span_v - counter_h) / stem}
 
 
-KEYS = ("wall/stem", "leg w/stem", "leg gap/stem",
-        "leg drop/xh", "span_h/adv")
+KEYS = ("lean", "counter_w/span_h", "span_h/adv",
+        "leg w/stem", "leg gap/stem")
 
 
 def ours():
