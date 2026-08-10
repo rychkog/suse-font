@@ -1660,8 +1660,12 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
-- **Д's lean is off the panel, and straightening it does NOT open the counter
-  — tried and measured on 2026-08-10.** Ours leans harder at all eight
+- **CLOSED. Д's lean is off the panel on purpose.** Tried, measured, drawn and
+  shown on 2026-08-10; the approved lean was preferred by eye against the
+  straightened one at both drawn masters, and it also fails at the thing it
+  was tried for. Left here as a finding rather than a thread, because the
+  reading itself stays outside the panel and the next pass will find it. Ours
+  leans harder at all eight
   readings, 0.182 against 0.122 for the capital at ExtraBold and 0.240 against
   0.191 for the lowercase, and the panel straightens its Д as the face gets
   bolder where ours holds its slant. That departure is real. The claim built
