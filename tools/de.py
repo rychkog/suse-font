@@ -43,6 +43,10 @@ import probe as P
 import weights as W
 from relations import Face, OURS
 
+# The em. The advance is 600 and the two are not the same number; using the
+# advance to index the panel by stem is a bug this file has already made.
+UPM = 1000.0
+
 
 def read(fc, ch, lower):
     """The span, the strokes that bound it, and what is left as counter."""
@@ -177,7 +181,90 @@ def panel():
     return out
 
 
+def solve():
+    """Д's lean, bisected against the panel's own, per case per master.
+
+    Measured on the rendered glyph from the recipes, so it is the artefact and
+    not a model of it, and per master because the target is not flat -- the
+    panel straightens its Д as the face gets bolder.
+    """
+    import glyphsLib
+    from params import Params, Lower, _flatten
+    import recipes as RU
+    from PIL import Image, ImageChops, ImageDraw
+
+    ref = panel()
+    font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
+    keep = RU.DE_LEAN
+
+    def read_at(pr, name, k=None):
+        RU.DE_LEAN = (keep if k is None else
+                      {c: (k, 0.0, k, k) for c in keep})
+        paths = RU.RECIPES[name](pr._pr if name == "De-cy" else pr)
+        polys = [[(x, y) for x, y in _flatten(p, 96)] for p in paths]
+        xs = [q[0] for p in polys for q in p]
+        ys = [q[1] for p in polys for q in p]
+        sc = W.XH / float(pr.cap)
+        w = int((max(xs) - min(xs)) * sc) + 8
+        h = int((max(ys) - min(ys)) * sc) + 8
+        img = Image.new("1", (w, h), 0)
+        for poly in polys:
+            lay = Image.new("1", (w, h), 0)
+            ImageDraw.Draw(lay).polygon(
+                [(4 + (x - min(xs)) * sc, h - 4 - (y - min(ys)) * sc)
+                 for x, y in poly], fill=1)
+            img = ImageChops.logical_xor(img, lay)
+        return read_mask(np.asarray(img) > 0, 600.0 * sc, pr.stem)
+
+    print("Д's lean solved against the panel's own, per case per master\n")
+    solved = {}
+    for case, ch, name in (("cap", "Д", "De-cy"), ("lc", "д", "de-cy")):
+        pts = [(s, r["lean"]) for s, r in ref[ch]]
+        for mi, wname in ((0, "Thin"), (1, "ExtraBold")):
+            pr = Lower(Params(font, mi))
+            here = pr._pr if case == "cap" else pr
+            # stem over the EM, which is 1000. The advance is 600 and dividing
+            # by that instead put this face's Thin at 0.048 and its ExtraBold
+            # at 0.268, where `Face.stem_em` -- the same quantity the panel is
+            # indexed by -- reads 0.029 and 0.161. Nearly 1.67 times too
+            # heavy, so `compare` handed back the median of faces far bolder
+            # than this one and every target solved against it was the wrong
+            # bucket's. The width solve that was rejected by eye used it too.
+            want = P.compare(pts, here.stem / float(UPM), 0.0)[0]
+            # a leg straight enough merges into the stem and the counter
+            # stops being a separate region: that is "too straight", and it
+            # has to be said or the bisection walks to that bound
+            lo, hi = 0.30, 1.10
+            for _ in range(20):
+                mid = 0.5 * (lo + hi)
+                r = read_at(pr, name, mid)
+                if r is None or r["lean"] > want:
+                    hi = mid
+                else:
+                    lo = mid
+            k = 0.5 * (lo + hi)
+            got = read_at(pr, name, k)
+            RU.DE_LEAN = keep
+            now = read_at(pr, name)
+            solved[(case, mi)] = (here.stem, k)
+            print("  %s %-10s want %.3f   now %.3f -> %.3f   k %.3f   "
+                  "counter_w/span %.3f -> %.3f"
+                  % (ch, wname, want, now["lean"], got["lean"], k,
+                     now["counter_w/span_h"], got["counter_w/span_h"]))
+    RU.DE_LEAN = keep
+    print("\nDE_LEAN = {")
+    for case in ("cap", "lc"):
+        (s0, v0), (s1, v1) = solved[(case, 0)], solved[(case, 1)]
+        b = (v1 - v0) / ((s1 - s0) / 1000.0)
+        a = v0 - b * (s0 / 1000.0)
+        print('    "%s": (%.4f, %.4f, %.3f, %.3f),'
+              % (case, a, b, min(v0, v1), max(v0, v1)))
+    print("}")
+
+
 def main():
+    if "--solve" in sys.argv:
+        return solve()
     ref = panel() if "--panel" in sys.argv else {}
     print("Д д -- the span the counter is cut out of, and the strokes "
           "that bound it\n")
