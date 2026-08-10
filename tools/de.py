@@ -108,6 +108,11 @@ def read_mask(m, adv_px, stem):
     leg_rows = [np.where(r)[0] for r in m[cb + 1:] if r.any()]
     legs = [r for r in leg_rows
             if len(np.where(np.diff(r) > 1)[0]) == 1]
+    # The plinth's own thickness: the rows below the counter that still read
+    # as ONE run. It bounds the counter from below exactly as the arm bounds
+    # it from above, and neither has ever been compared with anything.
+    plinth_h = float(len([r for r in leg_rows
+                          if not len(np.where(np.diff(r) > 1)[0])]))
     gap = leg_w = 0.0
     if legs:
         mid_r = legs[len(legs) // 2]
@@ -128,7 +133,18 @@ def read_mask(m, adv_px, stem):
     if len(top_on) and len(bot_on) and cb > ct:
         lean = float(top_on.min() - bot_on.min()) / float(cb - ct)
 
-    return {"lean": lean,
+    # The two walls SEPARATELY, as horizontal footprint at the counter's
+    # widest row. "walls/stem" lumps them and the max-disc reading only ever
+    # sees the thicker one, so neither can say whether the diagonal is drawn
+    # lighter than the stem -- which is the question.
+    wide = np.where(m[cb])[0]
+    lwall = float(cl - wide.min()) if len(wide) else 0.0
+    rwall = float(wide.max() - cr) if len(wide) else 0.0
+
+    return {"left wall/stem": lwall / stem if stem else 0.0,
+            "right wall/stem": rwall / stem if stem else 0.0,
+            "plinth h/stem": plinth_h / stem if stem else 0.0,
+            "lean": lean,
             "wall/stem": wall / stem if stem else 0.0,
             "leg w/stem": leg_w / stem if stem else 0.0,
             "leg drop/xh": len(legs) / float(W.XH),
@@ -143,8 +159,8 @@ def read_mask(m, adv_px, stem):
             "arm/stem": (span_v - counter_h) / stem}
 
 
-KEYS = ("lean", "counter_w/span_h", "span_h/adv",
-        "leg w/stem", "leg gap/stem")
+KEYS = ("left wall/stem", "right wall/stem", "counter_w/span_h",
+        "span_h/adv")
 
 
 def ours():
