@@ -1660,22 +1660,37 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
-- **Д and д's LEAN — the open half of the counter, measured but untried.**
-  `relations.py` found the counter closing monotonically with weight, 39 per
-  cent under the panel by ExtraBold and nothing wrong at Thin. The legs were
-  half of it and are fixed and approved (2026-08-10). The counter is still
-  narrow, and `de.py` says why: ours leans harder than the panel at **all
-  eight** readings — 0.182 against 0.122 for the capital at ExtraBold, 0.240
-  against 0.191 for the lowercase — and the panel straightens its Д as it gets
-  bolder where ours holds its slant. The slant is a lever on the counter's
-  width that does **not** move the letter's width, which is what makes it the
-  right next attempt: widening the body and plinth was tried on 2026-08-09 and
-  rejected by eye, and the letter is approved at its current width
-  deliberately. Д's body is Л and л is approved with its own lean chosen for
-  its own reasons, but Д is not Л — it stands on a plinth, and `El()` already
-  lets Д set its span independently, so the same door is open for its slant
-  with nothing about л moving. **Д and д are now approved, so this needs a
-  fresh verdict before anything changes.**
+- **Д's lean is off the panel, and straightening it does NOT open the counter
+  — tried and measured on 2026-08-10.** Ours leans harder at all eight
+  readings, 0.182 against 0.122 for the capital at ExtraBold and 0.240 against
+  0.191 for the lowercase, and the panel straightens its Д as the face gets
+  bolder where ours holds its slant. That departure is real. The claim built
+  on it was not: solved to the panel's own lean exactly, per case per master,
+  the counter came out **narrower** at all four weights — 0.240 to 0.232 for
+  the capital at ExtraBold, 0.262 to 0.257 for the lowercase. The reason is in
+  `El`: the leg is drawn with a **fixed horizontal width**, so its footprint
+  does not change with the slant at all. The slant moves the leg's top; it
+  does not move the row where the counter is widest. **A slant is a lever on a
+  counter only if the stroke's width is measured perpendicular to it** — and
+  when it is not, the lean can be badly off the panel while contributing
+  nothing to the counter, which is exactly this letter. The plumbing was
+  reverted; `de.py --solve` keeps the reading and the solved values.
+- **The panel bucket was indexed by the ADVANCE, not the em, and it changes
+  what a rejected round means.** `de.py`'s solve divided the stem by 600 where
+  `Face.stem_em` — the quantity the panel is indexed by — divides by 1000, the
+  em. This face's Thin went in as 0.048 instead of 0.029, so `compare`
+  returned the median of faces nearly 1.67 times bolder and every target
+  solved against it belonged to the wrong bucket. **The width change rejected
+  by eye on 2026-08-09 used it.** At ExtraBold the wrong bucket happened to
+  land on the right number, 0.683; at Thin it asked for 0.566 where the
+  correct bucket wants 0.538, so Thin was over-widened by five per cent. That
+  is part of why it read wrong, and it means the width is worth re-solving
+  against the corrected target if that thread is ever reopened. Fixed; nothing
+  else in the tree divides a stem by the advance. **Tell: two names for one
+  quantity.** The advance is 600 and the em is 1000 and both are "the width of
+  something", so `stem/600` looks as plausible as `stem/1000` at the call
+  site. The reading it feeds had a correct definition three files away the
+  whole time.
 - **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
   0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
   inside at 0.951. Eight units. `relations.py` independently reaches the same
