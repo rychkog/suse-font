@@ -382,8 +382,31 @@ faces — and it was used to decide what *shape* the bowl is, which a width does
 not say. Three versions of the letter were built on it and all three were
 rejected by eye. See §8.
 
+Its most instructive instance is **one number asked to do two jobs**, where it
+was right about one of them. `bowl_of` reports B's bowl **stroke** — 166
+against a stem of 161 at ExtraBold — and reading it was itself a fix: the bowl
+had been carrying `crowd3` and came out lighter than every panel face. But
+`bowl_pair` then inset the counter by that stroke on **both** sides, and B
+spends it on one side only: on the left its counter sits against the stem, 157,
+because there is no second wall there — the spine *is* the wall. So Ь Ъ Б Ы
+each drew a left wall the donor does not have and lost 166 − 157 = 9 units out
+of their counters at ExtraBold, which was exactly Ь's deficit against В. The
+inset is now its own parameter (`bowl_pair`'s `tl`). Note that the two fixes
+have to be read together, per the project rule on constants that justify each
+other: the stroke reading is correct and the fault was entirely in reusing it.
+
+And the donors do not agree, which is why the inset has to be *read* rather
+than set to the stem: B's counter sits exactly on its stem (157 against 157)
+while **b lets its counter cut ten units into its own** (140 against 150). Two
+donors, two answers. `latin_metrics.bowlInset` / `lcBowlInset` read both, on a
+scanline rather than off the node box — a bowl's corner puts its control points
+outside the counter and `min(node.x)` reports the counter 14 units too wide at
+ExtraBold, in the direction that hides the fault.
+
 **Tell:** the metric exists and is *nearly* right — or is exactly right about
-something adjacent. That is the dangerous case.
+something adjacent. That is the dangerous case. Its sharpest form: a number
+whose name says *what it is* ("the bowl's stroke") being used where the
+question is *where something goes* ("how far in does the counter start").
 
 ### F6 · A broken probe reported as a finding
 
@@ -897,7 +920,8 @@ those two edges. One picture, again, and again it should have been first.
 | `relations.py` | §2's four relations — width/adv, counter aspect, counter/stem, solid band — over every drawn glyph at all four weights, each as a multiple of the face's own Latin. `--selftest` against shapes of known answer; `--calibrate` prints the host's own departures, which ARE the bar | no |
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
-| `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf` | — |
+| `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
+| `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
@@ -1338,6 +1362,28 @@ the four are correct:
 
 That is the whole argument for asking each reading twice.
 
+### A control has to be a letter this project did not draw
+
+`soft.py` asks each letter against the face's own donor, per face — the ratio
+form that settled м's diagonals, and the only form that can work here, because
+this face's own **В is outside the panel** on counter width, span and reach at
+Bold and ExtraBold. В *is* the Latin B, unchanged, a tier-1 donor that cannot
+be wrong, so an absolute reading of Б Ь Ы was never measuring those letters. It
+was measuring SUSE Mono. That is §8's narrow-face finding for the third time,
+and the ratio is how you get past it.
+
+**But the first controls chosen were В and в, and в is drawn here** — from the
+same `bowl_of` and the same `bowl_pair` as the letters under test. Dividing by
+it cancelled the shared fault exactly, and the whole lowercase came back clean
+when it was not. Changed to B and b, the Latin letters, the same run reported
+1.079 where it had reported 1.000.
+
+**Tell:** a control that is *related* to what you are testing rather than
+*independent* of it. Ask what the reading would say if the fault were in the
+construction both letters share — if the answer is "nothing", the control is
+part of the experiment. The check is cheap and should be built in: `soft.py`
+measures В/B and reports 1.000 across the board, which is its selftest.
+
 ### A counter floor cannot describe a white between converging strokes
 
 `audit.py` flags a counter narrower than the narrowest the face's own lowercase
@@ -1752,14 +1798,25 @@ the top of the vertical bars.*
   something", so `stem/600` looks as plausible as `stem/1000` at the call
   site. The reading it feeds had a correct definition three files away the
   whole time.
-- **Ь and Б's counters** read just outside the panel at Bold and ExtraBold —
-  0.901 and 0.938 of a stem — where В, which shares the same `soft_bowl`, is
-  inside at 0.951. Eight units. `relations.py` independently reaches the same
-  letters from a different reading and adds **Ы** to them, so it is a family
-  and not two glyphs: at ExtraBold Б, Ь, Я and я all read 12 to 16 per cent
-  under, and Ы and Ъ 19 at Bold. Я, я and Ъ ъ are approved and their counter
-  readings were recorded as outside AT approval, so the live part of this
-  thread is **Б, Ь and Ы**, which are not approved. Still not explained.
+- **Ь and Б's counters — CLOSED 2026-08-11.** It was one construction fault
+  shared by the family, which is why two unrelated readings kept arriving at
+  the same letters: `bowl_pair` inset the counter by the bowl's *stroke* on
+  both sides where B spends that stroke only on the side it curves. See F5.
+  Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
+  the cluster are deliberately **not** closed and are live threads of their
+  own, listed below.
+- **в, Я and я are separate call sites with the same disease.** This is why
+  `relations.py` clustered them with Б Ь Ы. All three are approved and were not
+  touched on 2026-08-11; the explanation their ledger rows lacked now exists,
+  which is a fresh-verdict trigger and the user's to pull, not this file's.
+- **The lowercase spine, ь ъ ы, is a different fault of the same family.**
+  Their bowl stroke already equalled their stem, so the 2026-08-11 change moved
+  nothing. But **b cuts its counter ten units into its own stem** — 140 against
+  150 at ExtraBold — and ours does not, so their left wall reads 1.079 of b's
+  where the panel holds 1.000 (bracket 1.000–1.009). Reproducing it means
+  drawing the spine and the bowl as **one contour**, as b is: a separate spine
+  rectangle cannot be cut into by a counter, because the union restores the
+  ink. Their counters are all inside the panel meanwhile.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear

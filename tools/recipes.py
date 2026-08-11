@@ -1104,7 +1104,7 @@ def bowl_arc(pr, left, right, bot, up):
 
 
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
-              th_bot=None, th_top=None, r=None, ry=None):
+              th_bot=None, th_top=None, r=None, ry=None, tl=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -1113,6 +1113,21 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
     orientation fix below then took the opposite branch in that master only --
     so the contour was wound one way at Thin and the other at ExtraBold, and
     the variable font would not interpolate. It looked fine at both masters.
+
+    `tl` is the inset on the LEFT, where the bowl meets the spine, and it is a
+    different quantity from `t`. `t` is the bowl's own wall and this face draws
+    it heavier than a stem -- 166 against 161 at ExtraBold, which is B's own
+    figure and the reason `bowl_of` reports it. But B spends that 166 only on
+    the wall it curves; on the left its counter sits against the STEM's edge,
+    157, because there is no second wall there -- the spine is the wall. Insetting
+    both sides by `t` draws a left wall the donor does not have, and the counter
+    pays for it: at ExtraBold Ь's counter came out 145 against В's 154, and 166
+    minus 157 is the whole of that nine units.
+
+    So `tl` defaults to `t`, which is what a bowl with two walls of its own
+    wants, and a caller whose bowl grows off a spine passes the spine's width.
+    See METHOD F5 -- one number was doing two jobs, and it was right for one of
+    them.
 
     `rmin` is the floor on the COUNTER's own corner radius. Deriving it as
     `r - t` is fine while the lobe is tall enough to outrun its stroke, which
@@ -1136,7 +1151,17 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
     # and the waist barely pinched at all -- 8.5% against B's own 26.8%.
     th_bot = th if th_bot is None else th_bot
     th_top = th if th_top is None else th_top
-    t = max(1.0, min(t, (right - left - min_counter) / 2.0))
+    # Both insets are clamped TOGETHER, against the room the two of them share.
+    # Clamping each to half the width separately is what the single-stroke
+    # version did, and with two different insets that lets their sum exceed the
+    # letter and invert the counter again -- the winding fault this docstring
+    # opens with, which passed both masters and failed in between.
+    tl = t if tl is None else tl
+    room_w = right - left - min_counter
+    if t + tl > room_w and t + tl > 0:
+        k = max(0.0, room_w) / (t + tl)
+        t, tl = t * k, tl * k
+    t, tl = max(1.0, t), max(1.0, tl)
     room, tot = up - bot - min_counter, th_bot + th_top
     if tot > room and tot > 0:
         k = max(0.0, room) / tot
@@ -1151,7 +1176,7 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
          else min(r, (right - left) * 0.5))
     ry = min((up - bot) / 2.0 * 0.97, r) if ry is None else ry
     outer = d_shape(left, bot, right, up, r, ry)
-    inner = d_shape(left + t, bot + th_bot, right - t, up - th_top,
+    inner = d_shape(left + tl, bot + th_bot, right - t, up - th_top,
                     max(r - t, rmin),
                     max(ry - (th_bot + th_top) / 2.0, rmin))
     if area(outer) < 0:
@@ -1194,9 +1219,15 @@ def Be(pr):
     # m's crowding reduction here made Б lighter than all sixty panel faces.
     t = bowl_of(pr)[2]
 
+    # ...on the wall it curves, and only there. On the left the counter sits
+    # against the spine, exactly as B's does, and the spine here is Г's own --
+    # read off the arm's contour rather than taken as `pr.stem`, so it cannot
+    # drift from the letter it is spliced to. See bowl_pair's `tl`.
+    spine = arm[0].nodes[0].position.x - x0
+
     rx, ry = bowl_arc(pr, x0, x1, 0.0, top)
     body = bowl_pair(x0, 0.0, x1, top, t, th=pr.bar, r=rx, ry=ry,
-                     rmin=inner_radius(pr))
+                     rmin=inner_radius(pr), tl=spine)
 
     arm_right = max(n.position.x for n in arm[0].nodes)
     for n in arm[0].nodes:
@@ -1403,10 +1434,14 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     rx, ry = bowl_arc(pr, x0, right, 0.0, bt)
     spine = (rect(x0, 0.0, x0 + s, top) if shoulder is None
              else shoulder_spine(pr, shoulder, x0, s, top))
+    # `tl=s` -- the counter's left edge is the spine's own, not the bowl's
+    # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
+    # own shaved stem rather than the face's because that IS its spine. See
+    # bowl_pair's `tl`.
     return ([spine]
             + bowl_pair(x0, 0.0, right, bt, tt,
                         th=tt * pr.bar / pr.stem, r=rx, ry=ry,
-                        rmin=inner_radius(pr)))
+                        rmin=inner_radius(pr), tl=s))
 
 
 def Hard(pr, top=None):

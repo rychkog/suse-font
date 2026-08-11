@@ -116,6 +116,21 @@ class Latin:
         _o, _c = pr.paths("B")[0], pr.paths("B")[1]
         self.bowlStroke = (max(n.position.x for n in _o.nodes)
                            - max(n.position.x for n in _c.nodes))
+        # ...and the wall on the OTHER side is a different number, which is the
+        # whole of this reading's reason. B spends `bowlStroke` on the side it
+        # curves; on the left its counter sits against the stem, because there
+        # is no second wall there. Insetting a bowl by `bowlStroke` on both
+        # sides therefore draws a left wall B does not have, and Ь Ъ Б Ы each
+        # lost the difference out of their counters -- nine units at ExtraBold,
+        # which was exactly Ь's deficit against В.
+        #
+        # Measured on a SCANLINE rather than off the node box: a bowl's corner
+        # puts its control points outside the counter, so `min(node.x)` reports
+        # a counter wider than the curve by 14 units at ExtraBold. The same
+        # trap `Ve` documents for the vertical, and it flatters this reading in
+        # the direction that would hide the fault.
+        self.bowlInset = self._inset(pr, "B", cap)
+        self.bowlInsetStem = self.bowlInset / float(pr.stem)
 
         # -- the same questions again, at x-height ---------------------------
         # Cyrillic lowercase is largely small-capital in shape, which is
@@ -134,6 +149,15 @@ class Latin:
         _lo, _lc = pr.paths("b")[0], pr.paths("b")[1]
         self.lcBowlStroke = (max(n.position.x for n in _lo.nodes)
                              - max(n.position.x for n in _lc.nodes))
+        # b's left inset is NOT b's stem, and this is the half of the fault the
+        # capitals do not have. b lets its counter cut ten units INTO the stem
+        # -- 140 against a stem of 150 at ExtraBold, 28 against 29 at Thin --
+        # so the bowl's inner curve runs on into the stem instead of stopping
+        # against its edge. B does not: its counter sits exactly on the stem,
+        # 157 against 157. Two donors, two answers, and taking the capital's
+        # for both is the same fault in the other direction.
+        self.lcBowlInset = self._inset(pr, "b", xh)
+        self.lcBowlInsetStem = self.lcBowlInset / float(pr.lcStem)
 
         # How far the bowl SWEEPS: the horizontal reach of its outer arcs, as
         # a share of its own width. This is the face's roundness, and it is the
@@ -200,6 +224,27 @@ class Latin:
         xs = [n.position.x for p in pr.paths(name) for n in p.nodes]
         ys = [n.position.y for p in pr.paths(name) for n in p.nodes]
         return min(xs), min(ys), max(xs), max(ys)
+
+    @staticmethod
+    def _inset(pr, name, top):
+        """How far the bowl's counter sits from the letter's own left edge.
+
+        Swept rather than read at a fixed height, for the reason every probe
+        here sweeps: the row where a bowl's counter is widest is not the same
+        fraction of the height in B as in b, and a fixed line reads the corner
+        in one of them. The widest row is taken because that is where the
+        counter's left edge is furthest from the curve's influence -- above and
+        below it the corner is closing and the reading is about the radius.
+        """
+        best = None
+        for k in range(12, 89):
+            xs = scan(pr, name, top * k / 100.0)
+            if len(xs) < 4:
+                continue
+            w = xs[2] - xs[1]
+            if best is None or w > best[0]:
+                best = (w, xs[1] - xs[0])
+        return best[1] if best else None
 
     @staticmethod
     def _lean_width(pr, name, at, d=12.0):
@@ -332,6 +377,10 @@ class Latin:
             f"Y fork {self.yFork:.3f} cap     B waist {self.bWaist:.3f} cap",
             f"  B bowl   x[{self.bowlLeft:.0f},{self.bowlRight:.0f}] "
             f"width {self.bowlWidth:.0f}",
+            f"           wall {self.bowlStroke:.0f} on the side it curves, "
+            f"inset {self.bowlInset:.0f} ({self.bowlInsetStem:.3f} stem) on "
+            f"the side the spine is  --  b: {self.lcBowlStroke:.0f} and "
+            f"{self.lcBowlInset:.0f} ({self.lcBowlInsetStem:.3f} lc stem)",
             f"  descender depth {self.descDepth:.0f}   y tail depth "
             f"{self.yTailDepth:.0f} left {self.yTailLeft:.0f} "
             f"width {self.tailWidth:.0f}",
