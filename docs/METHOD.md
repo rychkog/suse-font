@@ -1660,6 +1660,21 @@ the top of the vertical bars.*
   counts at a fixed height).
 - **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
   letters.
+- **CLOSED, and the letter is finished. Д is narrow on purpose.** Every term
+  in it has now been read and every lever tried. The counter is 0.244 and
+  0.266 of its span at ExtraBold against a panel 0.421 and 0.398, and the
+  cause is the body's span, short at every weight. That span was solved,
+  drawn and shown **twice** — on 2026-08-09 against a target five per cent
+  too wide at Thin, and on 2026-08-11 against the corrected target, a
+  visibly smaller move that leaves the plinth alone and takes the lowercase
+  counter to 0.348. Both were rejected by eye in favour of the approved
+  letter. Ruled out on the way: the arm and the plinth (on the panel or
+  lighter), the counter's height (on the panel), the two walls read
+  separately (the panel's left wall is *wider* than ours, not lighter), and
+  the lean (below). **§8's finding about о, reached a second time by a
+  different road: the panel's median width is not this face's target.** A
+  width outside the panel is a finding only if the letter it should be
+  measured against is inside it, and here the whole face is narrow.
 - **CLOSED. Д's lean is off the panel on purpose.** Tried, measured, drawn and
   shown on 2026-08-10; the approved lean was preferred by eye against the
   straightened one at both drawn masters, and it also fails at the thing it
