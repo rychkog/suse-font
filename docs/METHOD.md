@@ -333,8 +333,23 @@ defect, but it is the same expression in the same position.
   and М's 0.845 *is* this face's reduction for four strokes across a cell. The
   uprights landed at 0.704 of n where the panel puts them at 0.922 and this
   face's own М puts them at 0.845, and the letter read visibly leaner than the
-  п and и beside it. The diagonals keep it: they are what the shorter cell
-  actually crowds.
+  п and и beside it.
+- **Counted twice again, in the one stroke the first fix did not reach.** The
+  diagonals kept `crowd3` on the argument that they are what the shorter cell
+  actually crowds — the box is М's, so the same width is crossed over two
+  thirds of the height and each diagonal leans half again as hard. That
+  describes something real and `diag` had already paid for it: М reduces its
+  own diagonal to 0.62 of its stem where its upright sits at 0.85, and *that*
+  is this face's answer for a stroke crossing a crowded cell. The diagonal
+  landed at 0.495 of n at ExtraBold and was `verify.sh`'s only red line for
+  four months of work, reported as "pre-existing" in three approvals running.
+  **A fault that survives inside a correct-sounding sentence is the hardest
+  kind here, and the sentence was in the recipe's own comment.** The panel
+  answers in the form the uprights were settled in — м's diagonal against n
+  over М's against H, since a lowercase diagonal is lighter than its capital's
+  in every face at once — and not one face in the bracket draws it *lighter*
+  than its own capital's: 1.02 to 1.06, middle half inside 0.97–1.07. Ours was
+  0.80. Fixed 2026-08-11; `tools/diagonals.py` reads it.
 
 **Tell:** `crowd3` on anything that is not literally three stems in a cell —
 and, separately, `crowd3` on a figure already read off a crowded donor. A
@@ -882,10 +897,11 @@ those two edges. One picture, again, and again it should have been first.
 | `relations.py` | §2's four relations — width/adv, counter aspect, counter/stem, solid band — over every drawn glyph at all four weights, each as a multiple of the face's own Latin. `--selftest` against shapes of known answer; `--calibrate` prints the host's own departures, which ARE the bar | no |
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
+| `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf` | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
-| `diagonals.py` | Ж and ж's centre stem against an arm, and the face's own X V W K Y measured **perpendicular** to the stroke | no |
+| `diagonals.py` | Ж and ж's centre stem against an arm; the face's own X V W K Y measured **perpendicular** to the stroke; and М and м's uprights and diagonals, each over its own case's stem, with the ratio the pair takes across the case. The upright half of that last reading is the probe's own check — it has to land on the 1.000 (0.979–1.035) м's approval already records from a different method | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build | — |
@@ -1321,6 +1337,32 @@ the four are correct:
   only one of the four that was.
 
 That is the whole argument for asking each reading twice.
+
+### A counter floor cannot describe a white between converging strokes
+
+`audit.py` flags a counter narrower than the narrowest the face's own lowercase
+shows at the same scan line. That figure is taken across the whole lowercase,
+and there is one shape it cannot describe: a white between two strokes running
+to a **vertex**. It closes to nothing at the vertex by construction, so its
+width at any one line is a fact about how far above the vertex that line falls,
+not about whether the letter is choked. The face's own w clears the check only
+because its three vertices are shallow — its centre white *is* the ExtraBold
+floor, at 15, so w sets a bar only w's own vertex depth can clear.
+
+Measured over the 46 panel faces drawing м with three whites at 0.55 of the
+x-height: the median face runs its narrowest at **0.42 of its own Latin floor**
+at Bold and ExtraBold, and **22 of the 46 go below their own floor outright**.
+Ours reads 9.27, 2.23, 1.19 and 0.93 across the axis — at Bold outside the
+panel on the *open* side, more open than any of the eleven faces nearest it in
+weight. The check was reporting the most open м in its bracket, so м is exempt
+from that one reading and nothing else (`audit.VERTEX_COUNTER`).
+
+**The general lesson is about the direction a gate fires in.** A one-unit
+finding against a floor half the panel ignores is not a small fault; it is
+evidence the floor does not apply. Before answering a gate, read the same
+quantity across the panel and check which side of it you are actually on —
+here the honest reading was that the letter is too *open*, which no amount of
+tuning toward the gate would have found.
 
 ### A diagonal is solved over its donor's run, not over the gap it sits in
 

@@ -278,6 +278,31 @@ CORNER_PAIRS = [
 # still reports.
 CORNER_EXEMPT = {"tse-cy", "shcha-cy"}
 
+# The counter floor below is a figure taken across the whole lowercase, and
+# there is one shape it cannot describe: a white between two strokes that
+# CONVERGE. It closes to nothing at the vertex by construction, so how wide it
+# is at any one scan line is a fact about how far above the vertex that line
+# happens to fall, not about whether the letter is choked. The face's own w
+# survives the check only because its three vertices are shallow -- its centre
+# white is 15 at ExtraBold and IS the floor, so w sets a bar that only w's own
+# vertex depth can clear.
+#
+# Measured over the 46 panel faces that draw м with three whites at this line:
+# the median face runs its narrowest at 0.42 of its OWN Latin floor at Bold and
+# ExtraBold, and 22 of the 46 go below their own floor outright. Ours reads
+# 9.27, 2.23, 1.19 and 0.93 across the axis -- at Bold it is OUTSIDE the panel
+# on the OPEN side, more open than any of the eleven faces nearest it in
+# weight, and at ExtraBold it is a single unit under a floor that half the
+# panel ignores. The check was reporting the most open м in its bracket.
+#
+# So м is exempt from the counter floor and from nothing else; its two outer
+# whites, 30 and 31 at ExtraBold, are not what this is about and would still
+# have to answer for themselves if this were narrowed to one gap. М is the
+# Latin M unchanged and has never reported here, so it is not listed: an
+# exemption written for a glyph that does not need one is a hole nobody is
+# watching.
+VERTEX_COUNTER = set("м")
+
 # Д Ц Щ Џ and their lowercase hang a TAIL off the baseline, and a tail is not
 # a descender. p's stroke carries on down past the baseline; ц's turns and
 # stops. They are different features and they do not reach the same depth --
@@ -768,7 +793,7 @@ def sweep(gs, subjects, ref, weight):
                            f"than the face's own stem {stem:.0f}")
 
         # counters that have closed to slits
-        if stem:
+        if stem and ch not in VERTEX_COUNTER:
             xs = runs(polys, top * 0.55)
             for g in (b - a for a, b in zip(xs[1::2], xs[2::2])):
                 if 0 < g < floor:

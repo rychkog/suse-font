@@ -1,6 +1,6 @@
 """What does a Ж weigh, and what does this face do with a diagonal?
 
-Two questions, one pass over each face:
+Three questions, one pass over each face:
 
   * Ж and ж -- the centre stem against an arm, and the arm against the face's
     own stem for that case. ZHE_STEM is a flat 0.86 read off ONE face.
@@ -8,6 +8,14 @@ Two questions, one pass over each face:
     stroke, against H. Ж's arms take m's three-upright crowding reduction, and
     whether a diagonal letter in this face is reduced at all is a question the
     face can answer for itself.
+  * М and м -- both uprights and both diagonals, each over its own case's
+    stem, and the ratio the pair of them takes across the case. м is built as
+    М at x-height, so every one of those four figures is inherited, and the
+    question this answers is whether a face reduces its lowercase diagonal
+    BEYOND whatever its capital already does. The upright half of the same
+    reading is the check on the probe: м's approval records the panel's
+    upright ratio as 1.000 with the middle half inside 0.979-1.035, read a
+    different way, so this one has to land there too.
 
 A diagonal's horizontal run is wider than the stroke by 1/cos of its lean, so
 every thickness here is divided by that -- the slope comes from tracking the
@@ -79,6 +87,47 @@ def zhe(ps, ref):
     return mids[len(mids) // 2], arms[len(arms) // 2]
 
 
+def em_four(ps, ref):
+    """(upright, diagonal) of an М-shaped letter, perpendicular, as medians.
+
+    Four strokes: the outer pair stand up, the inner pair lean to the vertex.
+    Both are read at every cut in the band where all four stand apart, and the
+    median is taken, for the reason `zhe` takes one -- a two-cut estimate of a
+    leaning stroke drifts with the height it is read at, so the first clean cut
+    reports where the sweep started and not what the letter does. The band
+    itself cannot be fixed either: for this face's own М all four are apart
+    over 0.36..0.95 of the cap at Thin and only 0.53..0.89 at ExtraBold, so a
+    single height reads merged ink at one master or the other.
+
+    The shape is checked rather than assumed. A face whose м is not М's
+    construction -- and some draw it with a rounded vertex or as a three-arch
+    letter -- gives four runs that do not answer this description, so the outer
+    pair must be within a twentieth of vertical and the inner pair must
+    actually lean. Otherwise the reading is dropped, not guessed at.
+    """
+    if not ps:
+        return None
+    ups, dis = [], []
+    for k in range(30, 90, 2):
+        y1, y2 = ref * k / 100.0, ref * (k + 6) / 100.0
+        if len(P.runs(ps, y1)) != 4 or len(P.runs(ps, y2)) != 4:
+            continue
+        v = [slope_and_width(ps, y1, y2, i) for i in range(4)]
+        if any(x is None or x[0] <= 1 for x in v):
+            continue
+        if max(abs(v[0][1]), abs(v[3][1])) > 0.05:
+            continue
+        if min(abs(v[1][1]), abs(v[2][1])) < 0.15:
+            continue
+        ups.append((v[0][0] + v[3][0]) / 2.0)
+        dis.append((v[1][0] + v[2][0]) / 2.0)
+    if not ups:
+        return None
+    ups.sort()
+    dis.sort()
+    return ups[len(ups) // 2], dis[len(dis) // 2]
+
+
 def diagonals(f, cm, gs, cap):
     """Each of X V W K Y's diagonal strokes, perpendicular, over H's stem."""
     out = {}
@@ -117,6 +166,21 @@ def read(f):
         if z:
             row["lc mid/arm"], row["lc arm/stem"] = z[0] / z[1], z[1] / lcs
 
+    cap4 = em_four(P.contours(f, "М", cm, gs), cap)
+    lc4 = em_four(P.contours(f, "м", cm, gs), xh) if lcs and xh else None
+    if cap4:
+        row["М up/H"], row["М diag/H"] = cap4[0] / stem, cap4[1] / stem
+    if lc4:
+        row["м up/n"], row["м diag/n"] = lc4[0] / lcs, lc4[1] / lcs
+    if cap4 and lc4:
+        # The two figures the recipe inherits, as the shift each takes across
+        # the case and nothing else. This is the form m's uprights were settled
+        # in and the only form that can answer the question: an absolute
+        # lowercase diagonal is lighter than its capital's in every face at
+        # once, because the capital's is heavier to begin with.
+        row["м/М up"] = (lc4[0] / lcs) / (cap4[0] / stem)
+        row["м/М diag"] = (lc4[1] / lcs) / (cap4[1] / stem)
+
     for ch, v in diagonals(f, cm, gs, cap).items():
         row[ch] = v / stem
     return row
@@ -127,6 +191,7 @@ OURS = [("Thin", "fonts/ttf/SUSEMono-Thin.ttf"),
         ("Bold", "fonts/ttf/SUSEMono-Bold.ttf"),
         ("ExtraBold", "fonts/ttf/SUSEMono-ExtraBold.ttf")]
 KEYS = ["mid/arm", "arm/stem", "lc mid/arm", "lc arm/stem",
+        "М up/H", "М diag/H", "м up/n", "м diag/n", "м/М up", "м/М diag",
         "X", "V", "W", "K", "Y"]
 
 

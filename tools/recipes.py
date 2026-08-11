@@ -2256,13 +2256,25 @@ def Em(pr, top=None, bottom=0.0):
     # 0.704 against their 1.000 looks like. See F3.
     us = upright * pr.stem
 
-    # The diagonals do take it. They are the strokes the shorter cell actually
-    # crowds: the box is М's, so the same width has to be crossed over two
-    # thirds of the height and each diagonal leans half again as hard, putting
-    # far more of its width into the wedge between it and its upright. This is
-    # the same reduction the face gives m's third stem against n, and the same
-    # one Ж's arms take.
-    ds = diag * pr.stem * L(pr).crowd3
+    # The diagonals do not take it either, and this was the second half of the
+    # same fault. The argument for applying it here -- the box is М's, so the
+    # same width is crossed over two thirds of the height and each diagonal
+    # leans half again as hard -- describes something real, and `diag` has
+    # already paid for it: it is read off М at this master, and М's diagonal is
+    # ALREADY reduced to 0.62 of its own stem where the upright sits at 0.85.
+    # That reduction is this face's answer for a stroke crossing a crowded
+    # cell. Taking m's three-upright figure on top counted it twice, exactly as
+    # it did for the uprights, and left the one stroke the first fix did not
+    # reach at 0.495 of n at ExtraBold.
+    #
+    # The panel settles it in the same form the uprights were settled in --
+    # the shift the figure takes across the case, since a lowercase diagonal is
+    # lighter than its capital's in every face at once. Over the faces nearest
+    # this weight, м's diagonal against n is 1.02 to 1.06 of М's against H,
+    # middle half inside 0.97 to 1.07 at three of the four weights; not one
+    # face in the bracket draws it LIGHTER than its own capital's. Ours was
+    # 0.80. See `tools/diagonals.py` and METHOD F3.
+    ds = diag * pr.stem
 
     # The vertex is М's own height, moved by the shift the panel gives that
     # landmark across the case: over the 51 faces that draw both, м's vertex
