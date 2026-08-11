@@ -1,10 +1,15 @@
-"""м's two diagonals, at the weight they were and the weight М gives them.
+"""Two builds of the same letters, side by side and adjacent.
 
-    ./venv/bin/python tools/em_sheet.py OLD_DIR [NEW_DIR]
+    ./venv/bin/python tools/em_sheet.py OLD_DIR [NEW_DIR] [--key value ...]
 
 OLD_DIR is any stashed build -- copy the four static ttfs aside before
 rebuilding -- and NEW_DIR defaults to the live `fonts/ttf`, so re-running this
 after a further change needs only the one argument.
+
+The sample is overridable, because the machinery is the point and the letters
+are not: `--company`, `--words` (space separated), `--line`, `--left`,
+`--right` for the two column labels, and `--out` for the file name. The
+defaults are м's diagonals, which is what it was first written for.
 
 Two builds, each a directory of SUSEMono-<weight>.ttf, drawn ADJACENT on one
 line per weight rather than as two blocks -- a difference of a tenth of a stem
@@ -52,8 +57,25 @@ def label(sz):
 
 LAB = label(20)
 LAB_S = label(15)
-OLD = sys.argv[1]
-NEW = sys.argv[2] if len(sys.argv) > 2 else "fonts/ttf"
+_pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+_flag = {}
+_rest = sys.argv[1:]
+for _i, _a in enumerate(_rest):
+    if _a.startswith("--") and _i + 1 < len(_rest):
+        _flag[_a[2:]] = _rest[_i + 1]
+        if _rest[_i + 1] in _pos:
+            _pos.remove(_rest[_i + 1])
+OLD = _pos[0]
+NEW = _pos[1] if len(_pos) > 1 else "fonts/ttf"
+COMPANY = _flag.get("company", COMPANY)
+WORDS = tuple(_flag["words"].split()) if "words" in _flag else WORDS
+LINE = _flag.get("line", LINE)
+LEFT_LABEL = _flag.get("left", "approved")
+RIGHT_LABEL = _flag.get("right", "М's own diagonal")
+OUT = _flag.get("out", "em_sheet.png")
+TITLE = _flag.get("title", "in company -- м beside the М it is built "
+                  "from, and beside the uprights and the other diagonal it "
+                  "is read against")
 PAD = 200
 
 
@@ -84,8 +106,8 @@ def pair(name, text, size, tag=True):
            anchor="lm")
     d.line([(PAD + tw + 30, 4), (PAD + tw + 30, h - 4)], fill=(210, 210, 210))
     if tag:
-        d.text((PAD, 2), "approved", font=LAB_S, fill=(150, 150, 150))
-        d.text((PAD + tw + 60, 2), "М's own diagonal", font=LAB_S,
+        d.text((PAD, 2), LEFT_LABEL, font=LAB_S, fill=(150, 150, 150))
+        d.text((PAD + tw + 60, 2), RIGHT_LABEL, font=LAB_S,
                fill=(150, 40, 40))
     return im
 
@@ -109,7 +131,7 @@ def small_pair(name, size):
     d.text((0, 8), "%s %dpx" % (name, size), font=LAB_S, fill=(130, 130, 130))
     y = 4
     for i, (t, b) in enumerate(zip(tiles, big)):
-        d.text((0, y + 26), ("approved", "М's own")[i], font=LAB_S,
+        d.text((0, y + 26), (LEFT_LABEL, RIGHT_LABEL)[i], font=LAB_S,
                fill=((150, 150, 150), (150, 40, 40))[i])
         im.paste(t, (PAD, y))
         im.paste(b, (PAD, y + t.height + 4))
@@ -133,9 +155,7 @@ def stack(bands, gap=26):
 
 def main():
     out = stack([
-        band("in company -- м beside the М it is built from, and beside the "
-             "uprights and the other diagonal it is read against",
-             [pair(n, COMPANY, 120) for n in WEIGHTS]),
+        band(TITLE, [pair(n, COMPANY, 120) for n in WEIGHTS]),
         band("among the whole drawn lowercase",
              [pair(n, ALPHABET, 56, tag=False) for n in WEIGHTS]),
         band("in words",
@@ -143,8 +163,8 @@ def main():
         band("at reading size -- as delivered, and magnified %d times" % MAG,
              [small_pair(n, s) for n in WEIGHTS for s in SMALL]),
     ])
-    out.save("tools/out/em_sheet.png")
-    print("wrote tools/out/em_sheet.png  %dx%d" % out.size)
+    out.save("tools/out/" + OUT)
+    print("wrote tools/out/%s  %dx%d" % ((OUT,) + out.size))
 
 
 if __name__ == "__main__":
