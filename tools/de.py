@@ -211,11 +211,11 @@ def solve():
 
     ref = panel()
     font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
-    keep = RU.DE_LEAN
+    keep = RU.DE_FIT
 
     def read_at(pr, name, k=None):
-        RU.DE_LEAN = (keep if k is None else
-                      {c: (k, 0.0, k, k) for c in keep})
+        RU.DE_FIT = (keep if k is None else
+                     {c: (k, 0.0, k, k) for c in keep})
         paths = RU.RECIPES[name](pr._pr if name == "De-cy" else pr)
         polys = [[(x, y) for x, y in _flatten(p, 96)] for p in paths]
         xs = [q[0] for p in polys for q in p]
@@ -232,10 +232,10 @@ def solve():
             img = ImageChops.logical_xor(img, lay)
         return read_mask(np.asarray(img) > 0, 600.0 * sc, pr.stem)
 
-    print("Д's lean solved against the panel's own, per case per master\n")
+    print("Д's body solved against the panel's own span, per case per master\n")
     solved = {}
     for case, ch, name in (("cap", "Д", "De-cy"), ("lc", "д", "de-cy")):
-        pts = [(s, r["lean"]) for s, r in ref[ch]]
+        pts = [(s, r["span_h/adv"]) for s, r in ref[ch]]
         for mi, wname in ((0, "Thin"), (1, "ExtraBold")):
             pr = Lower(Params(font, mi))
             here = pr._pr if case == "cap" else pr
@@ -247,28 +247,30 @@ def solve():
             # than this one and every target solved against it was the wrong
             # bucket's. The width solve that was rejected by eye used it too.
             want = P.compare(pts, here.stem / float(UPM), 0.0)[0]
-            # a leg straight enough merges into the stem and the counter
-            # stops being a separate region: that is "too straight", and it
-            # has to be said or the bisection walks to that bound
-            lo, hi = 0.30, 1.10
-            for _ in range(20):
+            # a body narrow enough closes the counter altogether and the
+            # reading returns nothing: that is "too narrow", and it has to be
+            # said or the bisection walks to that bound
+            lo, hi = 0.70, 1.20
+            for _ in range(22):
                 mid = 0.5 * (lo + hi)
                 r = read_at(pr, name, mid)
-                if r is None or r["lean"] > want:
-                    hi = mid
-                else:
+                if r is None or r["span_h/adv"] < want:
                     lo = mid
+                else:
+                    hi = mid
             k = 0.5 * (lo + hi)
             got = read_at(pr, name, k)
-            RU.DE_LEAN = keep
+            RU.DE_FIT = keep
             now = read_at(pr, name)
             solved[(case, mi)] = (here.stem, k)
-            print("  %s %-10s want %.3f   now %.3f -> %.3f   k %.3f   "
-                  "counter_w/span %.3f -> %.3f"
-                  % (ch, wname, want, now["lean"], got["lean"], k,
-                     now["counter_w/span_h"], got["counter_w/span_h"]))
-    RU.DE_LEAN = keep
-    print("\nDE_LEAN = {")
+            print("  %s %-10s want %.3f   span %.3f -> %.3f   body %.3f "
+                  "-> %.3f   counter_w/span %.3f -> %.3f   plinth/body %.3f"
+                  % (ch, wname, want, now["span_h/adv"], got["span_h/adv"],
+                     RU.de_body(here), k,
+                     now["counter_w/span_h"], got["counter_w/span_h"],
+                     got["plinth/span_h"]))
+    RU.DE_FIT = keep
+    print("\nDE_FIT = {")
     for case in ("cap", "lc"):
         (s0, v0), (s1, v1) = solved[(case, 0)], solved[(case, 1)]
         b = (v1 - v0) / ((s1 - s0) / 1000.0)
@@ -279,7 +281,7 @@ def solve():
 
 
 def main():
-    if "--solve" in sys.argv:
+    if "--span" in sys.argv:
         return solve()
     ref = panel() if "--panel" in sys.argv else {}
     print("Д д -- the span the counter is cut out of, and the strokes "
