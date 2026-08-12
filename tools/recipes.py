@@ -1114,6 +1114,55 @@ def d_shape(left, bot, right, up, r, ry=None):
     return path(ns)
 
 
+def _spine_walk(spine, y_end):
+    """A spine's own boundary, from its bottom-RIGHT corner -- lifted to
+    `y_end` -- round the top and down to just short of its bottom-LEFT.
+
+    Read off the spine's finished path rather than rewritten, so Ъ's elbow
+    keeps having exactly one description in this file and the capital keeps
+    the contour it was approved with. The direction is decided by the path
+    itself: whichever way makes the step off the bottom-right corner go UP.
+    """
+    def ends(ns):
+        y0 = min(n.position.y for n in ns)
+        flat = [k for k, n in enumerate(ns) if abs(n.position.y - y0) < 1e-6]
+        return (min(flat, key=lambda k: ns[k].position.x),
+                max(flat, key=lambda k: ns[k].position.x))
+
+    ns = list(spine.nodes)
+    bl, br = ends(ns)
+    if (br + 1) % len(ns) == bl:
+        ns = list(reverse(spine).nodes)
+        bl, br = ends(ns)
+    out = [node(ns[br].position.x, y_end, ns[br].type, ns[br].smooth)]
+    k = br
+    while (k + 1) % len(ns) != bl:
+        k = (k + 1) % len(ns)
+        n = ns[k]
+        out.append(node(n.position.x, n.position.y, n.type, n.smooth))
+    return out
+
+
+def _spine_bowl(outer, spine, left, s, up):
+    """The spine and the bowl as ONE contour, so the counter can cut into the
+    spine instead of being filled back in by it.
+
+    Three contours -- spine, bowl, counter -- cannot express this at all. The
+    spine and the bowl both wind positive and the counter negative, so where
+    the counter reaches back over the spine the winding still comes to one and
+    the ink returns. The silhouette does not change by an outline unit: this
+    is the same union, said in one path instead of two.
+    """
+    if area(outer) < 0:
+        outer = reverse(outer)
+    ns = [node(n.position.x, n.position.y, n.type, n.smooth)
+          for n in outer.nodes]
+    # the bowl's top-left corner, which is where the spine takes over
+    j = min(range(len(ns)), key=lambda k: abs(ns[k].position.x - left)
+            + abs(ns[k].position.y - up))
+    p = path(ns[j + 1:] + ns[:j] + _spine_walk(spine, up))
+    return p if area(p) > 0 else reverse(p)
+
 def bowl_arc(pr, left, right, bot, up):
     """How far a bowl's outer arc reaches, horizontally and vertically.
 
@@ -1144,7 +1193,7 @@ def bowl_arc(pr, left, right, bot, up):
 
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
               th_bot=None, th_top=None, r=None, ry=None, tl=None,
-              csweep=None):
+              csweep=None, cut=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -1223,10 +1272,21 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
     # at Thin to 0.24 at ExtraBold where the face's own b holds 0.45 and 0.44
     # and its o holds 0.45 at both. A caller with a lowercase donor to read
     # passes the share instead; `csweep` is that share.
-    inner_w = (right - t) - (left + tl)
+    #
+    # `cut` moves the counter's left edge INTO the spine and leaves it a
+    # straight line. b lets its counter run past its stem's right edge -- 140
+    # units of stroke beside it against a stem of 150 at ExtraBold, 28 against
+    # 29 at Thin -- and B does not, 157 against 157. The edge stays flat
+    # because this bowl is half b's height and has to run straight somewhere:
+    # rounding it as well, which was tried on 2026-08-12 and rejected, leaves
+    # the counter straight nowhere and it reads as an ellipse. Only a caller
+    # that draws its spine and bowl as ONE contour may pass it -- a separate
+    # spine rectangle fills the cut straight back in.
+    cl = left + tl - (cut or 0.0)
+    inner_w = (right - t) - cl
     ri = (max(min(csweep * inner_w, inner_w * 0.5), rmin) if csweep
           else max(r - t, rmin))
-    inner = d_shape(left + tl, bot + th_bot, right - t, up - th_top, ri,
+    inner = d_shape(cl, bot + th_bot, right - t, up - th_top, ri,
                     max(ry - (th_bot + th_top) / 2.0, rmin))
     if area(outer) < 0:
         outer = reverse(outer)
@@ -1537,16 +1597,25 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     # wide enough that its sweep still outruns the stroke. The lowercase bowl
     # is half that height and it does not: ь's fell to 0.24 at ExtraBold, ъ's
     # to 0.17 and ы's to 0.19, against b's own 0.44. See bowl_pair, and F2.
-    csweep = (L(pr).lcCounterSweep
-              if getattr(pr, "lower", False) else None)
+    lower = getattr(pr, "lower", False)
+    csweep = L(pr).lcCounterSweep if lower else None
+    # ...and how far the counter runs past the spine's edge, also b's and also
+    # the lowercase only. Taken as a SHARE of the spine rather than in units,
+    # because Ы's spine is its own shaved stem and not the face's -- the same
+    # reason `tl` is passed the spine below. `lcBowlInsetStem` is read per
+    # master, so the cut widens with the weight the way b's does: ten units at
+    # ExtraBold, one at Thin.
+    cut = s * (1.0 - L(pr).lcBowlInsetStem) if lower else 0.0
     # `tl=s` -- the counter's left edge is the spine's own, not the bowl's
     # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
     # own shaved stem rather than the face's because that IS its spine. See
     # bowl_pair's `tl`.
-    return ([spine]
-            + bowl_pair(x0, 0.0, right, bt, tt,
-                        th=tt * pr.bar / pr.stem, r=rx, ry=ry,
-                        rmin=inner_radius(pr), tl=s, csweep=csweep))
+    bowl = bowl_pair(x0, 0.0, right, bt, tt,
+                     th=tt * pr.bar / pr.stem, r=rx, ry=ry,
+                     rmin=inner_radius(pr), tl=s, csweep=csweep, cut=cut)
+    if not cut:
+        return [spine] + bowl
+    return [_spine_bowl(bowl[0], spine, x0, s, bt), bowl[1]]
 
 
 def Hard(pr, top=None):
