@@ -1556,16 +1556,19 @@ So a counter that bites into a stroke forces that stroke and the bowl into
 arrangement that can express the shape, and it is worth knowing before a
 session spends a round nudging a number that cannot move.
 
-The splice itself worked and is worth keeping in mind for whenever it is
-wanted: take the spine's own finished path and splice it into the bowl's
-outline at the bowl's top-left corner, so the elbow keeps having exactly one
-description in the file and the other case keeps the contours it was approved
-with. The silhouette does not change by a unit — it is the same union, said in
-one path instead of two — and that is also how to check it: build it, and
-every outer reading (`round.py`, the widths, the panel's ink) must come back
-identical. It did. **The counter shape it was built to carry was rejected by
-eye all the same** (§9), so this entry records the mechanism and not a
-construction that is in the font.
+`Soft` does it for the lowercase, in `_spine_bowl`: take the spine's own
+finished path and splice it into the bowl's outline at the bowl's top-left
+corner, so Ъ's elbow keeps having exactly one description in the file and the
+capitals keep the contours they were approved with. The silhouette does not
+change by a unit — it is the same union, said in one path instead of two — and
+that is also how to check it: build it, and every outer reading (`round.py`,
+the widths, the panel's ink) must come back identical. It does.
+
+The splice went in twice. The first counter shape it carried was rejected by
+eye and the mechanism came out with it; the second, a week's worth of
+measuring later on the same afternoon, was approved. **The mechanism was never
+what was wrong** — worth remembering when a rejected round takes a correct
+piece of plumbing down with it.
 
 ### A counter floor cannot describe a white between converging strokes
 
@@ -2026,17 +2029,21 @@ the top of the vertical bars.*
   scanline, for the lowercase only; the capitals keep `r - t` and are
   byte-identical. Awaiting a verdict.
 
-  **What is still open is the cut into the spine** — 1.079 of b's at Regular,
-  Bold and ExtraBold against a bracket of 1.000–1.009, because b lets its
-  counter run ten units past the stem's edge at ExtraBold and one at Thin. The
-  2026-08-12 attempt at it was rejected by eye and the reason is in F1: it
-  bought the cut by rounding the left flank, and this counter has to keep its
-  left side straight because it is too short to run straight anywhere else.
-  Any second attempt has to cut into the spine **without** taking the flat
-  away — which means the left side moves left and stays a line.
+  **The other half, the cut into the spine, went in on the second attempt.**
+  b lets its counter run past its own stem's right edge — 140 units of stroke
+  beside it against a stem of 150 at ExtraBold, 28 against 29 at Thin — where
+  B stops flat against it, 157 against 157. The first attempt bought that by
+  rounding the counter's left flank and was rejected by eye; the second moved
+  the left edge left and **left it a line**, which is the whole difference.
+  The left stroke at the counter's widest row now reads 28 / 76 / 124 / 140
+  against b's own 28 / 76 / 124 / 140, where it had been 29 / 81 / 133 / 150.
 
-  **в keeps the same construction and the same 1.079**; it is approved, and
-  pulling that thread is the user's call.
+  **CLOSED 2026-08-12**, both halves, approved.
+
+  **в keeps the same construction and the same 1.079** on the spine, and now
+  the old counter corner as well, so the lowercase family is not internally
+  consistent on either reading. в is approved and pulling that thread is the
+  user's call.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
