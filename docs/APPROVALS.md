@@ -85,12 +85,22 @@ lands where the offset would. Same face, same donor, same family, different
 condition: F1, and the boundary of F2 with it — `outer − stroke` **is** the
 offset and the offset is what a counter is. See METHOD F1 and §8.
 
-**What the round did leave.** The complaint that started it is still true and
-is now an open thread in METHOD §9: в's counters turn over 0.09 and 0.10 of
-their width at ExtraBold where b holds 0.43. The lever is not the counter's
-share of its own box. At ExtraBold в's outer corner is barely wider than the
-stroke, so any answer has to come from the outer or the waist — both approved,
-neither to be moved without a verdict.
+**Asked again the same day, and the answer is that в was right.** The
+complaint that started it — 0.09 and 0.10 of the counter's width at ExtraBold
+against b's 0.43 — was the wrong reading of the right letter, and the same
+wrong reading as the change itself: a share of the counter's own box. Read as
+ink, в's lobe ends are even. The widest disc that fits in the ink there, over
+the stroke, comes to **1.09 at Thin and 1.04–1.06 at ExtraBold, against the
+face's own B — the only other two-lobe letter it has — at 1.22 and 1.20 at
+Thin and 1.03 and 1.02 at ExtraBold.** Inside its own donor at every weight;
+the rejected version read 1.55. The counters are slots at the heavy end
+because the lobe sweeps 138 units where the stroke is 150, so the corner falls
+to `inner_radius` — 20 units, the face's own smallest interior turn, which is
+what this face draws when a turn has no room. The one lever that would open
+them is the lobe's sweep, and that was drawn as the bowl's sweep, shown, and
+rejected by eye on 2026-08-12 for digging the waist and pointing the junction.
+**Nothing further to try. в stands as approved, and now for a measured
+reason.**
 
 What follows is what was claimed when it was shown, kept because every number
 in it is true and it is what made a wrong shape look finished.
