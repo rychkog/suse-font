@@ -55,7 +55,37 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*Nothing is in review.*
+**ь ъ ы — the counter's shape, shown 2026-08-12.** All three together, because
+one construction draws all three. **ъ and ы are approved glyphs** (2026-08-06
+and 2026-08-12) and this is a change to them; the user named all three letters
+when choosing the thread. ь has never been on this ledger. **The fault was the
+counter's SHAPE, and the number every probe reported was only its symptom.**
+`d_shape` is flat down its left side, which is exactly right for B — 157 units
+of left stroke at every row of its counter — and wrong for b, which lets its
+counter run past the stem's own edge, 140 against a stem of 150 at ExtraBold
+and 28 against 29 at Thin, and rounds it on both sides. The capital's
+construction had been carried across the case boundary, and no gate here reads
+a shape, so `soft.py` reported 1.079 of b's for as long as the thread was open
+and that reads as a lever wanting a nudge. **Three contours cannot express
+it:** spine and bowl both wind positive and the counter negative, so wherever
+the counter reaches back over the spine the winding comes to one and the ink
+returns — the spine and the bowl are now one contour for the lowercase, and
+the capitals keep theirs untouched. **ь is b's bowl unit for unit at all four
+weights** — left stroke 28/76/124/140, counter 356/291/226/204, the same
+numbers, and ь/b now reads 1.000 on every reading `soft.py` takes. ъ matches
+it. **Nothing else moved:** exactly ь ъ ы differ from the previous build at
+every weight, no advance moved anywhere, and Ь Ъ Ы Б В в Я я are
+byte-identical. Roundness is unchanged, which is the check on the splice — the
+silhouette is the same union said in one path. ы also came off `signature.py`'s
+ACCEPTED list at Regular: its horizontal is back inside the Latin's own range
+on its own. **Recorded as still outside at showing:** (1) **ы's spine**, which
+mixes the cut with its own shave — 0.920 of b's at Regular against a bracket of
+0.938–0.986, and 0.877 at ExtraBold against 0.788–0.864. Ours runs 1.000,
+0.920, 0.882, 0.877 across the axis, monotonic, where the panel's own medians
+go 0.973, 0.985, 0.875, 0.843 and are not. The shave is a separate lever and
+was deliberately not touched in the same change. (2) **в keeps the old
+construction and now disagrees with its own family at 1.079** — approved, and
+left alone on purpose. Gates: all seven pass unfiltered.
 
 ## Not recorded
 
@@ -65,7 +95,7 @@ checkpoint sheets, which is not approval.
 **Capitals** — А Б В Г Е И Й Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Ю
 Ё І Ї Ў Ѐ Ѓ Ѕ Ј Ѝ Џ
 
-**Lowercase** — а е и й н о п р с т у х ц ч ш щ ы ь ю ё і ї ў ѐ
+**Lowercase** — а е и й н о п р с т у х ц ч ш щ ю ё і ї ў ѐ
 ѓ ѕ ј ѝ
 
 ## Not drawn

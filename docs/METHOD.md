@@ -303,6 +303,23 @@ The most frequent fault in this project by a wide margin.
 **Tell:** a constant whose name or docstring mentions one glyph, used in
 another. **Fix:** re-derive it in the new condition; do not scale the old one.
 
+**And the thing carried is not always a number.** ь ъ ы drew their counter
+with `d_shape` — flat down its left side, round on its right — because that is
+what B's counter is: 157 units of left stroke at every row of it. b's is not.
+b lets its counter run PAST the stem's right edge, 140 units of stroke against
+a stem of 150 at ExtraBold and 28 against 29 at Thin, so its counter is a
+rounded shape in its own right rather than the gap beside a straight edge. The
+capital's *construction* had been carried across the case boundary, and the
+face itself gives two different answers there.
+
+This one lasted because **no gate in this tree reads a shape.** `soft.py`
+reported the symptom as a number — the lowercase spine at 1.079 of b's where
+the panel holds 1.000 — for as long as the thread was open, and a number that
+size reads as a lever wanting a nudge, not as the wrong shape. It was only
+named by scanning the donor row by row and seeing its counter's left edge
+travel 41 units where ours stood still. **When a ratio will not close, print
+the donor's own profile before reaching for the lever that moves the ratio.**
+
 ### F2 · `outer − stroke` as an inner radius
 
 Goes negative once the stroke outgrows the corner, floors at its minimum, and
@@ -1476,6 +1493,26 @@ still agree on is in the part that is *not* the C — and they agreed on 0.13,
 addition and not a donor. Reading such a pair together costs one extra row in
 a probe and localises the fault before any lever is touched.
 
+### A counter cannot cut into a stroke that is a separate contour
+
+Three contours — spine, bowl, counter — cannot say "the counter runs a little
+way into the spine", and no amount of moving the counter left will make them.
+The spine and the bowl both wind positive and the counter negative, so
+wherever the counter reaches back over the spine the winding still comes to
+one and the ink returns. The counter simply stops looking like it moved.
+
+So a counter that bites into a stroke forces that stroke and the bowl into
+**one contour**. This is not a preference about tidiness, it is the only
+arrangement that can express the shape, and it is worth knowing before a
+session spends a round nudging a number that cannot move. `Soft` does it for
+the lowercase only, by splicing the spine's own finished path into the bowl's
+outline (`_spine_bowl`), so Ъ's elbow keeps having exactly one description in
+the file and the capitals keep the contours they were approved with.
+
+The silhouette does not change by a unit — it is the same union, said in one
+path instead of two. That is also how to check the splice: build it, and every
+outer reading (`round.py`, the widths, the panel's ink) must be identical.
+
 ### A counter floor cannot describe a white between converging strokes
 
 `audit.py` flags a counter narrower than the narrowest the face's own lowercase
@@ -1912,14 +1949,24 @@ the top of the vertical bars.*
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,
   which is a fresh-verdict trigger and the user's to pull, not this file's.
-- **The lowercase spine, ь ъ ы, is a different fault of the same family.**
-  Their bowl stroke already equalled their stem, so the 2026-08-11 change moved
-  nothing. But **b cuts its counter ten units into its own stem** — 140 against
-  150 at ExtraBold — and ours does not, so their left wall reads 1.079 of b's
-  where the panel holds 1.000 (bracket 1.000–1.009). Reproducing it means
-  drawing the spine and the bowl as **one contour**, as b is: a separate spine
-  rectangle cannot be cut into by a counter, because the union restores the
-  ink. Their counters are all inside the panel meanwhile.
+- **CLOSED 2026-08-12. The lowercase spine, ь ъ ы — and the fault was the
+  counter's SHAPE, not the number the probe was reporting.** Their left wall
+  read 1.079 of b's at Regular, Bold and ExtraBold where the panel holds 1.000
+  (bracket 1.000–1.009), and the reason is that `d_shape` is flat down its
+  left side. That is right for B, whose counter really is flat — 157 units of
+  left stroke at every row — and wrong for b, which lets its counter run past
+  the stem's edge and rounds it on both sides. A capital's construction
+  carried across the case boundary; see F1's second half, and §8 on why three
+  contours cannot express it. **ь is now b's bowl unit for unit at all four
+  weights** — left stroke 28/76/124/140 and counter 356/291/226/204, the same
+  numbers — and ъ matches it too. **Still outside:** ы, whose spine mixes the
+  cut with its own shave, sits at 0.920 of b's at Regular against a bracket of
+  0.938–0.986 and 0.877 at ExtraBold against 0.788–0.864. Ours runs 1.000,
+  0.920, 0.882, 0.877 — monotonic, where the panel's own medians go 0.973,
+  0.985, 0.875, 0.843 and are not. The shave is a separate lever and a
+  separate question. **в keeps the old construction and now disagrees with its
+  own family at 1.079**; it is approved, and pulling that thread is the user's
+  call.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
