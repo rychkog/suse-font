@@ -169,6 +169,9 @@ class Latin:
         # read as rectangles with rounded corners rather than as D-shapes.
         self.bowlSweep = self._sweep(pr, "B")
         self.lcBowlSweep = self._sweep(pr, "b")
+        # ...and the counter's own corner, which is NOT the outer sweep less
+        # the stroke. See `_counter_sweep`.
+        self.lcCounterSweep = self._counter_sweep(pr, "b")
         # ...and the vertical, which `_sweep` cannot answer: b turns its bowl in
         # over 0.400 of the height at each end and stands still for the 0.20
         # between, flat across the axis, and B agrees at 0.454.
@@ -293,6 +296,46 @@ class Latin:
         tall = min((hi - lo for lo, hi in zip(ys[0::2], ys[1::2])
                     if lo <= at <= hi), default=None)
         return across if tall is None else min(across, tall)
+
+    @staticmethod
+    def _counter_sweep(pr, name):
+        """The same question asked of the COUNTER, over the counter's own width.
+
+        `_sweep` reads the bowl's outside, and the inside is not derivable from
+        it: this face draws its counter's corner at 0.45 of the counter's width
+        in b and 0.45 in o at Thin, and 0.43 and 0.45 at ExtraBold -- flat
+        across the axis -- while `outer sweep - stroke`, which is what the
+        recipes had been using, collapses from 0.45 to 0.24 over the same
+        distance because the stroke grows five times and the sweep does not.
+        That is F2 with a different name on it.
+
+        Read by SCANLINE off the counter's own contour, not off its nodes.
+        `_sweep` can use nodes because a bowl's outer arcs run corner to
+        corner, but this counter's extremes do not land on on-curve points --
+        the node span comes out 320 units where the drawing is 356, and the
+        share reads 0.503 instead of 0.452. Eleven per cent, in the direction
+        that would make the corner too big. Same trap as `_ry_share` and
+        `_inset`, and it is the reason both of those sweep too.
+
+        Both flanks are averaged because this face draws them equal: 161
+        against 159 at Thin and 94 against 88 at ExtraBold.
+        """
+        poly = _flatten(pr.paths(name)[1])
+        ys = [y for _, y in poly]
+        y0, hgt = min(ys), max(ys) - min(ys)
+        lo, hi = [], []
+        for k in range(1, 400):
+            y = y0 + hgt * k / 400.0
+            xs = [x0 + (x1 - x0) * (y - ya) / (yb - ya)
+                  for (x0, ya), (x1, yb) in zip(poly, poly[1:] + poly[:1])
+                  if (ya - y) * (yb - y) < 0]
+            if len(xs) >= 2:
+                lo.append(min(xs))
+                hi.append(max(xs))
+        if not lo:
+            return 0.45
+        lx, rx = min(lo), max(hi)
+        return (((max(lo) - lx) + (rx - min(hi))) / 2.0) / (rx - lx)
 
     @staticmethod
     def _sweep(pr, name):
