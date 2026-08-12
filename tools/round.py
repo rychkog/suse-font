@@ -61,10 +61,11 @@ import probe as P
 # (label, glyph, band low, band high, read the LEFT edge, runs to drop
 #  from the right before looking -- see `drop` in the docstring)
 #
-# Bands are fractions of the case's own height. They are hand-set and that is
-# deliberate: a swept band has to decide where a bowl ends, and every rule for
-# that either reads the stem or cuts the arc short in at least one of these
-# letters. Written down instead, they can be argued with.
+# The band here is not the bowl -- the bowl finds itself inside `flat`. It is
+# only the stretch of the letter the sweep looks at, and for every letter but
+# one that is the whole of it, 0.02 to 0.98. The exception is в and В, which
+# hold two bowls: the rule would find the wider and never see the other, so
+# these are the only rows that carry a real band, and they say which half.
 LOWER = (
     ("о", "о", 0.02, 0.98, False, 0),
     ("б", "б", 0.02, 0.98, False, 0),
@@ -77,6 +78,9 @@ LOWER = (
     ("ф", "ф", 0.02, 0.98, False, 0),
     ("я", "я", 0.02, 0.98, True, 0),
     ("э", "э", 0.02, 0.98, False, 0),
+    # э's back faces right and є's faces left: they are the same drawing
+    # reflected, and reading them together is how the arm was caught
+    ("є", "є", 0.02, 0.98, True, 0),
     # the host's own, and the bar
     ("b", "b", 0.02, 0.98, False, 0),
     ("p", "p", 0.02, 0.98, False, 0),
@@ -96,6 +100,7 @@ UPPER = (
     ("Ф", "Ф", 0.02, 0.98, False, 0),
     ("Я", "Я", 0.02, 0.98, True, 0),
     ("Э", "Э", 0.02, 0.98, False, 0),
+    ("Є", "Є", 0.02, 0.98, True, 0),
     ("B upper", "B", 0.52, 0.98, False, 0),
     ("B lower", "B", 0.02, 0.48, False, 0),
     ("D", "D", 0.02, 0.98, False, 0),

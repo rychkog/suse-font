@@ -1052,6 +1052,33 @@ def _mid_arm(pr, y=None):
     return rect(min(xs), y, max(xs), y + pr.bar)
 
 
+def _arm_end(body, lo, hi, left):
+    """Where a middle arm should die into a curved back.
+
+    Both letters that have one used to run the arm to the bowl's own extreme
+    -- x0 for Є, x1 for Э -- which is the single point where the back is
+    tangent to vertical. A flat arm end sitting exactly there squares the back
+    at the one height it should be roundest, and it does it over the arm's
+    whole thickness, so the fault grows with the weight while looking innocent
+    at Thin: the back stood still over 0.13 of its edge at Thin and 0.25 at
+    ExtraBold, against the C it is drawn from holding 0.12 at every weight.
+
+    The arm has to reach far enough that no white is left between it and the
+    back at any height it spans, and not so far that it shows past the arc at
+    any of them. The back's own wall is that window, and neither of its edges
+    is a safe place to stop: ending on the inner one leaves the arm tangent to
+    the counter at the arm's own middle, ending on the outer one runs its two
+    corners exactly along the arc, and a boundary that touches another without
+    crossing it is F9. So the arm runs to the MIDDLE of the wall, which both
+    corners cross square -- read at the arm's top and bottom, taking whichever
+    is shallower, since the donor is a drawn C and not assumed symmetric.
+    """
+    def wall(y):
+        a, b = runs(body, y)[0] if left else runs(body, y)[-1]
+        return (a + b) / 2.0
+    return max(wall(lo), wall(hi)) if left else min(wall(lo), wall(hi))
+
+
 def E_ukr(pr):
     """Є -- C with a middle arm that stops short of the aperture.
 
@@ -1064,8 +1091,10 @@ def E_ukr(pr):
     ys = [n.position.y for p in c for n in p.nodes]
     x0, x1 = min(xs), max(xs)
     mid = (min(ys) + max(ys)) / 2.0
-    return clone_all(c) + [rect(x0, mid - pr.bar / 2.0,
-                                x0 + (x1 - x0) * 0.73, mid + pr.bar / 2.0)]
+    lo, hi = mid - pr.bar / 2.0, mid + pr.bar / 2.0
+    # Є's back is the left one, so that is the edge the arm must not square
+    end = _arm_end([_flatten(p) for p in c], lo, hi, True)
+    return clone_all(c) + [rect(end, lo, x0 + (x1 - x0) * 0.73, hi)]
 
 
 def d_shape(left, bot, right, up, r, ry=None):
@@ -1638,8 +1667,10 @@ def E_rev(pr, top=None):
     ys = [n.position.y for n in ns]
     mid = (min(ys) + max(ys)) / 2.0
     x0, x1 = min(xs), max(xs)
-    return body + [rect(x1 - (x1 - x0) * 0.73, mid - pr.bar / 2.0,
-                        x1, mid + pr.bar / 2.0)]
+    lo, hi = mid - pr.bar / 2.0, mid + pr.bar / 2.0
+    # reflected, so Э's back is the right one -- see `_arm_end`
+    end = _arm_end([_flatten(p) for p in body], lo, hi, False)
+    return body + [rect(x1 - (x1 - x0) * 0.73, lo, end, hi)]
 
 
 # З against this face's own O, and з against its own o -- the width each takes,
