@@ -57,7 +57,34 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*Nothing is in review.*
+**ь ъ ы — the spine cut, shown 2026-08-12.** All three together, one
+construction; all three are now approved glyphs and this changes them. **The
+second attempt at the half of this thread that was rejected earlier the same
+day.** b lets its counter run past its own stem's right edge — 140 units of
+stroke beside it against a stem of 150 at ExtraBold, 28 against 29 at Thin —
+where B stops flat against it, 157 against 157. The lowercase now takes b's,
+as a share of its own spine so that Ы's shaved stem gets the right amount
+rather than the face's. **The difference from the rejected attempt is one
+word: the counter's left edge moves left and stays a LINE.** That attempt
+bought the cut by rounding the flank as well, and this bowl is half b's height
+— it has to run straight somewhere, and its left side is the only place left.
+**Three contours cannot say it:** spine and bowl both wind positive and the
+counter negative, so wherever the counter reaches back over the spine the
+winding comes to one and the ink returns. The spine and the bowl are one
+contour for the lowercase (`_spine_bowl`, spliced from the spine's own
+finished path so Ъ's elbow keeps one description); the capitals keep theirs.
+**The left stroke at the counter's widest row now reads 28 / 76 / 124 / 140,
+which is b's own 28 / 76 / 124 / 140**, where it had been 29 / 81 / 133 / 150.
+ь/b comes to 1.000 on every reading `soft.py` takes. **Nothing else moved:**
+exactly ь ъ ы differ from the approved build at every weight, no advance moved
+anywhere, roundness is unchanged at every letter — which is the check on the
+splice, the silhouette being the same union said in one path — and Ь Ъ Ы Б В
+в Я я are byte-identical. Gates: all seven pass unfiltered. **Recorded as
+still outside at showing:** ы's spine mixes the cut with its own shave and
+stays outside its bracket at Regular and ExtraBold; the shave is a separate
+lever, deliberately untouched. в keeps the old construction on both the spine
+and the counter corner, so the lowercase family is not internally consistent
+on either reading; в is approved and was left alone on purpose.
 
 ## Rejected — shown and turned down, kept as the record
 
