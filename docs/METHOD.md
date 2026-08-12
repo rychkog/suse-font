@@ -352,6 +352,31 @@ which is B's kind of bowl in proportion whatever the case, and B's counter is
 flat down its left at both masters. What b has and this does not is the cut
 into the spine, which is worth ten units at ExtraBold and one at Thin — see §9.
 
+#### And then the same donor's counter share carried to в, the same afternoon
+
+**Rejected by eye, 2026-08-12.** b turns its counter over 0.45 of that
+counter's width, read off the contour by scanline and holding 0.443 at
+ExtraBold. That number was given to в's counters — same donor, same family,
+the letter measured 1.000 against b on everything `soft.py` takes — and the
+lobe's stroke stopped being a stroke. Walking the counter's own outline over
+the end and measuring across to the outer: **29 units at the extreme rising to
+38 at the shoulder**, on a letter whose whole stroke is 29. As approved it
+holds 29 flat. The lump is a third of the stroke again and it is at the
+shoulder, which is where the eye reads a curve.
+
+**What the share leaves out is the outer.** A counter is the far side of a
+stroke; its corner is set by the outer's corner and the stroke between them,
+so a share of the counter's own box only transfers where the OUTER is the
+same shape too. b's bowl is 1.23 to 1.43 times as tall as it is wide. в's
+lobes are 0.56 — half the letter tall and the whole of it across, so their
+outer corner is a wide flat ellipse where b's is a tall one. Same face, same
+donor, same family, different condition.
+
+**The tell:** a donor figure about a *counter* is only as transferable as the
+outer it sits in. Before carrying one, put the two outers side by side as
+proportions — and afterwards run `tools/wrap.py`, which is the reading that
+caught this and the one no gate takes.
+
 ### F2 · `outer − stroke` as an inner radius
 
 Goes negative once the stroke outgrows the corner, floors at its minimum, and
@@ -373,16 +398,33 @@ face's answer anyway — Ь holds 0.46 and 0.44 — because a cap-height bowl is
 wide enough that its sweep still outruns the stroke. A subtraction can be
 right at one size and wrong at another size of the same shape.
 
-**And once more in в's two counters, the same day, worse than anywhere else.**
-Same expression, `max(arc - t, ri)`, but what it subtracts from is the
-**waist** rather than a bowl's sweep, and a waist is the smallest arc in the
-letter. в's counters turned over 0.30 and 0.26 of their width at Thin and
-**0.09 and 0.10** at ExtraBold — two rectangles — against b's 0.45 and 0.43.
-Fixed with the same `lcCounterSweep`. **The tell to take from this pair: the
-damage an F2 subtraction does is set by what it subtracts FROM.** Off a wide
-bowl at cap height it is invisible (the capitals never needed fixing), off a
-half-height bowl it costs half the corner, and off a waist it costs all of it.
-Rank the instances by the size of the arc, not by the size of the stroke.
+**And read as the same fault in в's two counters the same day — wrongly.** The
+reading was real: в's counters turn over 0.30 and 0.26 of their width at Thin
+and **0.09 and 0.10** at ExtraBold, two rectangles by the heavy end, against
+b's 0.45 and 0.43. The same `lcCounterSweep` was put in, every reading
+`soft.py` takes came out at 1.000, and **it was shown and turned down.** What
+it did is in F1 below; what it means here is the boundary of this fault class:
+
+> **`outer − stroke` is not wrong because it is a subtraction. It is the
+> offset, and an offset is what a counter IS.** The fault is a subtraction
+> whose two terms belong to different curves, or one that drifts because the
+> stroke grows across the axis and the arc does not. Where the arc really is
+> the outer's own corner at that corner, the subtraction is the construction,
+> and replacing it with a share breaks the stroke.
+
+So the previous instance is narrower than it was written. `bowl_pair`'s counter
+took its radius from the bowl's sweep — a figure about the letter's width, not
+the corner the counter sits inside — and the share was the fix. в's counters
+took theirs from the arc they are actually in, and there the share was the
+break. **Check which of the two you have before reaching for a share:** ask
+whether the radius names the corner opposite this bit of counter, or something
+else about the letter.
+
+**The tell that survives:** the damage an F2 subtraction does is set by what it
+subtracts FROM. Off a wide bowl at cap height it is invisible — the capitals
+never needed fixing — off a half-height bowl it costs half the corner, and off
+a waist it costs all of it. Rank the instances by the size of the arc, not by
+the size of the stroke.
 
 **Tell, added:** an F2 expression that does *not* floor is still F2. Print what
 it comes to as a share of the thing it is a radius in, at both masters, and see
@@ -1058,6 +1100,7 @@ those two edges. One picture, again, and again it should have been first.
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
+| `wrap.py` | **how evenly a stroke wraps the end of a bowl** — the counter's own outline walked over the end, measured across to the outer, reported as the BULGE: the thickest place against the stroke at the extreme. The face holds 1.00–1.01 everywhere, ours too, so the bar is agreement rather than a threshold. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box, and the one that caught в | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
@@ -1553,6 +1596,29 @@ still agree on is in the part that is *not* the C — and they agreed on 0.13,
 0.13, 0.22, 0.25 to two decimals at all four weights, which is a shared
 addition and not a donor. Reading such a pair together costs one extra row in
 a probe and localises the fault before any lever is touched.
+
+### A counter is the far side of a stroke, not a shape with its own proportions
+
+Every reading this project takes of a counter — its width, its height, its
+corner as a share of its own box, its area against the stem — describes the
+white as if it were a shape being drawn. It is not. The counter and the outer
+are the two sides of one stroke, and what the eye reads is the stroke: whether
+it holds its weight round the turn.
+
+So a counter's corner is not a free number. It is whatever makes the counter
+the outer's corner brought in by the stroke, and it can only be copied from
+another letter where **that letter's outer is the same shape too**. b's 0.45
+is right for a bowl 1.23 to 1.43 times as tall as it is wide and wrong for в's
+lobes at 0.56, and the difference does not show in any reading of the counter
+alone — в measured 1.000 against b on every reading `soft.py` takes while the
+stroke was bulging by a third at the shoulder.
+
+`tools/wrap.py` is the reading: the counter's own outline walked over the end
+of the bowl, measured across to the outer, reported as the thickest place
+against the stroke at the extreme. This face holds 1.00–1.01 everywhere it
+draws a bowl. **Run it after any change to a counter, before showing the
+letter** — it is a second and it is the difference between a round shown and a
+round spent.
 
 ### A counter cannot cut into a stroke that is a separate contour
 
@@ -2051,12 +2117,25 @@ the top of the vertical bars.*
 
   **CLOSED 2026-08-12**, both halves, approved.
 
-  **в was brought in on the same afternoon and is the last of it.** It carried
-  both faults and the F2 one harder than any other letter in the face — its
-  counters turned over 0.09 and 0.10 of their width at ExtraBold, because what
-  the subtraction came off was the waist. Both fixed the same way; в/b now
-  reads 1.000 on every measure `soft.py` takes at every weight. **The lowercase
-  bowl family is internally consistent for the first time.**
+  **в was taken up the same afternoon, on the same reasoning, and turned
+  down** — the thread does not extend to it and the reason is worth keeping
+  open rather than closed. в's counters DO square off at the heavy end: they
+  turn over 0.09 and 0.10 of their width at ExtraBold where b holds 0.43 and o
+  0.45. But b's share of the counter's own box is not the lever, because в's
+  lobes are 0.56 as tall as they are wide where b's bowl is 1.23 to 1.43, so
+  the outer's corner is a different ellipse and the counter given b's share no
+  longer offsets it: `wrap.py` read the stroke bulging from 29 to 38 at the
+  shoulder at Thin, where the approved letter holds 29 flat. Shown and
+  rejected; see F1.
+
+  **What is still true and still unanswered:** at ExtraBold в's outer corner
+  is barely wider than the stroke — the waist reaches in 0.288 of the bowl's
+  width against a stem nearly as thick — so the offset that draws the counter
+  has almost nothing left to turn with. Any lever that opens those counters
+  has to come from the outer or from the waist, both of which are approved,
+  and neither is worth moving without the user's word. **в stands as
+  approved.** The lowercase bowl family is consistent on the spine and on
+  ь ъ ы's counters; в's counters are the part that is not, deliberately.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
