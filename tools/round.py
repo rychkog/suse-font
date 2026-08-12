@@ -21,10 +21,20 @@ because near a vertical tangent an arc leaves its maximum very slowly. An early
 version of this probe used one per cent and reported в matching the family it
 was visibly outside.
 
-**Each bowl gets its own band**, listed below, because a bowl occupies a
-different part of every letter -- ь's is the lower half, в's is two lobes, я's
-is the upper half and opens the other way. A single band across the x-height
-reads the stem in half of them and reports 1.00.
+**The band is found, not set.** A first version hand-set one per letter and got
+the soft-bowl family wrong: `soft_bowl`'s top is not a fixed height, it rises
+with the stroke, from 0.51 of the cap at Thin to 0.67 at ExtraBold. A band of
+0.02-0.48 therefore read the lower two thirds of those bowls and missed exactly
+the part that curves in, reporting Ь at 0.14 when its bowl is very nearly
+circular. A hand-set band is a constant measured in one condition and carried
+to another -- F1, in the probe rather than in the drawing.
+
+So each bowl locates itself: take the outer edge over the whole letter, and
+keep the contiguous run of rows around its widest point where the edge is still
+past the halfway mark between its own extremes. That is the bowl and nothing
+else, at whatever height the master happens to put it. Only the two lobes of
+в and В still need saying, because one letter holds two bowls and the rule
+would find only the wider.
 
 **Which side.** For most letters the bowl's outer is the right edge. For the
 ones whose stem is on the right -- я Я d, and Э э C c, whose backs face left --
@@ -57,15 +67,15 @@ import probe as P
 # letters. Written down instead, they can be argued with.
 LOWER = (
     ("о", "о", 0.02, 0.98, False, 0),
-    ("б", "б", 0.02, 0.66, False, 0),
+    ("б", "б", 0.02, 0.98, False, 0),
     ("в upper", "в", 0.52, 0.98, False, 0),
     ("в lower", "в", 0.02, 0.48, False, 0),
-    ("ь", "ь", 0.02, 0.48, False, 0),
-    ("ъ", "ъ", 0.02, 0.48, False, 0),
-    ("ы", "ы", 0.02, 0.48, False, 1),
+    ("ь", "ь", 0.02, 0.98, False, 0),
+    ("ъ", "ъ", 0.02, 0.98, False, 0),
+    ("ы", "ы", 0.02, 0.98, False, 1),
     ("ю", "ю", 0.02, 0.98, False, 0),
     ("ф", "ф", 0.02, 0.98, False, 0),
-    ("я", "я", 0.45, 0.98, True, 0),
+    ("я", "я", 0.02, 0.98, True, 0),
     ("э", "э", 0.02, 0.98, False, 0),
     # the host's own, and the bar
     ("b", "b", 0.02, 0.98, False, 0),
@@ -76,20 +86,20 @@ LOWER = (
 )
 UPPER = (
     ("О", "О", 0.02, 0.98, False, 0),
-    ("Б", "Б", 0.02, 0.60, False, 0),
+    ("Б", "Б", 0.02, 0.98, False, 0),
     ("В upper", "В", 0.52, 0.98, False, 0),
     ("В lower", "В", 0.02, 0.48, False, 0),
-    ("Ь", "Ь", 0.02, 0.48, False, 0),
-    ("Ъ", "Ъ", 0.02, 0.48, False, 0),
-    ("Ы", "Ы", 0.02, 0.48, False, 1),
+    ("Ь", "Ь", 0.02, 0.98, False, 0),
+    ("Ъ", "Ъ", 0.02, 0.98, False, 0),
+    ("Ы", "Ы", 0.02, 0.98, False, 1),
     ("Ю", "Ю", 0.02, 0.98, False, 0),
     ("Ф", "Ф", 0.02, 0.98, False, 0),
-    ("Я", "Я", 0.45, 0.98, True, 0),
+    ("Я", "Я", 0.02, 0.98, True, 0),
     ("Э", "Э", 0.02, 0.98, False, 0),
     ("B upper", "B", 0.52, 0.98, False, 0),
     ("B lower", "B", 0.02, 0.48, False, 0),
     ("D", "D", 0.02, 0.98, False, 0),
-    ("P", "P", 0.52, 0.98, False, 0),
+    ("P", "P", 0.02, 0.98, False, 0),
     ("C", "C", 0.02, 0.98, True, 0),
     ("O", "O", 0.02, 0.98, False, 0),
 )
@@ -121,9 +131,22 @@ def flat(f, cm, gs, ch, top, y0, y1, left, drop=0):
         if not r:
             return None
         edge.append(-r[0][0] if left else r[-1][1])
-    m = max(edge)
+    m, lo = max(edge), min(edge)
+    if m <= lo:
+        return None
+    # the bowl locates itself: the contiguous rows around the widest point
+    # that are still past halfway between the edge's own extremes
+    half = lo + 0.5 * (m - lo)
+    i = edge.index(m)
+    a = i
+    while a > 0 and edge[a - 1] >= half:
+        a -= 1
+    b = i
+    while b < len(edge) - 1 and edge[b + 1] >= half:
+        b += 1
+    band = edge[a:b + 1]
     tol = TOL * upem / 1000.0
-    return sum(1 for v in edge if m - v <= tol) / float(len(edge))
+    return sum(1 for v in band if m - v <= tol) / float(len(band))
 
 
 def read(f):
