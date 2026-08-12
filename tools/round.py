@@ -30,6 +30,14 @@ reads the stem in half of them and reports 1.00.
 ones whose stem is on the right -- я Я d, and Э э C c, whose backs face left --
 it is the left. Getting this wrong is not a small error: it measures the
 opening instead of the back, and C's opening reads 0.00.
+
+**And ы Ы have no outer edge at all.** Their bowl sits BETWEEN the spine and a
+detached stem, so on every scanline the rightmost ink is that stem and the
+reading comes back 1.00 -- a perfect rectangle, which is a true description of
+a stem and says nothing about the bowl. Left as an artefact it would have
+quietly exempted the one letter in the family with the narrowest bowl. The fix
+is `drop`: discard that many runs from the end of each row before looking, so
+the bowl's own wall becomes the last thing left.
 """
 
 import sys
@@ -40,47 +48,50 @@ from fontTools.ttLib import TTFont
 
 import probe as P
 
-# (label, glyph, band low, band high, read the LEFT edge)
+# (label, glyph, band low, band high, read the LEFT edge, runs to drop
+#  from the right before looking -- see `drop` in the docstring)
 #
 # Bands are fractions of the case's own height. They are hand-set and that is
 # deliberate: a swept band has to decide where a bowl ends, and every rule for
 # that either reads the stem or cuts the arc short in at least one of these
 # letters. Written down instead, they can be argued with.
 LOWER = (
-    ("о", "о", 0.02, 0.98, False),
-    ("б", "б", 0.02, 0.66, False),
-    ("в upper", "в", 0.52, 0.98, False),
-    ("в lower", "в", 0.02, 0.48, False),
-    ("ь", "ь", 0.02, 0.48, False),
-    ("ъ", "ъ", 0.02, 0.48, False),
-    ("ю", "ю", 0.02, 0.98, False),
-    ("ф", "ф", 0.02, 0.98, False),
-    ("я", "я", 0.45, 0.98, True),
-    ("э", "э", 0.02, 0.98, False),
+    ("о", "о", 0.02, 0.98, False, 0),
+    ("б", "б", 0.02, 0.66, False, 0),
+    ("в upper", "в", 0.52, 0.98, False, 0),
+    ("в lower", "в", 0.02, 0.48, False, 0),
+    ("ь", "ь", 0.02, 0.48, False, 0),
+    ("ъ", "ъ", 0.02, 0.48, False, 0),
+    ("ы", "ы", 0.02, 0.48, False, 1),
+    ("ю", "ю", 0.02, 0.98, False, 0),
+    ("ф", "ф", 0.02, 0.98, False, 0),
+    ("я", "я", 0.45, 0.98, True, 0),
+    ("э", "э", 0.02, 0.98, False, 0),
     # the host's own, and the bar
-    ("b", "b", 0.02, 0.98, False),
-    ("p", "p", 0.02, 0.98, False),
-    ("d", "d", 0.02, 0.98, True),
-    ("c", "c", 0.02, 0.98, True),
-    ("o", "o", 0.02, 0.98, False),
+    ("b", "b", 0.02, 0.98, False, 0),
+    ("p", "p", 0.02, 0.98, False, 0),
+    ("d", "d", 0.02, 0.98, True, 0),
+    ("c", "c", 0.02, 0.98, True, 0),
+    ("o", "o", 0.02, 0.98, False, 0),
 )
 UPPER = (
-    ("О", "О", 0.02, 0.98, False),
-    ("Б", "Б", 0.02, 0.60, False),
-    ("В upper", "В", 0.52, 0.98, False),
-    ("В lower", "В", 0.02, 0.48, False),
-    ("Ь", "Ь", 0.02, 0.48, False),
-    ("Ъ", "Ъ", 0.02, 0.48, False),
-    ("Ю", "Ю", 0.02, 0.98, False),
-    ("Ф", "Ф", 0.02, 0.98, False),
-    ("Я", "Я", 0.45, 0.98, True),
-    ("Э", "Э", 0.02, 0.98, False),
-    ("B upper", "B", 0.52, 0.98, False),
-    ("B lower", "B", 0.02, 0.48, False),
-    ("D", "D", 0.02, 0.98, False),
-    ("P", "P", 0.52, 0.98, False),
-    ("C", "C", 0.02, 0.98, True),
-    ("O", "O", 0.02, 0.98, False),
+    ("О", "О", 0.02, 0.98, False, 0),
+    ("Б", "Б", 0.02, 0.60, False, 0),
+    ("В upper", "В", 0.52, 0.98, False, 0),
+    ("В lower", "В", 0.02, 0.48, False, 0),
+    ("Ь", "Ь", 0.02, 0.48, False, 0),
+    ("Ъ", "Ъ", 0.02, 0.48, False, 0),
+    ("Ы", "Ы", 0.02, 0.48, False, 1),
+    ("Ю", "Ю", 0.02, 0.98, False, 0),
+    ("Ф", "Ф", 0.02, 0.98, False, 0),
+    ("Я", "Я", 0.45, 0.98, True, 0),
+    ("Э", "Э", 0.02, 0.98, False, 0),
+    ("B upper", "B", 0.52, 0.98, False, 0),
+    ("B lower", "B", 0.02, 0.48, False, 0),
+    ("D", "D", 0.02, 0.98, False, 0),
+    ("P", "P", 0.52, 0.98, False, 0),
+    ("C", "C", 0.02, 0.98, True, 0),
+    ("O", "O", 0.02, 0.98, False, 0),
 )
 
 # The face's own answer, and what everything else is read against. Five
@@ -93,7 +104,7 @@ STEPS = 300
 TOL = 0.5
 
 
-def flat(f, cm, gs, ch, top, y0, y1, left):
+def flat(f, cm, gs, ch, top, y0, y1, left, drop=0):
     """Share of the bowl's outer edge standing still, over its own band."""
     name = cm.get(ord(ch))
     if name is None:
@@ -105,6 +116,8 @@ def flat(f, cm, gs, ch, top, y0, y1, left):
     edge = []
     for k in range(STEPS):
         r = P.runs(ps, top * (y0 + (y1 - y0) * k / (STEPS - 1.0)))
+        if drop:
+            r = r[:-drop]
         if not r:
             return None
         edge.append(-r[0][0] if left else r[-1][1])
@@ -121,8 +134,8 @@ def read(f):
         return None
     out = {}
     for rows, top in ((LOWER, xh), (UPPER, cap)):
-        for lab, ch, a, b, left in rows:
-            v = flat(f, cm, gs, ch, top, a, b, left)
+        for lab, ch, a, b, left, drop in rows:
+            v = flat(f, cm, gs, ch, top, a, b, left, drop)
             if v is not None:
                 out[lab] = v
     return out
@@ -169,7 +182,7 @@ def main():
                 continue
             bar = max(hv)
             cells = []
-            for lab, _ch, _a, _b, _l in rows:
+            for lab, _ch, _a, _b, _l, _d in rows:
                 if lab not in r:
                     continue
                 mark = ""
