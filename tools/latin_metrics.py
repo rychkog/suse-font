@@ -169,6 +169,30 @@ class Latin:
         # read as rectangles with rounded corners rather than as D-shapes.
         self.bowlSweep = self._sweep(pr, "B")
         self.lcBowlSweep = self._sweep(pr, "b")
+        # ...and the vertical, which `_sweep` cannot answer: b turns its bowl in
+        # over 0.400 of the height at each end and stands still for the 0.20
+        # between, flat across the axis, and B agrees at 0.454.
+        #
+        # **Reported, not used to draw.** It was read to give в's lobes a
+        # vertical radius of their own, and it does not transfer: a share taken
+        # off a bowl that is a whole x-height tall leaves a short lobe far too
+        # square, because b has room for a straight run between its arcs and a
+        # half-height lobe does not. в takes `bowl_arc`'s rule instead, where
+        # the lobe's own half-height binds. Kept because it is a true reading
+        # of the face and the next construction that needs a vertical radius
+        # should start from it -- and because the number that says *why* the
+        # obvious lever fails is worth as much as the one that works.
+        self.bowlRyShare = self._ry_share(pr, "B", cap)
+        self.lcBowlRyShare = self._ry_share(pr, "b", xh)
+        # How deep a TWO-LOBE letter pinches at its waist, over its own bowl
+        # width -- 0.353 at Thin falling to 0.288 at ExtraBold. b cannot answer
+        # this and neither can `_sweep`: a one-bowl letter has no waist, and
+        # the sweep is how far the arc reaches, which is a different question
+        # from how far the outline comes back in between two lobes. в had been
+        # taking the sweep for both, so making its arc reach properly also dug
+        # its waist to 144 units against B's 137 at ExtraBold and the junction
+        # came to a point where B steps square.
+        self.bowlWaist = self._waist(pr, "B", cap)
 
         self.lcWidest = max(b[2] - b[0] for b in
                             (self._bbox(pr, g)
@@ -294,6 +318,64 @@ class Latin:
         return (sum(dx[:2]) / 2.0) / (max(xs) - min(xs)) if dx else 0.47
 
     @staticmethod
+    def _ry_share(pr, name, top):
+        """The bowl's VERTICAL radius, as a share of the bowl's own height.
+
+        A bowl's outer edge stands still through the middle of its height and
+        turns in at each end; the straight run is what is left after the two
+        arcs, so the radius is half of what the arcs take. Read by scanline off
+        the drawing rather than from a node, because a bowl's corner puts its
+        control points outside the curve and there is no single node that means
+        "the radius" at both masters -- F8.
+
+        This exists because `_sweep` answers only the HORIZONTAL question, and
+        a caller that has no separate answer for the vertical has to tie one to
+        the other. Tying them is what made в square: the two attempts before
+        this differed in the horizontal radius and both derived the vertical
+        from it, so one came out a half-ellipse and the other a rectangle with
+        rounded corners, and no value of the one lever could have given both
+        readings at once.
+        """
+        lo, hi = 0.03 * top, 0.97 * top
+        n = 120
+        edge = []
+        for k in range(n):
+            xs = scan(pr, name, lo + (hi - lo) * k / (n - 1.0))
+            if not xs:
+                return None
+            edge.append(max(xs))
+        mx, mn = max(edge), min(edge)
+        if mx <= mn:
+            return None
+        tol = max(0.01 * (mx - mn), 2.0)
+        straight = sum(1 for e in edge if mx - e <= tol) / float(n)
+        return (1.0 - straight) / 2.0
+
+    @staticmethod
+    def _waist(pr, name, top):
+        """How far the outline comes back in between two lobes, over the
+        letter's own bowl width.
+
+        Swept over the middle third rather than read at `bWaist`, because the
+        deepest point of the pinch and the height the lobes divide at are not
+        the same row -- the lobes' arcs are still turning where the counters
+        have already met.
+        """
+        prof = []
+        for k in range(20, 81):
+            xs = scan(pr, name, top * k / 100.0)
+            if xs:
+                prof.append((k, max(xs)))
+        if not prof:
+            return None
+        band = [(k, v) for k, v in prof if 35 < k < 65]
+        if not band:
+            return None
+        allx = [n.position.x for p in pr.paths(name) for n in p.nodes]
+        return (max(v for _, v in prof) - min(v for _, v in band)) \
+            / float(max(allx) - min(allx))
+
+    @staticmethod
     def _span(pr, name):
         b = Latin._bbox(pr, name)
         return b[2] - b[0]
@@ -377,6 +459,9 @@ class Latin:
             f"Y fork {self.yFork:.3f} cap     B waist {self.bWaist:.3f} cap",
             f"  B bowl   x[{self.bowlLeft:.0f},{self.bowlRight:.0f}] "
             f"width {self.bowlWidth:.0f}",
+            f"           turns in over {self.bowlRyShare:.3f} of its height at "
+            f"each end (b {self.lcBowlRyShare:.3f}), sweeps "
+            f"{self.bowlSweep:.3f} of its width (b {self.lcBowlSweep:.3f})",
             f"           wall {self.bowlStroke:.0f} on the side it curves, "
             f"inset {self.bowlInset:.0f} ({self.bowlInsetStem:.3f} stem) on "
             f"the side the spine is  --  b: {self.lcBowlStroke:.0f} and "
