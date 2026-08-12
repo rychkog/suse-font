@@ -281,7 +281,10 @@ def cut_pass(selftest, subj):
 #           APPROVALS.md so a later pass does not read them as defects.
 ACCEPTED = {
     ("в", "Regular"): 0.92, ("в", "Bold"): 0.89, ("в", "ExtraBold"): 0.90,
-    ("ы", "Regular"): 0.92, ("ы", "Bold"): 0.88,
+    # ы at Regular came off this list on 2026-08-12: the lowercase counter's
+    # cut into the spine widened its bowl and its horizontal came back inside
+    # the Latin's own range on its own.
+    ("ы", "Bold"): 0.88,
     ("Ы", "Regular"): 0.89,
     ("ф", "Thin"): 1.07, ("ф", "Regular"): 0.98,
     ("Ф", "Thin"): 1.09,
