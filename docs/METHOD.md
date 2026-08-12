@@ -592,6 +592,30 @@ five and a half times.
 The recipe's own docstring said it read "where the bowl stops", and it did
 not. A comment describing the intent is not evidence the code has it.
 
+Э and Є joined their middle arm to the **letter's extreme** instead of to the
+**back's wall** — the largest node the donor C holds for Э, the smallest for
+Є. On E, where an arm-meets-upright is inherited from, those are the same
+place: a straight stem stands at the bounding box the whole way up. On a curve
+they meet at exactly one point, the tangent — and an arm is not a point. It
+touches the back over its own thickness, so a flat arm end sitting at the
+extreme squared the back at the one height it should be roundest, over `bar`
+units of it. The fault therefore grew with the bar and hid at the light
+master, where the bar is thinner than the arc's own near-vertical stretch:
+0.13 of the back's edge standing still at Thin against 0.25 at ExtraBold, with
+the C it is drawn from holding 0.12 at every weight. **The general form: a
+landmark defined at a point is only valid at a point.** Where the borrower
+meets the donor over a range, and the range is a stroke weight so it grows,
+the landmark has to be re-read across that range — which is what the fix does,
+taking the back's wall at the arm's own top and bottom rather than at its
+middle. Ending on either edge of that wall would have been F9, so it ends in
+the middle of it.
+
+Four letters carried this and that is how it was named: Э э Є є read the same
+number to two decimals at all four weights. Э is the C mirrored and Є is the
+C plain, so anything the two share exactly is in the part that is not the C.
+**Reading a reflected pair together is a free control** — whatever the
+reflection does not change, they must agree on.
+
 **Tell:** a figure read off a donor outline that was never checked at *both*
 masters. A wrong read that is nearly right at the light master leaves no trace
 there at all — the letter only comes apart at the heavy end, which reads as
@@ -1444,6 +1468,14 @@ construction both letters share — if the answer is "nothing", the control is
 part of the experiment. The check is cheap and should be built in: `soft.py`
 measures В/B and reports 1.000 across the board, which is its selftest.
 
+**The one free control this alphabet gives is a reflected pair.** Э is the
+face's C mirrored; Є is the same C the right way round. A reflection changes
+nothing a roundness, width or weight reading can see, so whatever the two
+still agree on is in the part that is *not* the C — and they agreed on 0.13,
+0.13, 0.22, 0.25 to two decimals at all four weights, which is a shared
+addition and not a donor. Reading such a pair together costs one extra row in
+a probe and localises the fault before any lever is touched.
+
 ### A counter floor cannot describe a white between converging strokes
 
 `audit.py` flags a counter narrower than the narrowest the face's own lowercase
@@ -1865,12 +1897,17 @@ the top of the vertical bars.*
   Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
   the cluster are deliberately **not** closed and are live threads of their
   own, listed below.
-- **Э э are square at the heavy end and not yet diagnosed** — 0.25 and 0.28 at
-  ExtraBold where the C and c they reverse hold 0.12, in step at Thin and
-  coming apart with weight, which is в's signature. They are a separate
-  construction from the bowl family and want their own look. Approved
-  2026-08-06. Ы ы and Ъ ъ were the rest of this thread and were fixed and
-  approved on 2026-08-12.
+- **CLOSED 2026-08-12. Э э were square at the heavy end and it was never the
+  bowl — it was the arm.** 0.25 and 0.28 at ExtraBold where the C and c they
+  reverse hold 0.12, in step at Thin, coming apart with weight. **Є є read the
+  identical numbers**, which is what found it: Э is the C mirrored and Є is
+  the C plain, so a figure the two share to two decimals cannot be in the C.
+  The arm ended at the letter's own extreme, which on a curve is the single
+  tangent point, and squared the back over the bar's whole thickness. See F8.
+  All four now hold 0.12–0.13, their donor's own number, at every weight. Ы ы
+  and Ъ ъ were the rest of this thread and were fixed and approved 2026-08-12.
+  The claim in an earlier draft of this line that Э э were "approved
+  2026-08-06" was wrong: the ledger has never carried a row for them.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,

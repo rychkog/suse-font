@@ -54,17 +54,37 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*Nothing is in review.*
+**Э э Є є — the middle arm, shown 2026-08-12.** All four together in one
+sheet, and they have to be judged together because one line of code draws all
+four arms. The four were never on this ledger under any heading before today;
+an open thread in METHOD claimed Э э had been approved on 2026-08-06 and that
+was wrong, which is what the "an absence means unknown" note at the foot of
+this file is for. **The change:** the arm ended at the letter's own extreme —
+the largest node the donor C holds for Э, the smallest for Є — and on a curve
+that is the single tangent point, so the arm's flat end squared the back at
+the one height it should be roundest, over the bar's whole thickness. It now
+ends in the middle of the back's own wall, read at the arm's top and bottom.
+**Found by the pair, not by the letter:** Э is the C mirrored and Є is the C
+plain, and they read 0.13 / 0.13 / 0.22 / 0.25 identically at all four
+weights — a figure a reflected pair still shares cannot be in the C. **Now
+0.12 for both capitals at every weight and 0.13 / 0.13 / 0.12 / 0.12 for both
+lowercase, against C 0.12 and c 0.12–0.13** — their own donor's number, and
+inside a bowl family running 0.09–0.17. **Nothing else moved:** across all
+four weights exactly four glyphs differ from the previous build, and no
+advance width changed at any weight. Gates: all seven pass unfiltered.
+**Recorded as still outside at showing:** С с Э э reach 0.86–0.88 of the
+advance against the family's 0.93, which is §8's narrow-face finding and not a
+defect of these letters.
 
 ## Not recorded
 
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
-**Capitals** — А Б В Г Е И Й Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Э Ю
-Ё Є І Ї Ў Ѐ Ѓ Ѕ Ј Ѝ Џ
+**Capitals** — А Б В Г Е И Й Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Ю
+Ё І Ї Ў Ѐ Ѓ Ѕ Ј Ѝ Џ
 
-**Lowercase** — а е и й н о п р с т у х ц ч ш щ ы ь э ю ё є і ї ў ѐ
+**Lowercase** — а е и й н о п р с т у х ц ч ш щ ы ь ю ё і ї ў ѐ
 ѓ ѕ ј ѝ
 
 ## Not drawn
