@@ -373,6 +373,17 @@ face's answer anyway — Ь holds 0.46 and 0.44 — because a cap-height bowl is
 wide enough that its sweep still outruns the stroke. A subtraction can be
 right at one size and wrong at another size of the same shape.
 
+**And once more in в's two counters, the same day, worse than anywhere else.**
+Same expression, `max(arc - t, ri)`, but what it subtracts from is the
+**waist** rather than a bowl's sweep, and a waist is the smallest arc in the
+letter. в's counters turned over 0.30 and 0.26 of their width at Thin and
+**0.09 and 0.10** at ExtraBold — two rectangles — against b's 0.45 and 0.43.
+Fixed with the same `lcCounterSweep`. **The tell to take from this pair: the
+damage an F2 subtraction does is set by what it subtracts FROM.** Off a wide
+bowl at cap height it is invisible (the capitals never needed fixing), off a
+half-height bowl it costs half the corner, and off a waist it costs all of it.
+Rank the instances by the size of the arc, not by the size of the stroke.
+
 **Tell, added:** an F2 expression that does *not* floor is still F2. Print what
 it comes to as a share of the thing it is a radius in, at both masters, and see
 whether the two agree. `lcCounterSweep` is that share for this one, read off b
@@ -2040,10 +2051,12 @@ the top of the vertical bars.*
 
   **CLOSED 2026-08-12**, both halves, approved.
 
-  **в keeps the same construction and the same 1.079** on the spine, and now
-  the old counter corner as well, so the lowercase family is not internally
-  consistent on either reading. в is approved and pulling that thread is the
-  user's call.
+  **в was brought in on the same afternoon and is the last of it.** It carried
+  both faults and the F2 one harder than any other letter in the face — its
+  counters turned over 0.09 and 0.10 of their width at ExtraBold, because what
+  the subtraction came off was the waist. Both fixed the same way; в/b now
+  reads 1.000 on every measure `soft.py` takes at every weight. **The lowercase
+  bowl family is internally consistent for the first time.**
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear

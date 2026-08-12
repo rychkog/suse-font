@@ -58,7 +58,31 @@ round.
 
 ## In review — changed and shown, no verdict recorded
 
-*Nothing is in review.*
+**в — the counters, shown 2026-08-12.** A change to a glyph approved twice
+(2026-08-06, and the lobes on 2026-08-12), asked for by name. **в carried both
+of the faults ь ъ ы were just fixed for, and the F2 one harder than any other
+letter in the face.** Its counters' corner was the arc they sit in less the
+stroke — but what that subtracts from here is the **waist**, the smallest arc
+in the letter, not a bowl's sweep. The counters turned over 0.30 and 0.26 of
+their own width at Thin and **0.09 and 0.10** at ExtraBold, against b's 0.45
+and 0.43 and o's 0.45 at both ends: two rectangles by the heavy end. Now 0.41
+and 0.41 at Thin, 0.39 and 0.38 at ExtraBold, flat across the axis like the
+donor. The counters' left edge also runs past the spine's own by b's figure,
+as a share of the spine, and **stays a line** — в's lobes are half the letter
+tall and a counter that short has to run straight somewhere. в's outer is
+already one contour, so the cut needed no plumbing; Ь Ъ Ы had to be spliced
+before theirs would hold. **в/b now reads 1.000 on every measure `soft.py`
+takes at every weight** — span, counter over span, counter over stem, spine,
+wall, reach. **Nothing else moved:** `ve-cy` is the only glyph whose outline
+differs from the last approved commit, at any weight; no advance moved;
+**roundness is unchanged**, 0.16 and 0.17, so nothing about the lobes' outer
+edge — the part approved on 2026-08-12 — was touched. в also came off
+`signature.py`'s ACCEPTED list at Bold: its waist bar is back inside the
+Latin's own range on its own. Gates: all seven pass unfiltered. **Recorded as
+still outside at showing:** в's outer edge stands still over 0.16 of itself
+against a lowercase host holding 0.14 — flat at every weight, which is the
+signature of a deliberate difference rather than a fault, and it is the shape
+approved by eye on 2026-08-12.
 
 ## Rejected — shown and turned down, kept as the record
 
