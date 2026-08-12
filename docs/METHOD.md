@@ -320,6 +320,26 @@ named by scanning the donor row by row and seeing its counter's left edge
 travel 41 units where ours stood still. **When a ratio will not close, print
 the donor's own profile before reaching for the lever that moves the ratio.**
 
+**The fix built on 2026-08-12 was rejected by eye and reverted**, and the way
+it failed is worth more than the diagnosis. Rounding the counter's left flank
+by MIRRORING its existing right radius closed every number — ь came out as b's
+bowl unit for unit on all six of `soft.py`'s readings at all four weights —
+and made the letter worse, because that right radius is not b's. At Thin the
+soft bowl's counter is 194 units tall and its right flank sweeps **164**,
+which is a half-ellipse; b's counter is 262 tall and sweeps **40**, which is a
+rounded rectangle. Mirrored, ь's counter became a full ellipse and the ink
+between it and the letter's left edge closed to wedges at both ends. See §9.
+
+**Two rules restated, because a whole round was spent finding out they are the
+same rule.** `bowl_arc` already says deriving a curve from a single radius is
+only right while the shape is about as tall as it is wide. That applies to a
+counter's corner exactly as it does to a bowl's, and one level further down:
+a radius that is already wrong for a short bowl is not made right by being
+used twice. **And a shape read off a donor is checked at both masters in
+UNITS, like any other figure** — F8's own rule. This one was right at
+ExtraBold, where ours sweeps 47 against b's 37, and wrong by four times at
+Thin, so the master that was looked at hardest was the one that agreed.
+
 ### F2 · `outer − stroke` as an inner radius
 
 Goes negative once the stroke outgrows the corner, floors at its minimum, and
@@ -1504,14 +1524,18 @@ one and the ink returns. The counter simply stops looking like it moved.
 So a counter that bites into a stroke forces that stroke and the bowl into
 **one contour**. This is not a preference about tidiness, it is the only
 arrangement that can express the shape, and it is worth knowing before a
-session spends a round nudging a number that cannot move. `Soft` does it for
-the lowercase only, by splicing the spine's own finished path into the bowl's
-outline (`_spine_bowl`), so Ъ's elbow keeps having exactly one description in
-the file and the capitals keep the contours they were approved with.
+session spends a round nudging a number that cannot move.
 
-The silhouette does not change by a unit — it is the same union, said in one
-path instead of two. That is also how to check the splice: build it, and every
-outer reading (`round.py`, the widths, the panel's ink) must be identical.
+The splice itself worked and is worth keeping in mind for whenever it is
+wanted: take the spine's own finished path and splice it into the bowl's
+outline at the bowl's top-left corner, so the elbow keeps having exactly one
+description in the file and the other case keeps the contours it was approved
+with. The silhouette does not change by a unit — it is the same union, said in
+one path instead of two — and that is also how to check it: build it, and
+every outer reading (`round.py`, the widths, the panel's ink) must come back
+identical. It did. **The counter shape it was built to carry was rejected by
+eye all the same** (§9), so this entry records the mechanism and not a
+construction that is in the font.
 
 ### A counter floor cannot describe a white between converging strokes
 
@@ -1949,24 +1973,38 @@ the top of the vertical bars.*
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,
   which is a fresh-verdict trigger and the user's to pull, not this file's.
-- **CLOSED 2026-08-12. The lowercase spine, ь ъ ы — and the fault was the
-  counter's SHAPE, not the number the probe was reporting.** Their left wall
-  read 1.079 of b's at Regular, Bold and ExtraBold where the panel holds 1.000
-  (bracket 1.000–1.009), and the reason is that `d_shape` is flat down its
-  left side. That is right for B, whose counter really is flat — 157 units of
-  left stroke at every row — and wrong for b, which lets its counter run past
-  the stem's edge and rounds it on both sides. A capital's construction
-  carried across the case boundary; see F1's second half, and §8 on why three
-  contours cannot express it. **ь is now b's bowl unit for unit at all four
-  weights** — left stroke 28/76/124/140 and counter 356/291/226/204, the same
-  numbers — and ъ matches it too. **Still outside:** ы, whose spine mixes the
-  cut with its own shave, sits at 0.920 of b's at Regular against a bracket of
-  0.938–0.986 and 0.877 at ExtraBold against 0.788–0.864. Ours runs 1.000,
-  0.920, 0.882, 0.877 — monotonic, where the panel's own medians go 0.973,
-  0.985, 0.875, 0.843 and are not. The shave is a separate lever and a
-  separate question. **в keeps the old construction and now disagrees with its
-  own family at 1.079**; it is approved, and pulling that thread is the user's
-  call.
+- **The lowercase soft bowl, ь ъ ы — still open, and the target moved on
+  2026-08-12.** The thread used to read "b cuts its counter into its own stem
+  and ours does not", which is true — their left wall reads 1.079 of b's at
+  Regular, Bold and ExtraBold where the panel holds 1.000 (bracket
+  1.000–1.009), because `d_shape` is flat down its left side and b's counter
+  is not. **That is the small half of the difference.** Measured properly, at
+  both masters, in units:
+
+  | | counter tall | left flank travel | right flank travel |
+  |---|---|---|---|
+  | ь Thin | 194 | 0 | **164** |
+  | b Thin | 262 | 24 | **40** |
+  | ь ExtraBold | 125 | 0 | 47 |
+  | b ExtraBold | 293 | 41 | 37 |
+
+  **At ExtraBold the two agree and at Thin ours sweeps four times as far.**
+  b's counter is a rounded rectangle at both ends of the axis; ours is a
+  rounded rectangle at ExtraBold and a half-ellipse at Thin, because the
+  counter's corner takes `r - t` off the bowl's own sweep and the soft bowl is
+  half the height b's is. So the live question is **the right flank at the
+  light end**, not the flat left, and the cut into the spine is a detail to
+  settle after it rather than before.
+
+  **The 2026-08-12 attempt is why this is now known, and it was rejected by
+  eye.** It rounded the left flank by mirroring the right radius, which closed
+  every number — ь came out as b's bowl unit for unit on all six of `soft.py`'s
+  readings at all four weights — and turned the Thin counter into a full
+  ellipse with the ink beside it closing to wedges. Reverted; ь ъ ы are
+  byte-identical to the build they were approved on. See F1 and §8.
+
+  **в keeps the same construction and the same 1.079**; it is approved, and
+  pulling that thread is the user's call.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
