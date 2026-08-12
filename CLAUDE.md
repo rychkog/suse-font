@@ -77,7 +77,14 @@ output — findings have been hidden that way, including a broken interpolation.
    and a tenth of the cap apart at ExtraBold — Я took R's leg top for R's bowl
    floor on exactly that basis, and only came apart at the heavy end. See
    `docs/METHOD.md` F8.
-8. **A change to a counter is a change to a stroke — run `tools/wrap.py`
+8. **A glyph that is assembled has a third decision in it, and no gate reads
+   it.** Two correct parts placed wrongly pass everything: node parity, panel
+   ink, every signature reading. Sixteen marked letters carried their mark on
+   the middle of the CELL for a week where this face puts it on the middle of
+   the LETTER — ї's by more than a stem. Ask what the host does with the same
+   assembly; there is nearly always a Latin letter carrying the same mark.
+   `tools/marks.py`. See `docs/METHOD.md` F12.
+9. **A change to a counter is a change to a stroke — run `tools/wrap.py`
    before showing it.** Every reading this project takes of a counter
    describes the white as if it were being drawn; what the eye reads is the
    stroke around it. в measured 1.000 against b on everything `soft.py` takes

@@ -181,6 +181,20 @@ left alone on purpose. Gates: all seven pass unfiltered.
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
+**The marks were corrected on 2026-08-12 and are in review.** Every marked
+letter — Ё ё Ї ї Й й Ў ў Ѐ ѐ Ѝ ѝ Ќ — carried its mark on the middle of the
+CELL, where this face puts its marks on the middle of the LETTER. ї's
+dieresis stood 31 to 35 units left of where the face's own ï puts the same
+mark on the same base, more than a whole stem at Thin; Ё's 18 to 27 left of
+Ë's; ё's up to 13 left of ë's; ў's up to 10 left of what y's own anchor asks.
+The bases with symmetric letters — Ї Й й Ў Ѝ ѝ — were right by luck. Each
+base now names the host letter it comes from and the mark is slid onto that
+letter's own top anchor, per master, so Ё ё Ї ї Ѐ ѐ ў now land exactly where
+Ë ë Ï ï È è ŭ land. **Still unanswered:** Ѓ ѓ ќ, whose bases (Ge-cy, ge-cy,
+ka-cy) are drawn and have no host letter with a top anchor to read — they
+keep the middle of the cell, and Ќ, whose base IS the host's K, now follows
+K's own anchor and so no longer matches its lowercase. See METHOD F12.
+
 **Capitals** — А Б В Г Е И Й Н О П Р С Т У Х Ц Ч Ш Щ Ы Ь Ю
 Ё І Ї Ў Ѐ Ѓ Ѕ Ј Ѝ Џ
 

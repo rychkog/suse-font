@@ -21,8 +21,15 @@ import recipes                     # noqa: E402
 
 WIDTH = 600
 
-# base + mark, both already drawn in place in this family, so the composite
-# needs no offset; the marks track the weight axis because they are components
+# base + mark. The marks track the weight axis for free because they are
+# components; WHERE they sit is set below, from the base's own top anchor.
+#
+# They were placed at the origin at first, on the reasoning that both parts
+# are "already drawn in place". Every combining mark in this face does carry
+# its `_top` at 300 -- but the letters do not: a mark dropped at the origin
+# lands on the middle of the CELL, and this face puts its marks on the middle
+# of the LETTER. Nothing in the pipeline could see it. `tools/marks.py` reads
+# it against the face's own accented Latin.
 COMPOSITES = {
     "Io-cy": ("Ie-cy", "dieresiscomb.case"),
     "Yi-cy": ("I-cy", "dieresiscomb.case"),
@@ -66,9 +73,47 @@ def plan(font):
     return out
 
 
+# Where a mark goes over a letter is the HOST's decision, not the middle of
+# the cell. This face places a top anchor per letter and they are not all 300:
+# E carries 318 at Thin and 327 at ExtraBold, K 312 and 354, e 313 and 303,
+# idotless 332 and 336, y 310 and 307 -- while I, N, T, Y, u, n sit on 300.
+# Every base that takes a mark therefore names the host letter it came from,
+# and the anchor is read off that letter at that master.
+ANCHOR_FROM = {
+    "Ie-cy": "E",       # tier 1: it IS E
+    "I-cy": "I",
+    "Ka-cy": "K",
+    "U-cy": "Y",        # drawn from Y's fork, and a mark sits over the fork
+    "Ii-cy": "N",
+    "ie-cy": "e",       # tier 1: it IS e
+    "u-cy": "y",        # tier 1: it IS y
+    "ii-cy": "n",
+}
+
+
+def top_anchor(glyphs, name, mi, which="top"):
+    """Where this face puts a mark over that letter, at this master.
+
+    Read through a donor component, because a tier 1 glyph carries no anchor
+    of its own -- it IS the host letter, and so is its answer. `which` is
+    "top" on a letter and "_top" on a combining mark, which is the anchor the
+    mark is aligned BY.
+    """
+    layer = glyphs[name].layers[mi]
+    for a in layer.anchors:
+        if a.name == which:
+            return a.position.x
+    if len(layer.components) == 1:
+        return top_anchor(glyphs, layer.components[0].name, mi)
+    donor = ANCHOR_FROM.get(name)
+    return top_anchor(glyphs, donor, mi) if donor else 300
+
+
 def anchors(pr, name):
     top = pr.cap if name[0].isupper() else pr.xh
-    return [("top", 300, top), ("bottom", 300, 0)]
+    donor = ANCHOR_FROM.get(name)
+    x = top_anchor(pr.G, donor, pr.mi) if donor else 300
+    return [("top", x, top), ("bottom", 300, 0)]
 
 
 def rebuild(font):
@@ -96,6 +141,7 @@ def main():
     prs = [Params(font, mi) for mi in range(len(font.masters))]
 
     added = []
+    marks = []
     # two passes so composites can see bases added in the first
     for _ in range(2):
         for cp, name, kind, arg in plan(font):
@@ -112,6 +158,7 @@ def main():
                 elif kind == "comp":
                     layer.components.append(GSComponent(arg[0]))
                     layer.components.append(GSComponent(arg[1]))
+                    marks.append((layer, mi, arg[0], arg[1]))
                 else:
                     for p in arg(prs[mi]):
                         layer.paths.append(p)
@@ -123,6 +170,16 @@ def main():
                 g.layers.append(layer)
             font.glyphs.append(g)
             added.append(name)
+
+    # Slide each mark onto its base's own top anchor. Done here rather than
+    # where the component is made, because a composite can be written before
+    # its base in the same pass and the base's anchor has to exist to be read.
+    glyphs = {g.name: g for g in font.glyphs}
+    for layer, mi, base, mark in marks:
+        dx = (top_anchor(glyphs, base, mi)
+              - top_anchor(glyphs, mark, mi, "_top"))
+        if dx:
+            layer.components[1].position = Point(dx, 0)
 
     bad = []
     for g in font.glyphs:
