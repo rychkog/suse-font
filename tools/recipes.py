@@ -1143,7 +1143,8 @@ def bowl_arc(pr, left, right, bot, up):
 
 
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
-              th_bot=None, th_top=None, r=None, ry=None, tl=None):
+              th_bot=None, th_top=None, r=None, ry=None, tl=None,
+              csweep=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -1215,8 +1216,17 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
          else min(r, (right - left) * 0.5))
     ry = min((up - bot) / 2.0 * 0.97, r) if ry is None else ry
     outer = d_shape(left, bot, right, up, r, ry)
-    inner = d_shape(left + tl, bot + th_bot, right - t, up - th_top,
-                    max(r - t, rmin),
+    # The counter's own corner. `r - t` is F2 -- the outer sweep less the
+    # stroke -- and it holds up only while the stroke is small against the
+    # sweep. It is not: the stroke grows five times across this axis and the
+    # sweep does not, so the counter's corner falls from 0.45 of its own width
+    # at Thin to 0.24 at ExtraBold where the face's own b holds 0.45 and 0.44
+    # and its o holds 0.45 at both. A caller with a lowercase donor to read
+    # passes the share instead; `csweep` is that share.
+    inner_w = (right - t) - (left + tl)
+    ri = (max(min(csweep * inner_w, inner_w * 0.5), rmin) if csweep
+          else max(r - t, rmin))
+    inner = d_shape(left + tl, bot + th_bot, right - t, up - th_top, ri,
                     max(ry - (th_bot + th_top) / 2.0, rmin))
     if area(outer) < 0:
         outer = reverse(outer)
@@ -1520,6 +1530,15 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     rx, ry = bowl_arc(pr, x0, right, 0.0, bt)
     spine = (rect(x0, 0.0, x0 + s, top) if shoulder is None
              else shoulder_spine(pr, shoulder, x0, s, top))
+    # The counter's corner is read off b for the LOWERCASE only. `r - t`, which
+    # is what the capitals keep, happens to land on the face's own answer at
+    # cap height -- Ь's counter turns over 0.46 of its width at Thin and 0.44
+    # at ExtraBold against B's 0.50 and 0.61 -- because a cap-height bowl is
+    # wide enough that its sweep still outruns the stroke. The lowercase bowl
+    # is half that height and it does not: ь's fell to 0.24 at ExtraBold, ъ's
+    # to 0.17 and ы's to 0.19, against b's own 0.44. See bowl_pair, and F2.
+    csweep = (L(pr).lcCounterSweep
+              if getattr(pr, "lower", False) else None)
     # `tl=s` -- the counter's left edge is the spine's own, not the bowl's
     # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
     # own shaved stem rather than the face's because that IS its spine. See
@@ -1527,7 +1546,7 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     return ([spine]
             + bowl_pair(x0, 0.0, right, bt, tt,
                         th=tt * pr.bar / pr.stem, r=rx, ry=ry,
-                        rmin=inner_radius(pr), tl=s))
+                        rmin=inner_radius(pr), tl=s, csweep=csweep))
 
 
 def Hard(pr, top=None):

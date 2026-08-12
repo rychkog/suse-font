@@ -315,30 +315,42 @@ face itself gives two different answers there.
 This one lasted because **no gate in this tree reads a shape.** `soft.py`
 reported the symptom as a number — the lowercase spine at 1.079 of b's where
 the panel holds 1.000 — for as long as the thread was open, and a number that
-size reads as a lever wanting a nudge, not as the wrong shape. It was only
-named by scanning the donor row by row and seeing its counter's left edge
-travel 41 units where ours stood still. **When a ratio will not close, print
-the donor's own profile before reaching for the lever that moves the ratio.**
+size reads as a lever wanting a nudge, not as the wrong shape. **When a ratio
+will not close, print the donor's own profile before reaching for the lever
+that moves the ratio.**
+
+**And print it off the CONTOUR, not off the ink runs.** The first two profiles
+taken here were both wrong, in opposite directions, and each one produced a
+confident finding that had to be withdrawn. A scanline across the whole glyph
+counts runs, and b has three of them wherever the bowl has sprung off the stem
+but not yet closed on it — so a probe keeping the two-run rows silently
+discards the top and bottom of b's counter, which is exactly where a counter
+turns. It reported b's corner at 24 units where the drawing has 161, and
+therefore "b's counter is a rounded rectangle" when b's counter is o's counter.
+Take the counter CONTOUR — the positive-area one in a TrueType outline, the
+negative-area one in the source — and scan that alone.
 
 **The fix built on 2026-08-12 was rejected by eye and reverted**, and the way
 it failed is worth more than the diagnosis. Rounding the counter's left flank
 by MIRRORING its existing right radius closed every number — ь came out as b's
 bowl unit for unit on all six of `soft.py`'s readings at all four weights —
-and made the letter worse, because that right radius is not b's. At Thin the
-soft bowl's counter is 194 units tall and its right flank sweeps **164**,
-which is a half-ellipse; b's counter is 262 tall and sweeps **40**, which is a
-rounded rectangle. Mirrored, ь's counter became a full ellipse and the ink
-between it and the letter's left edge closed to wedges at both ends. See §9.
+and the letter got worse: the Thin counter became a full ellipse and the ink
+between it and the letter's left edge closed to wedges at both ends.
 
-**Two rules restated, because a whole round was spent finding out they are the
-same rule.** `bowl_arc` already says deriving a curve from a single radius is
-only right while the shape is about as tall as it is wide. That applies to a
-counter's corner exactly as it does to a bowl's, and one level further down:
-a radius that is already wrong for a short bowl is not made right by being
-used twice. **And a shape read off a donor is checked at both masters in
-UNITS, like any other figure** — F8's own rule. This one was right at
-ExtraBold, where ours sweeps 47 against b's 37, and wrong by four times at
-Thin, so the master that was looked at hardest was the one that agreed.
+The radius was not the error. ь's right flank sweeps 160 units where b's
+sweeps 161. **The error was that a counter has to run straight SOMEWHERE, and
+this one had nowhere left.** b's counter is 356 × 437, so two 161-unit flanks
+still leave 0.72 of its height standing straight. ь's is 355 × **194** — the
+same width, less than half the height — and the same two flanks leave 35 units
+of a 355-wide counter unswept. Take the flat left side away from a counter
+that short and nothing in it is straight, and a shape with no straight
+anywhere is an ellipse.
+
+So **the flat left is right for this bowl**, and not because the drawing is
+lazy: the soft bowl is a half-height bowl growing off a full-height spine,
+which is B's kind of bowl in proportion whatever the case, and B's counter is
+flat down its left at both masters. What b has and this does not is the cut
+into the spine, which is worth ten units at ExtraBold and one at Thin — see §9.
 
 ### F2 · `outer − stroke` as an inner radius
 
@@ -347,6 +359,24 @@ squares off a turn this face holds round.
 
 Fixed at: г's corner, в's counter, `bowl_pair`'s counter, ґ's stem-into-arm
 corner (which was at 4 units at ExtraBold where the face turns at 20).
+
+**And once more in `bowl_pair`'s counter, 2026-08-12, in the form that does
+not go negative.** `max(r - t, rmin)` never floored here and never looked
+broken; it simply *drifts*, because the stroke grows five times across this
+axis and the bowl's sweep does not. The counter's corner, over the counter's
+own width: 0.45 at Thin and **0.24** at ExtraBold for ь, 0.17 for ъ, 0.19 for
+ы — against the face's own b at 0.45 and 0.43 and its o at 0.45 at both ends.
+So the letters were right at the light master and squarer and squarer as they
+got heavier, which reads as "it deteriorates when bold" and is F8's tell as
+much as F2's. **Only the lowercase.** The capitals keep `r - t` and land on the
+face's answer anyway — Ь holds 0.46 and 0.44 — because a cap-height bowl is
+wide enough that its sweep still outruns the stroke. A subtraction can be
+right at one size and wrong at another size of the same shape.
+
+**Tell, added:** an F2 expression that does *not* floor is still F2. Print what
+it comes to as a share of the thing it is a radius in, at both masters, and see
+whether the two agree. `lcCounterSweep` is that share for this one, read off b
+by scanline.
 
 **Legitimate** where the *shorter* stroke bounds the bend — Ґ's tick
 (`recipes.py:483`), ґ's matching tick bend (`:595`), and `comb` (`:241`, where
@@ -1981,27 +2011,29 @@ the top of the vertical bars.*
   is not. **That is the small half of the difference.** Measured properly, at
   both masters, in units:
 
-  | | counter tall | left flank travel | right flank travel |
-  |---|---|---|---|
-  | ь Thin | 194 | 0 | **164** |
-  | b Thin | 262 | 24 | **40** |
-  | ь ExtraBold | 125 | 0 | 47 |
-  | b ExtraBold | 293 | 41 | 37 |
+  Measured off the counter's own contour, at both masters, as the corner's
+  share of the counter's own width:
 
-  **At ExtraBold the two agree and at Thin ours sweeps four times as far.**
-  b's counter is a rounded rectangle at both ends of the axis; ours is a
-  rounded rectangle at ExtraBold and a half-ellipse at Thin, because the
-  counter's corner takes `r - t` off the bowl's own sweep and the soft bowl is
-  half the height b's is. So the live question is **the right flank at the
-  light end**, not the flat left, and the cut into the spine is a detail to
-  settle after it rather than before.
+  | | counter | corner, before | corner, after | donor |
+  |---|---|---|---|---|
+  | ь Thin | 355 × 194 | 0.45 | 0.41 | b 0.45 |
+  | ь ExtraBold | 194 × 126 | **0.24** | 0.40 | b 0.43 |
+  | ъ ExtraBold | 122 × 126 | **0.17** | 0.40 | — |
+  | ы ExtraBold | 96 × 152 | **0.19** | 0.41 | — |
 
-  **The 2026-08-12 attempt is why this is now known, and it was rejected by
-  eye.** It rounded the left flank by mirroring the right radius, which closed
-  every number — ь came out as b's bowl unit for unit on all six of `soft.py`'s
-  readings at all four weights — and turned the Thin counter into a full
-  ellipse with the ink beside it closing to wedges. Reverted; ь ъ ы are
-  byte-identical to the build they were approved on. See F1 and §8.
+  **That half is now fixed and is F2 again** — `max(r - t, rmin)`, drifting
+  rather than flooring. `Soft` passes `lcCounterSweep`, b's own share read by
+  scanline, for the lowercase only; the capitals keep `r - t` and are
+  byte-identical. Awaiting a verdict.
+
+  **What is still open is the cut into the spine** — 1.079 of b's at Regular,
+  Bold and ExtraBold against a bracket of 1.000–1.009, because b lets its
+  counter run ten units past the stem's edge at ExtraBold and one at Thin. The
+  2026-08-12 attempt at it was rejected by eye and the reason is in F1: it
+  bought the cut by rounding the left flank, and this counter has to keep its
+  left side straight because it is too short to run straight anywhere else.
+  Any second attempt has to cut into the spine **without** taking the flat
+  away — which means the left side moves left and stays a line.
 
   **в keeps the same construction and the same 1.079**; it is approved, and
   pulling that thread is the user's call.
