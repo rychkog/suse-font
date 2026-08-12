@@ -403,10 +403,25 @@ scanline rather than off the node box — a bowl's corner puts its control point
 outside the counter and `min(node.x)` reports the counter 14 units too wide at
 ExtraBold, in the direction that hides the fault.
 
+Its worst instance is **one number doing three jobs**, in в. `rx` set how far
+the lobe's arc reached; `ry` was derived from it, `min(half the lobe, rx)`; and
+`xs = right − rx` also set how deep the waist pinched between the two lobes.
+Three independent questions, one lever — so every attempt to fix the letter
+moved all three and could only trade one fault for another. Two were made
+before this: a sweep across the width drove the vertical to a semicircle and
+read *wide and flat*; a sweep across the lobe's *height* left the vertical tiny
+and read *square*. Neither was wrong about the lever; there was no value of it
+that answered all three. Now the waist is B's own (`bowlWaist`), the reach
+follows from the waist as B's does, and the vertical is the lobe's own
+half-height with nothing bounding it.
+
 **Tell:** the metric exists and is *nearly* right — or is exactly right about
 something adjacent. That is the dangerous case. Its sharpest form: a number
 whose name says *what it is* ("the bowl's stroke") being used where the
 question is *where something goes* ("how far in does the counter start").
+**And the count matters:** before changing a shared constant, count how many
+distinct questions it currently answers. If it is more than one, the fix is to
+split it, not to retune it.
 
 ### F6 · A broken probe reported as a finding
 
@@ -921,6 +936,7 @@ those two edges. One picture, again, and again it should have been first.
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
+| `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
@@ -1361,6 +1377,30 @@ the four are correct:
   only one of the four that was.
 
 That is the whole argument for asking each reading twice.
+
+### No gate here measured roundness, and the eye found it twice
+
+Every gate in `verify.sh` measures weight, area, position or the way a stroke
+ends. **None of them measures how round a curve is.** So в could stand still
+over 0.54 of its own edge at ExtraBold — against 0.17–0.26 for every other bowl
+in the face, and getting worse with weight — and pass all seven, twice, on two
+different constructions. It was reported by eye both times: "too square-ish
+compared to other bowl family members", and then "the peak of the bowl is a bit
+acute" on the version that fixed the first complaint.
+
+Two lessons, and the second is the general one.
+
+- **The reading that catches it** is the share of a bowl's outer edge that
+  stands *still* — within half a unit of the letter's widest — over the bowl's
+  own extent. The face's own о, b, B, D and P all hold 0.09–0.11, and they
+  agree closely enough to be a bar. A tolerance of one *per cent* instead of
+  half a unit inflates this badly and differently per letter, which is how an
+  early version of the probe reported в matching the family when it did not.
+- **A whole class of fault can be invisible to a whole gate suite**, and the
+  suite gives no sign of it: every gate was green and every gate was right
+  about what it measures. When the user reports something no number moved on,
+  the first question is not "which reading is wrong" but "is there a reading at
+  all". `tools/round.py` exists so this one now has one.
 
 ### A control has to be a letter this project did not draw
 
@@ -1805,6 +1845,7 @@ the top of the vertical bars.*
   Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
   the cluster are deliberately **not** closed and are live threads of their
   own, listed below.
+- **Э э and Ъ ъ are square at the heavy end** — `round.py`, run across the whole family after в was fixed, puts Э at 0.20 and э at 0.22 at ExtraBold where the C and c they reverse hold 0.09, and Ъ at 0.21 with ъ at 0.16 where the host holds 0.11. Ь follows at 0.14. All four share в's signature exactly: in step at Thin, diverging with weight. Not yet diagnosed; Ъ ъ are approved and Ь is approved as of 2026-08-11.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,

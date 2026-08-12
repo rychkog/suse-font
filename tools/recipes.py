@@ -1338,12 +1338,59 @@ def Ve(pr, top=None):
     # ran 0.57 RISING to 0.65: outside at every weight and moving the wrong
     # way, because a bowl's sweep narrows as the face gets heavier while the
     # letter it is measured across widens.
-    sweep = m.lcBowlSweep if getattr(pr, "lower", False) else m.bowlSweep
-    rx = sweep * wl
-    ry1 = min(wl / 2.0 * 0.97, rx)
+    # ...and BOTH of those readings were of the horizontal radius, because
+    # there was only ever one lever: the vertical was derived from it,
+    # `ry = min(half the lobe, rx)`. That is why neither attempt could be
+    # right. A reach taken across the width drove the vertical to a full
+    # semicircle and the lobe read wide and flat; taken across the lobe's
+    # height it left the vertical tiny and the lobe read square -- 0.59 of its
+    # height standing still at ExtraBold against a panel 0.19-0.23, and
+    # getting worse with weight while the face's own b held 0.22. Reported by
+    # eye; no gate here measures roundness.
+    #
+    # So the two radii are read separately and neither bounds the other. The
+    # horizontal is the face's sweep across the lobe's WIDTH, which is the
+    # rule `bowl_arc` already follows and what `_sweep` actually measures --
+    # multiplying it by a height was a dimensional error of the same class as
+    # the bowl's inset. The vertical is b's own: it turns its bowl in over
+    # 0.400 of the height at each end at both masters, and B agrees at 0.454.
+    # ...and both of those readings were of the SAME radius, because there was
+    # only one lever: the vertical was derived from the horizontal, so no value
+    # of the horizontal could land both. A sweep across the width dragged the
+    # vertical to a semicircle and the lobe read wide and flat; a sweep across
+    # the lobe's height left the vertical tiny and the lobe read square -- 0.54
+    # of its own edge standing still at ExtraBold against 0.17-0.26 for every
+    # other bowl in the face, and getting worse with weight. Reported by eye;
+    # no gate here measures roundness.
+    #
+    # The answer is that в had no business rolling its own radii. `bowl_arc` is
+    # the rule the whole family already follows -- the horizontal from how far
+    # this face sweeps a bowl ACROSS ITS WIDTH, which is what `_sweep` actually
+    # measures, and the vertical from the lobe's own half-height, which binds
+    # whenever the lobe is short. It binds here, and that is correct rather
+    # than a fallback: a lobe half the letter tall is very nearly semicircular
+    # in this face, which is what ь's own bowl does at 0.25.
+    # The horizontal is B's own WAIST -- how far a two-lobe letter comes back
+    # in between its lobes, 0.353 of its bowl width at Thin and 0.288 at
+    # ExtraBold -- and NOT the bowl's sweep. The sweep says how far an arc
+    # reaches; on a letter with a waist the same number then also decides how
+    # deep the pinch is, and one number cannot answer both. Taking the sweep
+    # dug the waist to 144 units against B's 137 at ExtraBold and brought the
+    # junction to a point where B steps square. Reported by eye, on a version
+    # whose every other reading had just landed; the profile through the waist
+    # is what confirmed it.
+    #
+    # The vertical is the lobe's own half-height, and nothing else bounds it.
+    # A lobe half the letter tall is very nearly semicircular in this face --
+    # ь's own bowl is -- and the flat run that leaves, 0.11 of the edge, is
+    # exactly what b and о hold.
+    rx = min(m.bowlWaist * (right - x0), (right - x0) * 0.5)
+    ry1 = wl / 2.0 * 0.97
     xs = right - rx
+    # The upper lobe's arc starts at the same x as the lower's, which is what
+    # keeps B's square join.
     rx2 = max(upper - xs, 4.0)
-    ry2 = min((top - wu) / 2.0 * 0.97, rx2)
+    ry2 = (top - wu) / 2.0 * 0.97
 
     ns = [node(x0, 0.0), node(xs, 0.0)]
     ns += arc_to(xs, 0.0, right, ry1, right, 0.0)
