@@ -77,6 +77,14 @@ output — findings have been hidden that way, including a broken interpolation.
    and a tenth of the cap apart at ExtraBold — Я took R's leg top for R's bowl
    floor on exactly that basis, and only came apart at the heavy end. See
    `docs/METHOD.md` F8.
+8. **A change to a counter is a change to a stroke — run `tools/wrap.py`
+   before showing it.** Every reading this project takes of a counter
+   describes the white as if it were being drawn; what the eye reads is the
+   stroke around it. в measured 1.000 against b on everything `soft.py` takes
+   while its stroke bulged by a third at the shoulder, and it was rejected on
+   sight. The probe takes a second. A donor figure about a counter also only
+   transfers where the donor's OUTER is the same shape — b's bowl is 1.23–1.43
+   tall for its width, в's lobes are 0.56.
 
 ## Reporting
 
