@@ -1514,11 +1514,32 @@ def Ve(pr, top=None):
     if area(outer) < 0:
         outer = reverse(outer)
 
-    # and the two counters, one bar apart across the waist
-    lo = d_shape(x0 + t, th, right - t, waist - wb / 2.0,
-                 max(right - xs - t, ri), max(ry1 - th, ri))
-    up = d_shape(x0 + t, waist + wb / 2.0, upper - t, top - th,
-                 max(rx2 - t, ri), max(ry2 - th, ri))
+    # and the two counters, one bar apart across the waist.
+    #
+    # Their left edge runs PAST the spine's own, by b's figure and as a share
+    # of the spine, because b lets its counter cut into its stem -- 140 units
+    # of stroke beside it against a stem of 150 at ExtraBold, 28 against 29 at
+    # Thin -- where B stops flat against it. The edge stays a LINE: в's lobes
+    # are half the letter tall, and a counter that short has to run straight
+    # somewhere. в's outer is already one contour, so the cut needs no
+    # plumbing here; Ь Ъ Ы had to be spliced before theirs would hold.
+    #
+    # And the corner is b's own share of the counter's WIDTH, not the arc it
+    # sits in less the stroke. That subtraction is F2, and it bites harder
+    # here than anywhere else in the face because what it subtracts from is
+    # the WAIST rather than a bowl's sweep: в's counters turned over 0.30 and
+    # 0.26 of their width at Thin and 0.09 and 0.10 at ExtraBold, against b's
+    # 0.45 and 0.43 and o's 0.45 at both ends. Two rectangles, by ExtraBold.
+    cut = t * (1.0 - m.lcBowlInsetStem)
+    cl = x0 + t - cut
+
+    def ccorner(w):
+        return max(min(m.lcCounterSweep * w, w * 0.5), ri)
+
+    lo = d_shape(cl, th, right - t, waist - wb / 2.0,
+                 ccorner((right - t) - cl), max(ry1 - th, ri))
+    up = d_shape(cl, waist + wb / 2.0, upper - t, top - th,
+                 ccorner((upper - t) - cl), max(ry2 - th, ri))
     return [outer] + [reverse(c) if area(c) > 0 else c for c in (lo, up)]
 
 

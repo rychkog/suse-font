@@ -280,7 +280,9 @@ def cut_pass(selftest, subj):
 #           its lightest at Regular. Both approved; both now noted in
 #           APPROVALS.md so a later pass does not read them as defects.
 ACCEPTED = {
-    ("в", "Regular"): 0.92, ("в", "Bold"): 0.89, ("в", "ExtraBold"): 0.90,
+    # в came off this list at Bold on 2026-08-12: its counters took b's own
+    # corner and its waist bar came back inside the Latin's own range.
+    ("в", "Regular"): 0.92, ("в", "ExtraBold"): 0.90,
     ("ы", "Regular"): 0.92, ("ы", "Bold"): 0.88,
     ("Ы", "Regular"): 0.89,
     ("ф", "Thin"): 1.07, ("ф", "Regular"): 0.98,
