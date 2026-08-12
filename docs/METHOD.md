@@ -1845,7 +1845,21 @@ the top of the vertical bars.*
   Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
   the cluster are deliberately **not** closed and are live threads of their
   own, listed below.
-- **Э э and Ъ ъ are square at the heavy end** — `round.py`, run across the whole family after в was fixed, puts Э at 0.20 and э at 0.22 at ExtraBold where the C and c they reverse hold 0.09, and Ъ at 0.21 with ъ at 0.16 where the host holds 0.11. Ь follows at 0.14. All four share в's signature exactly: in step at Thin, diverging with weight. Not yet diagnosed; Ъ ъ are approved and Ь is approved as of 2026-08-11.
+- **Ы ы Ъ ъ Ь and Э э are square**, and `round.py` orders them exactly by how
+  narrow their bowl is: at ExtraBold Ы reads **0.42** and ы 0.31, Ъ 0.21 and ъ
+  0.16, Ь 0.14, against a host that holds 0.09-0.11 everywhere. Ы is outside at
+  **every** weight, 0.18 already at Thin. That ordering is the diagnosis:
+  `bowl_arc` derives the vertical radius from the horizontal one,
+  `ry = min(half the bowl, rx)`, and `rx` is the face's sweep across the bowl's
+  own **width** — so the narrower the bowl the smaller both radii become and
+  the flatter the sides run. Ы has the narrowest bowl in the extension because
+  it must fit a spine, a counter, a wall, a gap and a second stem across one
+  cell; Ъ's is next because its stem is pushed right to make room for the
+  shoulder. **This is в's fault in the shared helper**, where в had it in its
+  own copy. Untying them there is one change for the whole family. Э э are the
+  same shape of fault from a different construction — 0.20 and 0.22 where the C
+  and c they reverse hold 0.09 — and want their own look. All are approved: Ъ ъ
+  and Э э since 2026-08-06, Ь and Ы since 2026-08-11.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,
