@@ -1100,7 +1100,7 @@ those two edges. One picture, again, and again it should have been first.
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
-| `wrap.py` | **how evenly a stroke wraps the end of a bowl** — the counter's own outline walked over the end, measured across to the outer, reported as the BULGE: the thickest place against the stroke at the extreme. The face holds 1.00–1.01 everywhere, ours too, so the bar is agreement rather than a threshold. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box, and the one that caught в | no |
+| `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
@@ -1613,12 +1613,29 @@ lobes at 0.56, and the difference does not show in any reading of the counter
 alone — в measured 1.000 against b on every reading `soft.py` takes while the
 stroke was bulging by a third at the shoulder.
 
-`tools/wrap.py` is the reading: the counter's own outline walked over the end
-of the bowl, measured across to the outer, reported as the thickest place
-against the stroke at the extreme. This face holds 1.00–1.01 everywhere it
-draws a bowl. **Run it after any change to a counter, before showing the
-letter** — it is a second and it is the difference between a round shown and a
-round spent.
+`tools/wrap.py` is the reading, and **it reads the ink, not either outline.**
+Both outlines lie about this, in opposite directions, and both were written
+and thrown away before the third worked:
+
+- From the counter's side, a square counter has no diagonal to stand on — its
+  outline is two flats and a corner — so it reads perfectly even however round
+  the outer it sits in. A search for "the corner that keeps the stroke evenest"
+  run against that reading returns *the smallest corner on the grid*, which is
+  how the blind spot was found.
+- From the outer's side, the nearest point on a square counter slides round
+  that corner as the normal turns, so the distance stays flat and the reading
+  is blind again.
+
+The disc is neither: the widest circle that fits in the ink at the bowl's end,
+over the stroke straight out from the counter's middle. That is what the eye
+reads — mass — and it does not care which outline put it there. A single bowl
+in this face holds 1.00–1.03; the в that was rejected read 1.55. **Run it
+after any change to a counter, before showing the letter** — it is a second,
+and it is the difference between a round shown and a round spent.
+
+**The general tell, worth more than the probe:** when a measurement of a
+boundary can be taken from either side, and the two sides can disagree,
+neither side is the measurement. Measure the thing between them.
 
 ### A counter cannot cut into a stroke that is a separate contour
 
@@ -2128,14 +2145,27 @@ the top of the vertical bars.*
   shoulder at Thin, where the approved letter holds 29 flat. Shown and
   rejected; see F1.
 
-  **What is still true and still unanswered:** at ExtraBold в's outer corner
-  is barely wider than the stroke — the waist reaches in 0.288 of the bowl's
-  width against a stem nearly as thick — so the offset that draws the counter
-  has almost nothing left to turn with. Any lever that opens those counters
-  has to come from the outer or from the waist, both of which are approved,
-  and neither is worth moving without the user's word. **в stands as
-  approved.** The lowercase bowl family is consistent on the spine and on
-  ь ъ ы's counters; в's counters are the part that is not, deliberately.
+  **Then asked again, and now answered. CLOSED 2026-08-12.** The complaint —
+  0.09 and 0.10 of the counter's width at ExtraBold against b's 0.43 — was the
+  wrong reading of the right letter, and it was the same wrong reading twice:
+  a share of the counter's own box. Read as ink, в's lobe ends are even at
+  both masters. The widest disc that fits in the ink there, over the stroke:
+  **1.09 at Thin and 1.04–1.06 at ExtraBold, against the face's own B — the
+  only other two-lobe letter it has — at 1.22 and 1.20 at Thin and 1.03 and
+  1.02 at ExtraBold.** в is inside its own donor at every weight, and the
+  version that was rejected read 1.55.
+
+  **Why the counters are slots at the heavy end, and why that is the letter.**
+  At ExtraBold в's lobe sweeps 138 units where the stroke is 150: the sweep is
+  narrower than the stroke that has to fit inside it, so the counter's corner
+  falls to `inner_radius`, 20 units, which is the face's own smallest interior
+  turn. It is not a floored constant standing in for a corner — it IS the
+  corner this face draws when a turn has no room. ь's bowl has room for 84
+  because a bowl sweeps about half its width; в's lobes sweep B's WAIST,
+  0.288, and that is the decision approved on 2026-08-12 after the sweep had
+  been drawn and rejected by eye for digging the waist and pointing the
+  junction. **The one lever that would open these counters is the one already
+  tried and decided.** Nothing further to try.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
