@@ -1078,6 +1078,54 @@ outer edge and the aperture's tip, which is where they are in every panel face
 too — so the junction's *shape* was never the fault, only the ink between
 those two edges. One picture, again, and again it should have been first.
 
+### F12 · A composite trusted because both its parts are the face's own
+
+Found 2026-08-12, in every marked letter this project draws: Ё ё Ї ї Й й Ў ў
+Ѐ ѐ Ѝ ѝ Ќ, sixteen glyphs, all of them gate-clean since the day they were
+written.
+
+Each is a base plus one of the face's own combining marks, and the two
+components were placed at the origin on the reasoning that both parts are
+"already drawn in place". Both halves of that are true. Every combining mark
+in this face does carry its `_top` anchor at 300, dead centre of the 600 cell.
+What is not true is the conclusion, because **the letters do not sit at 300**:
+this face places a top anchor per letter, and E carries 318 at Thin rising to
+327 at ExtraBold, K 312 rising to 354, e 313 falling to 303, idotless 332
+rising to 336, y 310, while I N T Y u n sit on 300. A mark dropped at the
+origin lands on the middle of the CELL. This face puts its marks on the middle
+of the LETTER.
+
+So ї's dieresis stood 31 to 35 units left of where the face's own ï puts the
+same mark on the same base — more than a whole stem at Thin — Ё's stood 18 to
+27 left of Ë's, ё's 3 to 13 left of ë's, and ў's 7 to 10 left of what y's own
+anchor asks for. The letters with symmetric bases (Ї Й й Ў Ѝ ѝ) were right by
+luck, which is why nothing looked systematically broken.
+
+**Nothing in the pipeline could see it.** Node parity passes: a composite has
+the same components in both masters. Panel ink passes: the mark's area does
+not move. Every `signature.py` reading passes: they read stroke ends and
+horizontals, not placement. The checkpoint sheet showed the letters and the
+error is a stem wide at reading size. **A composite is a THIRD decision on top
+of two correct parts, and it is the one nothing measures.**
+
+**Tell:** any glyph assembled rather than drawn, where the assembly has a free
+parameter — an offset, an anchor, a rotation — that no gate reads. Ask what
+the host does with the same assembly. There is almost always a Latin letter
+carrying the same mark, and it is the answer.
+
+**Fix:** `tools/marks.py`, and the anchor read off the host per letter per
+master — `ANCHOR_FROM` in `build_cyrillic.py` names the host letter each base
+comes from, and the mark is slid by the base's own top anchor less the mark's
+`_top`. Ё ё Ї ї Ѐ ѐ now sit exactly where Ë ë Ï ï È è sit, to the unit, at
+every weight.
+
+**What would have caught it sooner:** measuring the assembly against the
+host's own assembled letter, on the day it was assembled. The rule this
+project already had — *the host is the authority on what the shapes are* —
+covers where a mark goes just as much as it covers a bowl's sweep; it simply
+was never applied to a composite, because a composite feels like plumbing
+rather than drawing.
+
 ---
 
 ---
@@ -1100,6 +1148,7 @@ those two edges. One picture, again, and again it should have been first.
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
+| `marks.py` | **where a mark sits over its letter**, off the built fonts at every weight: its middle less the base's, and the gap under it, against the face's own Ë Ï Ü ë ï ü Ă ă Ŭ ŭ É é È è carrying the same mark. The only reading that sees a composite's placement — no gate does | no |
 | `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
