@@ -513,6 +513,26 @@ own runs change by no more than 0.061 of themselves over those twelve units,
 and every taper it draws exceeds 0.34. After the fix c reads 0.969, e 0.885,
 э 0.971 and з 0.892, and none of them moves when the step is halved.
 
+A newer one, and it produced two wrong findings before it was caught:
+
+- **`round.py`'s bands were hand-set, and one of the things they bounded
+  moves.** `soft_bowl`'s top is not a fixed height — it rises with the stroke,
+  from 0.51 of the cap at Thin to 0.67 at ExtraBold — so a band of 0.02–0.48
+  read the lower two thirds of Ь Ъ Ы's bowls and missed exactly the part that
+  curves in. It reported Ь at 0.14 against a host of 0.11, and it reported the
+  family "ordering by bowl width", which was the band widening with weight and
+  nothing else. **Both were passed on as findings before being checked.** Ь was
+  never out; only Ы was. **Fixed** — the bowl now locates itself as the
+  contiguous run of rows around its widest point still past halfway between the
+  edge's own extremes, so it is found at whatever height the master puts it.
+
+  This is **F1 inside a probe**: a constant measured in one condition and
+  carried to another. The tell is that a probe's *bands* are constants too, and
+  they are the ones nobody re-derives, because they feel like part of the
+  question rather than part of the answer. If a band bounds something the
+  drawing moves — a bowl top, a waist, a junction — it has to be found, not
+  written down.
+
 ### F6b · A reference set that cannot express the answer
 
 A subtler relative of F6: the probe reads correctly, the reference is honestly
@@ -1845,21 +1865,12 @@ the top of the vertical bars.*
   Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
   the cluster are deliberately **not** closed and are live threads of their
   own, listed below.
-- **Ы ы Ъ ъ Ь and Э э are square**, and `round.py` orders them exactly by how
-  narrow their bowl is: at ExtraBold Ы reads **0.42** and ы 0.31, Ъ 0.21 and ъ
-  0.16, Ь 0.14, against a host that holds 0.09-0.11 everywhere. Ы is outside at
-  **every** weight, 0.18 already at Thin. That ordering is the diagnosis:
-  `bowl_arc` derives the vertical radius from the horizontal one,
-  `ry = min(half the bowl, rx)`, and `rx` is the face's sweep across the bowl's
-  own **width** — so the narrower the bowl the smaller both radii become and
-  the flatter the sides run. Ы has the narrowest bowl in the extension because
-  it must fit a spine, a counter, a wall, a gap and a second stem across one
-  cell; Ъ's is next because its stem is pushed right to make room for the
-  shoulder. **This is в's fault in the shared helper**, where в had it in its
-  own copy. Untying them there is one change for the whole family. Э э are the
-  same shape of fault from a different construction — 0.20 and 0.22 where the C
-  and c they reverse hold 0.09 — and want their own look. All are approved: Ъ ъ
-  and Э э since 2026-08-06, Ь and Ы since 2026-08-11.
+- **Э э are square at the heavy end and not yet diagnosed** — 0.25 and 0.28 at
+  ExtraBold where the C and c they reverse hold 0.12, in step at Thin and
+  coming apart with weight, which is в's signature. They are a separate
+  construction from the bowl family and want their own look. Approved
+  2026-08-06. Ы ы and Ъ ъ were the rest of this thread and were fixed and
+  approved on 2026-08-12.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,

@@ -1100,7 +1100,17 @@ def bowl_arc(pr, left, right, bot, up):
     m = L(pr)
     sweep = m.lcBowlSweep if getattr(pr, "lower", False) else m.bowlSweep
     rx = min(sweep * (right - left), (right - left) * 0.5)
-    return rx, min((up - bot) / 2.0 * 0.97, rx)
+    # The vertical is the bowl's own half-height and nothing else bounds it.
+    # It used to be `min(half, rx)`, which is the same tie that made в square,
+    # and it bites on exactly one letter: a bowl narrow enough that its sweep
+    # comes out under its own half-height drags the vertical down with it and
+    # runs its sides flat. **Ы is that letter** -- 360 wide against 468 tall at
+    # ExtraBold, where Ь's 477 and Б's are wide enough that the half-height was
+    # already binding and this changes nothing for them. Ы's edge stood still
+    # over 0.31 of its bowl against a host holding 0.12, the worst in the
+    # extension, and it was outside at every weight. See `tools/round.py`, and
+    # note the tie is exactly what в had in its own copy of this arithmetic.
+    return rx, (up - bot) / 2.0 * 0.97
 
 
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
