@@ -7,6 +7,9 @@ that look right at one end of the axis and wrong at the other.
 """
 
 
+from geom import slant                                       # noqa: E402
+
+
 class Params:
     def __init__(self, font, mi):
         self.font = font
@@ -22,6 +25,26 @@ class Params:
         self.over = next(mv.overshoot for mm, mv in
                          zip(font.metrics, self.master.metrics)
                          if mm.type == "x-height")
+
+        # The italic is a second source file with its own two masters and a 14
+        # degree slope, and every recipe in this project is written in UPRIGHT
+        # space: a stem is a `rect`, a bar is horizontal, `mirror_x` reflects
+        # about 300. So the italic is built by un-shearing its Latin, running
+        # the same construction, and shearing the result back. That reuses
+        # every approved drawing rather than re-deriving it -- rule 1 -- and it
+        # picks up the italic's OWN redrawn round capitals and its true-italic
+        # lowercase for nothing, because a recipe reads `pr.paths(donor)` and
+        # never the upright file.
+        #
+        # The pivot is the face's own and it is NOT the baseline: solved
+        # against the eleven capitals that are a pure slant, it comes out at
+        # y = 235 at Thin where the x-height is 472 and y = 245 at ExtraBold
+        # where it is 493 -- xh/2 to within a unit at both masters. Shear about
+        # the baseline instead and 300 stops being the middle of the cell in
+        # the space the recipes are written in, which moves every anchor, every
+        # mirror axis and every sidebearing this file reports.
+        self.italic = getattr(self.master, "italicAngle", 0) or 0.0
+        self.pivot = self.xh / 2.0
 
         # H is three rectangles: right stem, left stem, crossbar. That gives
         # the vertical stem, the horizontal bar and the cap sidebearings in
@@ -72,7 +95,15 @@ class Params:
         self.lcBarL, self.lcBarR = self._bar_span("t", self.xh - self.lcBar / 2.0)
 
     def paths(self, name):
-        return list(self.G[name].layers[self.mi].paths)
+        """The donor's outlines, STANDING UP.
+
+        Under an italic master this hands back un-sheared clones, so that every
+        reading in this file and every recipe that reads a donor works in one
+        space. Clones and not the live paths: `slant` copies, but a caller that
+        got the originals could mutate the source font.
+        """
+        ps = list(self.G[name].layers[self.mi].paths)
+        return slant(ps, -self.italic, self.pivot) if self.italic else ps
 
     def layer(self, name):
         return self.G[name].layers[self.mi]
