@@ -1141,6 +1141,75 @@ rather than drawing.
 
 ---
 
+### F13 · A donor that is the wrong LETTER, not the wrong size
+
+К was the Latin K, donated as a component, approved twice, and wrong — and
+nothing that had been measured about it could have said so, because every
+reading taken was about proportion and the fault was about **structure**.
+
+K *branches*: its leg leaves the arm out in the counter and the arm carries on
+underneath it down to the stem, so two strokes run beside the stem for a
+quarter of the cap and the arm lands low. Cyrillic К does not branch. That is
+not a difference of fitting, and a letter can match its donor on width to a
+thousandth, on ink area, on stroke weight, on sidebearing and on lean while
+being a different letter.
+
+**Every instrument in this repo was blind to it, in a way worth naming:**
+
+- Ink area read К and K three per cent apart and called it agreement.
+- The width reading on к's approval row — "к's width is 1.000 of k's with the
+  middle half of the population inside a thousandth" — was *true*, and it is
+  the sentence that kept the error alive for a week. Where a leg starts is not
+  a width.
+- A raster overlap said 0.34, which was a registration artefact (F6).
+- The panel's own summary said 52%, which named the letter as contentious
+  without saying what the argument was about.
+
+**What sees it is a count, not a size.** Put a scanline through the letter and
+count the RUNS of ink beside the stem. One run at every height is a junction;
+a band with two runs is a branch, and the band's height is the branch.
+`tools/ka.py`. That reading is a single number, it is the same number at every
+master, and it separates 13 panel faces from 9 cleanly where every proportion
+reading had them interleaved.
+
+**The general form:** before asking whether a glyph is the right SIZE, ask
+whether its parts are connected the way that letter's parts connect. Count
+crossings, count runs, count what touches what. A tier-1 donation is exactly
+where this hides, because a donation is never *slightly* wrong — it is either
+the same letter or a different one, and the gates are all built to find small
+differences.
+
+---
+
+### F14 · Pinning the pair of edges that does not bound the white
+
+Building К's junction, the arm's lower edge and the leg's LOWER edge were both
+pinned to the vertex on the stem. Every argument for that was about the strokes
+and it was the wrong argument: the thing the eye reads at a junction is the
+**white**, and the white that opens to the right is bounded by the arm's lower
+edge and the leg's UPPER one. Pinning the wrong pair put the wedge's apex a
+stroke out into the counter and left the leg's far edge poking past the waist
+beside the stem, with a five-unit slit of white between that tab and the arm.
+
+It is the У splinter again from the other side — there, two outlines that
+coincided exactly at both masters did not coincide between them; here, two
+edges that meet exactly are simply not the two edges that matter. Same lesson,
+stated for junctions: **a stroke has two edges at a junction and only one of
+them borders the counter. Name which white you are shaping, then pin the pair
+that bounds it.**
+
+It audited as a pinched counter — 4 units against the Latin's own 17 — which
+is the only reason it was found, and only because the audit happens to take
+its scanline at 0.55 of the cap, which is 23 units above the waist. Twenty
+units lower and it would have shipped.
+
+**And the fix has a node-parity trap in it.** Clipping a buried stroke end
+against whichever boundary it reaches first gives a four-node polygon at one
+master and a five-node one at the other, and a font whose masters disagree on
+node count does not interpolate — it does not build at all, which is the good
+case. Bury by choosing the DEPTH instead: cut at the deepest x that keeps the
+end inside the stem at both masters, and the node count is structural.
+
 ---
 
 ## 4 · Probe inventory
@@ -1162,6 +1231,7 @@ rather than drawing.
 | `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
 | `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
 | `marks.py` | **where a mark sits over its letter**, off the built fonts at every weight: its middle less the base's, and the gap under it, against the face's own Ë Ï Ü ë ï ü Ă ă Ŭ ŭ É é È è carrying the same mark. The only reading that sees a composite's placement — no gate does | no |
+| `ka.py` | **how a K-shaped letter is put together**, off the ink, over the whole panel. `fork` is the height of the band where two runs of ink lie beside the stem — zero is one junction, anything else is a branch and the number IS the branch. `apex` is the **neck**: how far out from the stem the arm and the leg part company. `spike` is the angle the flat cut makes with its own stroke, which the audit can only bound against a Latin that has no letter leaning this far. The one reading that tells a letter from a differently fitted letter — see F13 | no |
 | `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |

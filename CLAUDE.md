@@ -84,7 +84,17 @@ output — findings have been hidden that way, including a broken interpolation.
    the LETTER — ї's by more than a stem. Ask what the host does with the same
    assembly; there is nearly always a Latin letter carrying the same mark.
    `tools/marks.py`. See `docs/METHOD.md` F12.
-9. **A change to a counter is a change to a stroke — run `tools/wrap.py`
+9. **Ask whether it is the right LETTER before asking whether it is the right
+   size.** Every reading this project takes is about proportion, and a glyph
+   can match its donor on width to a thousandth, on ink, on stroke weight and
+   on lean while being a different letter. К was the Latin K for a week: K
+   branches — its leg leaves the arm out in the counter — and Cyrillic К does
+   not, and the sentence that hid it was a true one, "к's width is 1.000 of
+   k's". What sees it is a **count, not a size**: how many runs of ink lie
+   beside the stem, what touches what, how many strokes cross. `tools/ka.py`,
+   `docs/METHOD.md` F13. A tier-1 donation is where this hides, because a
+   donation is never slightly wrong.
+10. **A change to a counter is a change to a stroke — run `tools/wrap.py`
    before showing it.** Every reading this project takes of a counter
    describes the white as if it were being drawn; what the eye reads is the
    stroke around it. в measured 1.000 against b on everything `soft.py` takes
@@ -182,6 +192,29 @@ Treat memory as scarce: one heavy job at a time, stream rather than slurp, no
 background pollers. A `make build` has been OOM-killed mid-run before now,
 which deletes `fonts/` — check for a half-removed output directory before
 assuming the tree is intact.
+
+**One heavy job per command, and read a gate's output from a file.** The two
+things that hung this machine outright:
+
+- `build_cyrillic && make build && verify.sh` in a single command. `verify.sh`
+  opens all 65 panel fonts, and it started while fontmake's peak was still
+  resident. Run the three steps as three commands.
+- Running `verify.sh` a *second* time to look at a different part of its
+  output. It is the most expensive thing in the repo. Run it once into a file
+  and read the file:
+
+  ```
+  bash tools/verify.sh 2>&1 | tee $SCRATCH/verify.log; tail -2 $SCRATCH/verify.log
+  ```
+
+  This is not a licence to grep the gate — the whole log must be read, just
+  not regenerated.
+
+The same applies to probes. A numpy crop `a[y0:y1, x0:x1]` is a **view** that
+keeps the entire canvas alive, so a probe holding a dozen cropped glyphs was
+holding a dozen full rasters — `.copy()` at the crop. And rasterise no larger
+than the question needs: canvas cost is quadratic in the pixel size, and every
+figure `tools/ka.py` takes is a ratio that resolves fine at 160px.
 
 **Any script you write is written to be run again, so write it efficiently.**
 Open a file once, loop the expensive thing on the outside, hoist out of the
