@@ -49,13 +49,11 @@ import sys
 sys.path.insert(0, "tools")
 sys.path.insert(0, "scripts")
 
-from fontTools.pens.recordingPen import RecordingPen
-from fontTools.ttLib import TTFont
-
 import glyphsLib
 from geom import bbox
 from params import Params, Lower, _flatten
-from ge_from_sudo import (leaning, mapped, poly, pts_of, stand_up, to_nodes)
+from donor import (blend, centre, emit, fit_width, leaning, mapped, mask,
+                   poly, pts_of, same_drawing, square, stand_up, to_nodes)
 
 FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
 CP = 0x0434
@@ -69,10 +67,18 @@ DE_WIDE = 1.04          # the whole letter's width over o's panel 1.00..1.15
 # Lilex draws this letter as one stroke: up the bowl's right side, on over the
 # top and back to the left, ending in a cut terminal. These are the segments of
 # its outer contour that are HOOK rather than bowl -- from where the bowl's
-# right wall carries on upward, round the top, back down the hook's underside,
-# and into the two short lines that are the notch where the underside meets the
-# bowl's own crown. Counted off by index because the two weights carry the same
-# segments in the same order, which `axis` asserts before anything else runs.
+# right wall carries on upward, round the top, and back down the hook's
+# underside. Counted off by index because the two weights carry the same
+# segments in the same order, which `same_drawing` asserts before anything
+# else runs.
+#
+# Lilex's own segments 8 and 9 -- a three-unit notch where the underside meets
+# the bowl's crown -- are kept, and `tools/outlines.py` flags the shorter of
+# them. Dropping them was tried and is worse: the closing chord then runs from
+# the underside straight to the departure point across the stroke's corner,
+# which turned a 3-unit segment into a 126-degree kink and an extreme missed by
+# 19 units. The whole root sits buried inside the bowl's ink and comes out in
+# the overlap removal, which is the answer to all three findings there.
 HOOK = (3, 4, 5, 6, 7, 8, 9)
 
 # The terminal is the one straight segment inside the hook.
@@ -97,61 +103,6 @@ CUT = 5
 # contour rather than the outer one, which is a splice across two contours --
 # `scripts/be_from_sudo.py`'s whole machinery, for a swell. Recorded and left.
 DE_JOIN = None
-
-
-def find(name):
-    from panel import families
-    for r in sorted({os.path.dirname(p) for _f, p in families()}):
-        p = os.path.join(r, name)
-        if os.path.exists(p):
-            return p
-    raise SystemExit("%s is not installed -- it is the outline donor" % name)
-
-
-def segments_of(path, cp):
-    """A CFF glyph's contours as (kind, points) segments.
-
-    No quadratic expansion and no curve fitting: CFF is already cubic, so what
-    the pen reports is what the designer drew, node for node.
-    """
-    f = TTFont(path, fontNumber=0, lazy=True)
-    try:
-        pen = RecordingPen()
-        f.getGlyphSet()[f.getBestCmap()[cp]].draw(pen)
-        deg = float(f["post"].italicAngle)
-    finally:
-        f.close()
-    out, cur = [], None
-    for verb, pts in pen.value:
-        if verb == "moveTo":
-            cur = [("start", [pts[0]])]
-        elif verb == "lineTo":
-            cur.append(("line", [pts[0]]))
-        elif verb == "curveTo":
-            cur.append(("curve", list(pts)))
-        elif verb in ("closePath", "endPath"):
-            out.append(cur)
-            cur = None
-    return out, deg
-
-
-def axis():
-    """The donor's two weights, checked to be the same drawing."""
-    a, deg = segments_of(find(FILES[0]), CP)
-    b, _ = segments_of(find(FILES[1]), CP)
-    sa = [[k for k, _p in c] for c in a]
-    sb = [[k for k, _p in c] for c in b]
-    if sa != sb:
-        raise SystemExit("Lilex's two italics no longer carry the same "
-                         "segments for д -- %s against %s" % (sa, sb))
-    return a, b, deg
-
-
-def blend(a, b, t):
-    return [[(k, [(p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t)
-                  for p, q in zip(ps, qs)])
-             for (k, ps), (_k, qs) in zip(ca, cb)]
-            for ca, cb in zip(a, b)]
 
 
 def bowl_top(sg):
@@ -186,38 +137,10 @@ def fit(sg, pr):
     want = DE_WIDE * leaning([q for p in pr.paths("o")
                               for q in _flatten(p, 16)], pr.italic, pr.pivot)
     mid = 0.5 * (x0 + x1)
-
-    def at(kx):
-        return leaning([(300.0 + (q[0] - mid) * kx, q[1])
-                        for q in pts_of(tall[0])], pr.italic, pr.pivot)
-
-    lo, hi = 0.05, 4.0
-    for _ in range(30):
-        kx = 0.5 * (lo + hi)
-        if at(kx) < want:
-            lo = kx
-        else:
-            hi = kx
-    kx = 0.5 * (lo + hi)
+    kx = fit_width(tall[0], pr, want, mid)
     out = [mapped(c, lambda q: (300.0 + (q[0] - mid) * kx, q[1])) for c in tall]
-    # and the bowl sits where o sits, so the hook lands on o and not beside it
-    xs = [q[0] for q in pts_of(out[0])]
-    dx = 0.5 * (ox0 + ox1) - 0.5 * (min(xs) + max(xs))
-    return [mapped(c, lambda q: (q[0] + dx, q[1])) for c in out]
-
-
-def square(sg, i, angle):
-    """The terminal cut vertical in the italic's own space -- this face cuts
-    213 of its 242 terminals at exactly 0 or 90 degrees. Both ends go to the
-    one that reaches further left, which is the hook's own extent."""
-    t = math.tan(math.radians(angle))
-    a, b = sg[i - 1][1][-1], sg[i][1][-1]
-    e = min(a[0] - a[1] * t, b[0] - b[1] * t)
-    out = list(sg)
-    out[i] = (out[i][0], [(e + b[1] * t, b[1])])
-    kind, ps = out[i - 1]
-    out[i - 1] = (kind, ps[:-1] + [(e + a[1] * t, a[1])])
-    return out
+    # centred on the BOWL, so the hook lands on o and not beside it
+    return centre(out, pr, 0, 0.5 * (ox0 + ox1))
 
 
 def hook(sg):
@@ -237,36 +160,7 @@ def hook(sg):
 
 def shape(a, b, t, pr):
     sg = fit(blend(a, b, t), pr)
-    return square(hook(sg), HOOK.index(CUT) + 1, pr.italic)
-
-
-def mask(groups, k):
-    """Contours XORed inside a group, groups ORed together.
-
-    `weights.mask_of` XORs everything, which is right for a letter drawn as one
-    outline with counters punched out of it and wrong here: the hook OVERLAPS
-    the bowl, and XORing the two takes the overlap back out again -- a bite out
-    of the junction, in exactly the region the reading is about. The built font
-    unions them, because TrueType fills by non-zero winding and both contours
-    turn the same way.
-    """
-    from PIL import Image, ImageDraw, ImageChops
-    import numpy as np
-    xs = [q[0] for g in groups for p in g for q in p]
-    ys = [q[1] for g in groups for p in g for q in p]
-    w = int((max(xs) - min(xs)) * k) + 8
-    h = int((max(ys) - min(ys)) * k) + 8
-    total = Image.new("1", (w, h), 0)
-    for g in groups:
-        img = Image.new("1", (w, h), 0)
-        for pl in g:
-            lay = Image.new("1", (w, h), 0)
-            ImageDraw.Draw(lay).polygon(
-                [(4 + (x - min(xs)) * k, h - 4 - (y - min(ys)) * k)
-                 for x, y in pl], fill=1)
-            img = ImageChops.logical_xor(img, lay)
-        total = ImageChops.logical_or(total, img)
-    return np.asarray(total) > 0
+    return square(hook(sg), HOOK.index(CUT) + 1, pr.italic, min)
 
 
 def solve(a, b, pr):
@@ -312,7 +206,7 @@ def solve(a, b, pr):
 
 def build():
     font = glyphsLib.load(open(SRC))
-    a, b, deg = axis()
+    a, b, deg = same_drawing(FILES, CP, "д")
     a = [stand_up(c, deg) for c in a]
     b = [stand_up(c, deg) for c in b]
     out = []
@@ -331,32 +225,21 @@ def build():
 
 
 def main():
-    head = ['"""The cursive д\'s hook, taken from Lilex and fitted to this '
-            'face.\n', '\n',
-            'Generated by scripts/de_from_lilex.py -- edit that, not this.\n',
-            'Lilex is under the SIL Open Font License 1.1, which is what lets\n',
-            'it be an outline donor here. Held as data rather than read from\n',
-            'the donor at build time so the repository builds without a font\n',
-            'that lives outside it.\n', '\n',
-            'The BOWL is not here: it is this face\'s own o, added by the\n',
-            'recipe. Only the hook is the donor\'s, closed off across its own\n',
-            'root and left to overlap the bowl.\n', '\n',
-            'UN-SHEARED, like every outline a recipe sees. One entry per\n',
-            'master, in source order: contours of (x, y, type, smooth).\n', '"""'
-            '\n\nDE = [\n']
-    body = []
-    made = build()
-    for t, paths in made:
-        body.append("    # Lilex's Thin to Bold at %+.3f\n    [\n" % t)
-        for p in paths:
-            body.append("        [\n")
-            for x, y, ty, sm in p:
-                body.append("            (%.1f, %.1f, %r, %r),\n"
-                            % (x, y, ty, sm))
-            body.append("        ],\n")
-        body.append("    ],\n")
-    open(OUT, "w").write("".join(head) + "".join(body) + "]\n")
-    print("%s  %s" % (OUT, [[len(p) for p in ps] for _, ps in made]))
+    emit(OUT, "DE", """The cursive д's hook, taken from Lilex and fitted here.
+
+Generated by scripts/de_from_lilex.py -- edit that, not this.
+Lilex is under the SIL Open Font License 1.1, which is what lets
+it be an outline donor here. Held as data rather than read from
+the donor at build time so the repository builds without a font
+that lives outside it.
+
+The BOWL is not here: it is this face's own o, added by the
+recipe. Only the hook is the donor's, closed off across its own
+root and left to overlap the bowl.
+
+UN-SHEARED, like every outline a recipe sees. One entry per
+master, in source order: contours of (x, y, type, smooth).
+""", build())
 
 
 if __name__ == "__main__":

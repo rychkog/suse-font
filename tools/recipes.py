@@ -2748,7 +2748,7 @@ ITALIC = {}
 
 
 def Ge_cursive(pr):
-    """г, taken whole from Sudo and fitted here -- see `tools/ge_donor.py`.
+    """г, taken whole from Lilex and fitted here -- `tools/ge_donor.py`.
 
     This letter was drawn twice from a SPINE read off the references and
     stroked at a constant width, and rejected twice. The second rejection is
@@ -2758,13 +2758,20 @@ def Ge_cursive(pr):
     way. That is б's fault class exactly -- nine drawings refused, and what
     passed was not a better drawing but a donated outline. METHOD F15.
 
-    So the outline is Sudo's. There is nothing of this face to build it from:
+    So the outline is Lilex's -- the same donor as д's hook, which is one
+    design language for the pair rather than two, and CFF, which matters: the
+    first donation came off Sudo's variable TrueType and arrived as 34 nodes
+    against this face's own o at 8. It measured right on every reading this
+    project takes, because all of them read the ink, and as an outline it was
+    machine spaghetti. Lilex draws the same letter in 16.
+
+    There is nothing of this face to build it from:
     the cursive г is a top bar, a curve descending left and a foot running
     right, it has no bowl and no counter, and no Latin or Cyrillic letter in
     this family draws any part of it. c bulges the wrong way and mirroring is
     banned; з's lower terminal exits left where this one has to run right.
     What IS this face's is the height, the width, the cell, the terminal cut
-    and the weight -- `scripts/ge_from_sudo.py` has each of them and where it
+    and the weight -- `scripts/ge_from_lilex.py` has each of them and where it
     was measured.
     """
     base = getattr(pr, "_pr", pr)
