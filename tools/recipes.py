@@ -2743,3 +2743,144 @@ RECIPES = {
 # not among them -- they ARE the italic's own u n m, handled as tier 1 in
 # `classify.ITALIC` rather than as a drawing.
 ITALIC = {}
+
+
+def _stroke_path(pts, w, steps=14):
+    """Ink of width `w` laid along a centreline through `pts`, ends cut flat.
+
+    There is no offset curve in geom.py because until now nothing needed one:
+    every letter in this project is built from rectangles, the host's own
+    outlines, and diagonals with flat ends. The cursive г and д are the first
+    shapes with a curved SPINE, and a spine is what the reference gives --
+    `tools/cursive.py` reads the ridge of the distance transform, which is the
+    path with the weight divided out.
+
+    Catmull-Rom through the points, then each sample offset along its own
+    normal. `steps` is fixed rather than adaptive so both masters emit the same
+    node count, which is what interpolation needs and what a curve fitted to a
+    tolerance would quietly break.
+    """
+    p = [pts[0]] + list(pts) + [pts[-1]]
+    line = []
+    for i in range(len(pts) - 1):
+        p0, p1, p2, p3 = p[i], p[i + 1], p[i + 2], p[i + 3]
+        for s in range(steps):
+            t = s / float(steps)
+            t2, t3 = t * t, t * t * t
+            line.append(tuple(
+                0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t
+                       + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2
+                       + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)
+                for k in (0, 1)))
+    line.append(tuple(pts[-1]))
+
+    def normal(i):
+        a = line[max(0, i - 1)]
+        b = line[min(len(line) - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        n = math.hypot(dx, dy) or 1.0
+        return -dy / n, dx / n
+
+    half = w / 2.0
+    left, right = [], []
+    for i, (x, y) in enumerate(line):
+        nx, ny = normal(i)
+        left.append(node(x + nx * half, y + ny * half))
+        right.append(node(x - nx * half, y - ny * half))
+    q = path(left + right[::-1])
+    return q if area(q) > 0 else reverse(q)
+
+
+# The cursive г, as a spine in x-heights with x from the letter's own left
+# edge. Read off the reference skeletons, which agree to a hundredth across
+# JetBrains Mono, Consolas, Lyth Mono and Ioskeley Tuned:
+#
+#   at 0.95 of the height the path runs 0.29..0.39 -- a short arm, going right
+#   at 0.75 it is at its RIGHTMOST, 0.65
+#   at 0.50 it is back through the middle, 0.41
+#   at 0.25 it is at its LEFTMOST, 0.09
+#   at 0.05 it runs 0.37..0.48 -- a second arm, going right
+#
+# So it is ONE stroke with three phases and two inflections, and it is not any
+# Latin letter: `2` was proposed and is wrong -- a 2 has a bowl and a straight
+# base bar and this has neither. Nothing is spliced here for that reason.
+# The cursive г and д, as SPINES normalised to their own bounding box: x and y
+# both run 0..1 across the path's own extremes, and the recipe maps that box
+# onto this face's lowercase width and x-height. Held that way because the
+# first attempt held them as fractions of the x-height directly, which left г
+# 0.53 of its height wide where the references are 0.76-0.87 and made the
+# letter read cramped and small beside its own neighbours.
+#
+# The readings agree to a hundredth across JetBrains Mono, Consolas, Lyth Mono
+# and Ioskeley Tuned. г's spine runs x 0.09..0.67 and y 0.05..0.96 of the
+# letter's height; the five crossings that define it are
+#
+#   0.95 up: 0.29..0.39 -- a short arm, going right
+#   0.75 up: 0.65       -- its RIGHTMOST
+#   0.50 up: 0.41       -- back through the middle
+#   0.25 up: 0.09       -- its LEFTMOST
+#   0.05 up: 0.37..0.48 -- a second arm, going right
+#
+# One stroke, three phases, two inflections. It is not any Latin letter and
+# nothing is spliced into it: `2` was proposed and a 2 has a bowl and a
+# straight base bar, neither of which is here.
+GE_IT = ((0.34, 0.99), (0.60, 1.00), (0.97, 0.83), (0.55, 0.49),
+         (0.05, 0.17), (0.42, 0.00), (0.72, 0.06))
+
+# д is an x-height bowl -- the face's own o -- and a stroke that leaves the
+# bowl's shoulder, rises, and hooks LEFT to finish at 1.38 x-heights. The
+# references run 1.35-1.46. There is no descender anywhere in the letter,
+# which is what makes `g` wrong as firmly as `2` is for г.
+#
+# The hook's radius is held against the STROKE and not against the letter,
+# because a hook of a fixed size closes up as the stroke thickens: at ExtraBold
+# the first attempt turned it into a blob with no white left inside it.
+DE_TOP = 1.38           # where the hook ends, in x-heights
+# The hook's radius, and г's width, are both fractions of the X-HEIGHT and not
+# multiples of the stroke. Held against the stroke, the hook came out 405 units
+# across at ExtraBold where the stem is 150 -- it swallowed the bowl, collapsed
+# its own sampled points onto each other and the font stopped converting at
+# all. A letter's silhouette is a fraction of its height at every weight; what
+# changes with the stroke is how much white is left inside it, which is the
+# right way round.
+DE_HOOK = 0.27          # hook radius, in x-heights
+GE_WIDE = 0.82          # г's whole width, in x-heights: the references hold 0.76-0.87
+
+
+def _fit_spine(spine, x0, y0, x1, y1):
+    """Map a 0..1 spine onto the box the letter actually occupies."""
+    return [(x0 + x * (x1 - x0), y0 + y * (y1 - y0)) for x, y in spine]
+
+
+def Ge_cursive(pr):
+    """г, the italic's own -- one stroke at this face's lowercase weight."""
+    w, xh = pr.lcStem, pr.xh
+    half = GE_WIDE * xh / 2.0
+    return [_stroke_path(_fit_spine(GE_IT,
+                                    300.0 - half + w / 2.0, w / 2.0,
+                                    300.0 + half - w / 2.0, xh - w / 2.0), w)]
+
+
+def De_cursive(pr):
+    """д, the italic's own -- the face's OWN o, and a hook off its shoulder.
+
+    The bowl is not drawn: `o` already IS this letter's bowl at this master,
+    fitted to this cell, and under an italic master `pr.paths` hands it over
+    standing up like every other donor.
+    """
+    w, xh = pr.lcStem, pr.xh
+    bowl = clone_all(pr.paths("o"))
+    b = bbox(bowl)
+    r = DE_HOOK * xh
+    top = DE_TOP * xh
+    # up the bowl's own right side, then over and back to the left. Anchored on
+    # the bowl so it stays attached as the bowl widens across the axis.
+    sx, sy = b[2] - w * 0.5, b[1] + (b[3] - b[1]) * 0.62
+    pts = [(sx, sy), (sx + w * 0.1, top - r * 1.5),
+           (sx - r * 0.15, top - r * 0.30), (sx - r * 0.95, top),
+           (sx - r * 1.75, top - r * 0.55)]
+    return bowl + [_stroke_path(pts, w)]
+
+
+ITALIC["ge-cy"] = Ge_cursive
+ITALIC["de-cy"] = De_cursive
