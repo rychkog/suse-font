@@ -188,11 +188,13 @@ checkpoint sheets, which is not approval.
 components — `tools/donated.py` proves every one is still exactly its donor
 in both masters and all four built weights, that each is a plain component
 rather than a decomposed copy, and that nothing drawn is a Latin letter or a
-Latin letter mirrored. The verdict was held: *"let's keep it for now, but
-come back to this question once we're done with italic."* The construction
-is not what is in question — the design judgement in the list is, and the
-italic is what reopens it. See METHOD §9 for the three reasons and what to
-re-run. **Do not approve this set without asking again after the italic.**
+Latin letter mirrored. The verdict was held on 2026-08-13 to be taken after the italic, and that
+hold was withdrawn the same day: **a donation is a component, so the italic
+inherits whatever the upright decides and gets no vote.** The dependency runs
+upright → italic only, which makes this set the thing to settle FIRST.
+Measured since: the face's italic is a slant in the capitals and a true
+italic in the lowercase — a is single-storey — and every donated letter
+survives that as the same letter. See METHOD §9.
 (І і are approved, in the row above, and are not part of this hold.)
 
 **The marks were corrected on 2026-08-12 — see the approval row above.**
