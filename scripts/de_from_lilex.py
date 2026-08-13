@@ -96,6 +96,16 @@ CUT = 5
 # stroke leaves the bowl and where it comes back, and that is exactly the piece
 # an overlap throws away. Spliced, it is the donor's own.
 #
+# The splice's own cuts land wherever the two outlines cross, and when that is
+# near the end of one of the donor's segments the leftover is a STUB: at Thin
+# the departure fell at 0.94 and left 36 units with a bow of 0.02, a dead
+# straight piece of curve carrying its own node, which beside the arc's cut end
+# made three nodes strung along one straight run. Visible at any zoom and
+# invisible to every ink reading. `donor.absorb` carries the arc's last segment
+# on to the stub's far end instead, which is also where the Thin junction's
+# 1.34 became 1.49 -- above the panel's ceiling, and the one figure here still
+# outside it.
+#
 # Carrying the root further down the wall was tried first, before the splice,
 # and is recorded because the way it failed is worth keeping: the chord closing
 # the contour then ran from the wall's inner edge to its outer one, straight

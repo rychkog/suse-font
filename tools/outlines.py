@@ -22,6 +22,9 @@ squares and the handles as lines to their circles, and reports:
   kinks     a join marked smooth whose two handles are not in line, in degrees
   short     segments under a hundredth of the em, which are nodes doing
             nothing but holding the count up
+  flat      CURVE segments with no curvature -- a straight line drawn as a
+            curve. These arrive from cuts, and three of them in a row is what
+            a splice leaves if nothing absorbs the stubs
 """
 
 import sys
@@ -204,6 +207,30 @@ def shorts(c):
     return out
 
 
+def flats(c, tol=0.6):
+    """CURVE segments with no curvature -- a straight line drawn as a curve.
+
+    A node doing nothing, and a place the outline cannot be edited sensibly.
+    They arrive from cuts: a splice lands wherever two outlines cross, and near
+    the end of a segment what is left over is a stub with a bow of nothing.
+    A `line` is not one of these -- a terminal is meant to be straight.
+    """
+    out = []
+    for i, (p0, cs, p1) in enumerate(segments(c)):
+        if len(cs) != 2:
+            continue
+        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+        n = math.hypot(dx, dy)
+        if n < 1e-6:
+            continue
+        worst = max(abs((bez(p0, cs[0], cs[1], p1, s / 16.0)[0] - p0[0]) * dy
+                        - (bez(p0, cs[0], cs[1], p1, s / 16.0)[1] - p0[1]) * dx)
+                    / n for s in range(1, 16))
+        if worst < tol:
+            out.append((i, n, worst))
+    return out
+
+
 def draw(cells, path):
     pad, cw = 22, 330
     W = pad + len(cells) * (cw + pad)
@@ -249,10 +276,11 @@ def report(ch, mname, cs, ref, cells, tag=""):
     ex = [e for c in cs for e in extrema(c)]
     kk = [x for c in cs for x in kinks(c)]
     sh = [x for c in cs for x in shorts(c)]
+    fl = [x for c in cs for x in flats(c)]
     print("   %-4s %-10s %-7s %d contour%s, %3d nodes (o has %d)   %d missing "
-          "extrema, %d kinks, %d short segments"
+          "extrema, %d kinks, %d short, %d flat"
           % (ch, mname, tag, len(cs), " " if len(cs) == 1 else "s", on, ref,
-             len(ex), len(kk), len(sh)))
+             len(ex), len(kk), len(sh), len(fl)))
     for i, ax, over in ex[:4]:
         print("        segment %-3d passes its %s extreme by %.1f"
               % (i, ax, abs(over)))
@@ -261,6 +289,9 @@ def report(ch, mname, cs, ref, cells, tag=""):
               % (i, deg))
     for i, dd in sorted(sh, key=lambda t: t[1])[:3]:
         print("        segment %-3d is %.1f units long" % (i, dd))
+    for i, n, w in sorted(fl, key=lambda t: t[2])[:3]:
+        print("        segment %-3d is a curve with no curvature -- %.0f units,"
+              " bow %.2f" % (i, n, w))
     if cells is not None:
         cells.append(("%s %s%s" % (ch, mname, tag and " " + tag), cs))
 

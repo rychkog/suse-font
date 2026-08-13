@@ -414,6 +414,54 @@ def arc(bs, bsegs, frm, to):
     return s0, out + [head]
 
 
+def bow(p0, seg, steps=16):
+    """How far a segment departs from its own chord, in units.
+
+    Zero means a straight line drawn as a curve, which is a node doing nothing
+    and a place the outline cannot be edited sensibly.
+    """
+    kind, ps = seg
+    if kind != "curve":
+        return 0.0
+    p1 = ps[-1]
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    n = math.hypot(dx, dy) or 1.0
+    worst = 0.0
+    for s in range(1, steps):
+        q = bez(p0, ps[0], ps[1], p1, s / float(steps))
+        worst = max(worst, abs((q[0] - p0[0]) * dy - (q[1] - p0[1]) * dx) / n)
+    return worst
+
+
+def absorb(arc, stroke, D, flat=1.0):
+    """Take a straight stub off the front of the stroke into the arc.
+
+    A cut lands wherever the two outlines cross, and when that is near the end
+    of one of the donor's own segments what is left over is a stub: at Thin the
+    departure fell at 0.94 of its segment and left 36 units with a bow of
+    0.02 -- a dead straight piece of curve carrying its own node, and beside
+    the arc's own cut end that made three nodes strung along one straight run.
+    It is visible at any zoom and no ink reading can see it.
+
+    Absorbed rather than dropped: the arc's last segment is carried on to the
+    stub's far end, its final handle moved by the same amount so the tangent
+    there is unchanged. The stub is straight and very nearly along the oval's
+    own tangent -- it has just left it -- so this is a continuation and not a
+    redrawing, and where it does bend the oval outward is the junction, which
+    is where the letter is supposed to bend outward.
+    """
+    if len(stroke) < 2 or bow(D, stroke[0]) > flat:
+        return arc, stroke, D
+    E = stroke[0][1][-1]
+    dx, dy = E[0] - D[0], E[1] - D[1]
+    kind, ps = arc[-1]
+    if kind == "curve":
+        arc = arc[:-1] + [(kind, [ps[0], (ps[1][0] + dx, ps[1][1] + dy), E])]
+    else:
+        arc = arc[:-1] + [(kind, [E])]
+    return arc, stroke[1:], E
+
+
 def splice(bowl, hook, steps=16):
     """One contour: the host's bowl with the donor's stroke growing out of it.
 
@@ -456,10 +504,11 @@ def splice(bowl, hook, steps=16):
         if inside(pts[len(pts) // 2], skin):
             continue
         if tail is None:
-            s0, segs = arc(bs, bsegs, frm, to)
             _s, rev = reverse_run(D, stroke)
+            segs, rev, _e = absorb(segs, rev, L)
             best = (s0, segs + rev)
         else:
+            segs, tail, _e = absorb(segs, tail, D)
             best = (s0, segs + tail)
         break
     return best
