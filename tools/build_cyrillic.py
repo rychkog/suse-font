@@ -8,6 +8,7 @@ breaks interpolation. T1 letters are Glyphs components pointing at the Latin,
 never copied paths, so they follow the Latin through the weight axis for free.
 """
 
+import math
 import sys
 
 import glyphsLib
@@ -18,6 +19,7 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from params import Params          # noqa: E402
 from classify import TIERS         # noqa: E402
 import recipes                     # noqa: E402
+from geom import slant             # noqa: E402
 
 WIDTH = 600
 
@@ -165,9 +167,22 @@ def main():
                     layer.components.append(GSComponent(arg[1]))
                     marks.append((layer, mi, arg[0], arg[1]))
                 else:
-                    for p in arg(prs[mi]):
+                    pr = prs[mi]
+                    ps, ans = arg(pr), anchors(pr, name)
+                    # Built standing up, written leaning. `Params.paths` hands
+                    # the recipe an un-sheared donor so that every construction
+                    # in this project works in one space; the shear goes back
+                    # on here, about the face's own pivot. Anchors travel with
+                    # it -- a mark's x depends on its height, and a top anchor
+                    # left un-sheared lands a whole slope off the letter.
+                    if pr.italic:
+                        ps = slant(ps, pr.italic, pr.pivot)
+                        t = math.tan(math.radians(pr.italic))
+                        ans = [(n, x + (y - pr.pivot) * t, y)
+                               for n, x, y in ans]
+                    for p in ps:
                         layer.paths.append(p)
-                    for an, ax, ay in anchors(prs[mi], name):
+                    for an, ax, ay in ans:
                         a = GSAnchor()
                         a.name = an
                         a.position = Point(ax, ay)
