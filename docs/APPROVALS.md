@@ -82,76 +82,12 @@ round.
 | **ь ъ ы — history** | — | **One construction was drawn for the lowercase soft bowl's counter and rejected, on 2026-08-12.** ъ and ы keep the outlines they were approved with, byte for byte, and ь has never been approved. The attempt gave the counter an arc down its left side — b lets its counter run past the stem's own edge where B's stops flat against it — and took that arc's radius from the counter's existing RIGHT one. Every number closed: ь came out as b's bowl unit for unit, 1.000 on all six of `soft.py`'s readings at all four weights. The letter got worse, and the verdict was "nasty artifacts, degradation" on a magnified Thin ь. **The radius was not the error and the first account of this row was wrong.** ь's right flank sweeps 160 units where b's sweeps 161 — the two agree. What differs is the room: b's counter is 356 × 437 so two such flanks still leave 0.72 of its height standing straight, while ь's is 355 × **194** and the same two flanks leave 35 units of a 355-wide counter unswept. **A counter has to run straight somewhere**, and this one is too short to do it vertically, so it does it down its flat left side; take that away and nothing in the shape is straight, which is an ellipse. The flat left is therefore right for this bowl — it is a half-height bowl on a full-height spine, B's proportion whatever the case, and B's counter is flat down its left at both masters. **Any second attempt at the cut must move the left side left and leave it a line.** (The earlier claim here that b's counter is a rounded rectangle came from a run-counting scan that discarded the rows where b has three ink runs — the top and bottom of the counter, which is exactly where it turns. b's counter is o's counter. See METHOD F1.) |
 | **Д д** | 2026-08-10 | **Approved 2026-08-10, both cases, shown together in one sheet and approved together.** The change was one constant: `DE_LEG`, the weight of the two legs hanging under the plinth, linear in the stem and clamped to the masters it was fitted over. They had been the full stem, flat -- 1.009, 0.999, 1.008, 1.001 across the axis where the panel goes 0.974, 0.918, 0.864, 0.932. A leg under a plinth is an interior stroke and §2 says interior strokes thicken at about three quarters the rate the stem does; this one took no reduction at all. It showed twice, which is why one number answered both halves of the verdict the user gave on the previous attempt: fat legs read as stubs, and the white BETWEEN them is what pays for their weight, because the plinth is against the sidebearing and cannot grow. The legs keep the plinth's own ends and take their weight inward, so **the letter's width does not move** -- the attempt that moved it was rejected as terrible. Gap now 1.46 stems at ExtraBold against 1.32, and the LOWERCASE gap lands on the panel at every weight (1.70 against 1.73 at ExtraBold). **Recorded as still outside at approval, and none of it is to be chased without a fresh verdict:** (1) **the body's span is 10 to 17 per cent under the panel at every weight**, Thin included -- 0.431 against 0.528 at Thin, 0.604 against 0.694 at ExtraBold -- and the counter is correspondingly narrow, 0.266 of its span at ExtraBold against a panel 0.398. **This is settled. Do not widen it.** It has been solved and drawn TWICE and rejected by eye both times: on 2026-08-09 against a target that was five per cent too wide at Thin, and again on 2026-08-11 against the corrected target, which is a visibly smaller move and leaves the plinth untouched. The second attempt reached 0.348 of its span for the lowercase counter against a panel 0.398 and was still rejected. The letter is narrow because this face is narrow -- §8's own finding about о, reached again here -- and it is approved at its current width deliberately. (2) **the left edge leans harder than the panel's at all eight readings** -- 0.182 against 0.122 for the capital at ExtraBold, 0.240 against 0.191 for the lowercase -- and the panel straightens its Д as it gets bolder where ours does not. **This is settled, not open.** It was solved to the panel's own lean on 2026-08-10 and shown straightened beside the approved letter at both drawn masters; the approved lean was preferred by eye. It also does not do what it was tried for: the counter came out NARROWER at all four weights, because `El` draws the leg with a fixed horizontal width so the slant moves the leg's top and not the row where the counter is widest. Ours leans harder than the panel on purpose. Do not straighten it. (3) the leg weight at Bold, 0.940 against a panel 0.864: the panel dips at Bold and two masters cannot hold a third point (§1). (4) the capital's leg gap at Bold and ExtraBold, 1.84 and 1.46 against 2.18 and 1.82. The body's walls were the first suspect and are **not** a fault: measured perpendicular they read 1.009, 0.985, 1.000, 0.993 against a panel 1.031, 1.029, 0.997, 0.986. The horizontal footprint of a slanted leg is not its weight, and reading it that way said 1.76 against 1.55 and cost a round. Gates at approval: mechanical and interpolation pass, audit clean on both readings, panel ink every letter inside, signature 0 findings on both readings. The one red line in `verify.sh` is м at ExtraBold, pre-existing and untouched. Re-read any of this with `tools/de.py --panel`. |
 
+| **К** | 2026-08-13 | **Approved 2026-08-13, redrawn.** Supersedes the two rows above: К had been the Latin K donated as a component, approved 2026-08-06 and again 2026-08-13 as one of the twenty-five. Reopened on the user's explicit *"let's draw Kk"*, which is the confirmation rule 1 requires. **The fault was structure, not proportion.** K *branches* — its leg leaves the arm out in the counter and the arm carries on underneath it to the stem, two runs of ink beside the stem for 0.24 of the cap — and Cyrillic К does not branch at all. No reading this project had could see that: ink area put К and K three per cent apart, and к's own approval row said "к's width is 1.000 of k's", which is true and is what kept the error alive for a week. What sees it is a **count**: runs of ink beside the stem (`tools/ka.py`, METHOD F13). **The shape is read off Roboto Mono's outline**, the face the user named. Arm and leg do not meet the stem at a point — they run together as one **neck** and that neck meets the stem, over a band one horizontal bar tall, the two outer edges cut flat and stepped in exactly as Ж's four arms are. Junction at **0.517 of the cap**, which is our own approved Ж's `ZHE_WAIST` copied out (not shared, so a change to Ж cannot move К) and the panel's Cyrillic К to three places. Neck **0.245 of the cap**, the panel median over every face that un-branches its К (range 0.181–0.272). **Everything else is still the host's K** — the stem and its sidebearings, the extreme each stroke reaches, and each stroke's PERPENDICULAR weight off K's own flat end cut divided by the lean there, so the diagonals weigh what this face's diagonals weigh at both masters with no constant. The two leans are not chosen: they are whatever gets a stroke of that weight from that extreme to the neck. Tier 1 → **tier 2**. **Recorded as still outside at approval:** (1) **К is the shallowest diagonal in the Cyrillic** — 55–60 degrees at ExtraBold where Х holds 63–66, И 63, У 69 and Ж 81 — and it is visible in an alphabet strip. Inherited, not introduced: the face's own Latin K is the shallowest thing it draws too (55–63 against X 63–66, N 64, V 74–76), and К sits inside K's range at both masters. The redraw moved it TOWARDS its neighbours — the donated К took K's 52 as its shallowest edge at Regular, the drawn one takes 54. Judged in company with `tools/ka_company.py` and approved there. (2) **К has left the donated set**, so it no longer follows the Latin into the italic for free and must be built there from the italic's own K. (3) `ANCHOR_FROM` loses `Ka-cy` with it — Ќ had taken K's anchor, which travels further than any other in that table (312 at Thin to 354 at ExtraBold) while its drawn ќ could not follow; both now take the middle of the cell, where Ѓ ѓ ќ already sit, which ENDS the drift the previous row recorded as knowingly out of step. Gates at approval: `verify.sh` exits 0, all gates pass unfiltered; audit clean; ink inside the panel at Regular and ExtraBold; 0 stroke-weight readings below the panel's tenth percentile; both signature readings clean at all four weights — the diagonals cut flat at cap and baseline the way X, V, W and K are cut, and the neck reads as a horizontal weighing exactly the face's own. |
+| **к** | 2026-08-13 | **Approved 2026-08-13, redrawn**, on the same verdict as К — both letters were on the same two sheets and both were named in the question the verdict answered. Supersedes the 2026-08-06 row above. Same construction as К against k and the x-height, not К squashed: k's own arm and leg carry the lowercase's diagonal weight already, and k's stem is cut to the x-height as before. **The neck is 0.339 of the x-height**, not К's 0.245 of the cap — two figures and not one because к is wider for its height than К is, so the same fraction would leave its diagonals flatter; against the letter's WIDTH the panel is half as tight (0.28–0.49 against 0.18–0.27), so the height is the relation and this is the case's own value. **The neck's band is one LOWERCASE bar**, which cost a round: run through the capital's view it took 74 where this face draws 61 at Regular, and the signature gate read к's neck at 1.21 of the face's own lowercase horizontal. It runs through `Lower` now — the one number in the letter that has a weight in it, and so the one that had to come from the lowercase's own view. **Recorded as still outside at approval:** к is the shallowest lowercase diagonal at 46–53 degrees at ExtraBold against х 57–58, и 58, ж 73, у 68–73 — inherited from k, and the redraw raised its shallowest edge at Regular from k's 43 to 48. Same gate status as К. |
+
 ## In review — changed and shown, no verdict recorded
 
-**К and к, redrawn 2026-08-13.** Both were approved before this and both are
-reopened, on the user's explicit *"let's draw Kk"* — the confirmation rule 1
-of CLAUDE.md requires. The rows below in *Approved* are superseded and kept
-only as the record of what they replaced. Neither letter is approved again
-until it is judged on its own; approval does not cross the case pair.
-
-**What changed, in one sentence:** К was the Latin K, and K *branches* — its
-leg leaves the arm out in the counter while the arm carries on underneath it
-to the stem — where Cyrillic К does not branch at all.
-
-**Why it was reopened.** The panel round of the same day recorded К as the one
-letter of the twenty-five the Latin donates where the panel does not simply
-agree: 31 of 65 faces draw it apart from K. That was recorded and not acted
-on, correctly, because a panel median is never a reason to change an approved
-glyph. It was reopened by the user, not by the measurement.
-
-**What the shape is, and where every number in it comes from.** `tools/ka.py`
-reads a K-shaped letter by counting runs of ink beside the stem: two runs
-means the leg left the arm, and the height of that band is the branch. Ours
-read 0.24 of the cap at Thin; the panel's Cyrillic К reads 0.00 and lands its
-junction at 0.503–0.534 of the cap. **Our own approved Ж already puts its arms
-on the stem at 0.517** — the same figure, from inside the face, so `KA_WAIST`
-is Ж's own `ZHE_WAIST` copied out rather than shared.
-
-The arm and the leg do not meet the stem at a point. Read straight off Roboto
-Mono's outline — the letter the user named — they run together as one **neck**
-and that neck meets the stem, over a band one horizontal bar tall, with the
-white wedge apexing 126 units out at its light weight and 166 at its heaviest.
-Measured as ink across every panel face that un-branches its К, the neck is
-0.181–0.272 of the cap and 0.260–0.398 of the x-height; the medians are taken
-(`KA_NECK` 0.245, `KA_NECK_LC` 0.339). Two figures and not one because к is
-wider for its height than К is; against the letter's WIDTH the panel is half
-as tight, so the height is the relation.
-
-**Everything else is the host's own K and k**, which is why this is tier 2 and
-not tier 3: the stem and its sidebearings, the extreme each stroke reaches, and
-each stroke's PERPENDICULAR weight — taken off K's own flat end cut and divided
-by the lean there, so the strokes weigh what this face's diagonals weigh at
-both masters with no constant. The two leans are not chosen either: they are
-whatever gets a stroke of that weight from that extreme to the neck.
-
-**Outside the panel at the time of showing:** nothing for either letter. Ink
-area inside the panel at Regular and ExtraBold for both; 0 stroke-weight
-readings below the panel's tenth percentile; audit clean; both signature
-readings clean at all four weights — the neck reads as a horizontal and weighs
-exactly the face's own, and both diagonals cut flat at cap and baseline the way
-X, V, W and K are cut. `Б` remains outside on ExtraBold ink at 1.07 against a
-panel floor of 1.08, which is recorded on Б's own row and predates this.
-
-**Judged in the company it keeps, not against the Latin** (`tools/ka_company.py`,
-asked for on the day). Every diagonal this face draws, read off the built
-outlines as its angle from the horizontal: at ExtraBold К holds 55–60 where Х
-holds 63–66, И 63, У 69 and Ж 81, so **К is the shallowest diagonal in the
-Cyrillic and visibly so in an alphabet strip.** That is inherited and not
-introduced — the face's own LATIN K is the shallowest thing it draws too, 55–63
-against X's 63–66, N's 64 and V's 74–76, and К sits inside K's own range at
-both masters. It is worth writing down that the redraw moved the letter TOWARDS
-its neighbours rather than away: the donated К took K's own 52 as its shallowest
-edge at Regular and the drawn one takes 54, and к went from k's 43 to 48. At
-ExtraBold the shallowest edge is unchanged at 55 and 46.
-
-**Recorded because it will be asked again:** К has left the donated set, so
-`donated.py` now declares twenty-four and **К no longer follows the Latin into
-the italic for free** — it will have to be built there from the italic's own K.
-`ANCHOR_FROM["Ka-cy"]` is gone with it: Ќ took K's anchor, which travels
-further than any other in that table (312 at Thin to 354 at ExtraBold) while
-its drawn ќ could not follow, and the pair was knowingly out of step. Both now
-take the middle of the cell, where Ѓ ѓ ќ already sit.
+*Nothing is in review.*
 
 ## Rejected — shown and turned down, kept as the record
 
