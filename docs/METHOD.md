@@ -547,6 +547,19 @@ split it, not to retune it.
 
 Every one of these was announced as a defect before being caught:
 
+- **Two in one sitting, 2026-08-13, asking the panel how it solves the 25
+  donated letters.** First: raster overlap between two glyphs, each cropped
+  to its own box and resized to a common one. At the panel's lightest
+  weights a stroke is thirty units on a thousand, so a ten-unit shift halves
+  the overlap — the reading said Geist Mono's К and K overlap 0.34 when
+  their ink areas are 3% apart and their boxes two units. **A raster overlap
+  is a registration test at hairline weights, not a shape test.** Second,
+  the correction to it: ink area and bounding box, which are registration-
+  free — and blind to a diagonal being rotated, which is exactly what К
+  does. Two metrics, opposite blind spots, and the answer only came from
+  laying one letter over the other and looking. **When a shape question has
+  produced two numbers that disagree, neither is the answer; draw it.**
+
 - `check.py`'s `flat()` took curve **control points** as polygon vertices
   instead of flattening. At Bold it missed ф's counter crossing the scanline,
   so the "first stroke" ran from the outer wall across the counter to the stem
