@@ -17,6 +17,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ./venv/bin/python tools/be_sheet.py >/dev/null
 ./venv/bin/python tools/italic_sheet.py >/dev/null
 ./venv/bin/python tools/cursive_sheet.py >/dev/null
+./venv/bin/python tools/specimen.py >/dev/null
 ./venv/bin/python tools/outlines.py >/dev/null
 ./venv/bin/python tools/gd_donors.py >/dev/null
 ./venv/bin/python - <<'PY'
@@ -87,4 +88,4 @@ sheet("tools/out/be_big.png",
 print("regenerated audit.png and be_big.png")
 PY
 echo "regenerated: checkpoint signature be_sheet italic_sheet cursive_sheet" \
-     "outlines gd_donors audit be_big"
+     "specimen outlines gd_donors audit be_big"
