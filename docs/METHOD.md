@@ -2163,35 +2163,85 @@ the top of the vertical bars.*
   gets no vote and cannot inform the choice. Deferring the decision does not
   gather evidence, it only means the italic is built on an unsettled base.
 
-  **The reason the deferral looked sensible was a real fact used backwards.**
-  Measured — the upright sheared 14 degrees against the italic the face
-  actually draws, best overlap over a range of shears:
+  **The reason the deferral looked sensible was a real fact used backwards**,
+  and the fact itself was half wrong. The first reading here was a raster
+  overlap over a range of shears, and it reported the capitals A E O P C X Y J
+  B K M H T as "a slant" at 0.90-0.97. **Measured properly it is not true of
+  the round ones.** `tools/italic.py` shears the upright by the italic's own
+  angle and takes the worst distance between the two drawings, both ways round,
+  in units of the em -- registration-free in the sense that matters, because a
+  missing stroke cannot hide in it the way it hides in an overlap. F6 again:
+  an overlap of two similar silhouettes is generous exactly where a bowl has
+  been redrawn.
 
-  | | overlap |
+  | | worst distance from the sheared upright |
   | --- | --- |
-  | capitals A E O P C X Y J B K M H T | 0.90–0.97 — a slant |
-  | lowercase o x j k t | 0.90–0.97 — a slant |
-  | lowercase e c s p b m | 0.79–0.88 |
-  | lowercase **n h** | 0.77 |
-  | lowercase **i** | 0.40 |
-  | lowercase **y** | 0.37 |
-  | lowercase **a** | **0.48 — single-storey** |
+  | capitals **H T V I M F N Z E W A** | under 0.010 em — a pure slant |
+  | capitals J X L Y K U | 0.010–0.040 |
+  | capitals **B P R S D C G O** | **0.04–0.14 — drawn again** |
+  | lowercase l x, and v w z t at Thin | under 0.010 — a slant |
+  | lowercase **everything else** | **0.05–0.31 — drawn again** |
 
-  **SUSE Mono's italic is a slanted roman in the capitals and a true italic in
-  the lowercase.** That is a fact about the host worth having on its own.
+  **So: sloped roman in the STRAIGHT-SIDED capitals, drawn again in the round
+  capitals, and a true italic throughout the lowercase.** A sheared circle is
+  an ellipse leaning the wrong way, which is why the round capitals could never
+  have been a shear and why the overlap reading flattered them.
 
-  What it does NOT do is threaten the donations. It supports them: Latin
-  italic a is single-storey and so is Cyrillic italic а; italic y's tail is
-  what Cyrillic italic у wants too. **Every donated letter survives the slant
-  as the same letter.**
+  **The shear is about the middle of the x-height, not the baseline.** Solved
+  by sweeping the pivot against the eleven pure-slant capitals: y = 235 at Thin
+  where the x-height is 472, and y = 245 at ExtraBold where it is 493 — xh/2 to
+  within a unit at both masters. The advance is 600 in the italic as in the
+  upright. Every un-shear and re-shear has to use that pivot, or `mirror_x`'s
+  axis at 300, the anchors, and the meaning of "the middle of the cell" are all
+  wrong in the space the recipes are written in.
 
-  **What it does change is the letters this project DRAWS**, and there it
-  makes the italic a different alphabet rather than a slanted one — Cyrillic
-  cursive и is u-shaped, п is n-shaped, т is m-shaped, and г д в all take
-  forms with no upright counterpart. So **the italic needs its own donation
-  list, derived from the italic Latin**, and it will be longer than the
-  upright's, not shorter. None of that is affected by when the upright set is
-  approved.
+  **Which gives the architecture: un-shear, run the existing recipes, re-shear.**
+  The recipes read `pr.paths(donor)`, so against the italic source they pick up
+  the italic's OWN redrawn B P R S D C G O and its own true-italic lowercase for
+  free, while reproducing the face's own pure-slant behaviour for the straight
+  capitals. Nothing approved has to be re-derived, which is what rule 1 asks
+  for. What `Params` needs is a fully unslanted view — not only `paths()`:
+  `__init__` reads H's boxes and `box()` of a slanted stem lies about its width.
+
+  What none of this threatens is the donations. It supports them: Latin italic
+  a is single-storey and so is Cyrillic italic а; italic y's tail is what
+  Cyrillic italic у wants too. **Every donated letter survives the slant as the
+  same letter.** К is the exception and it is not a slant question — К left the
+  donated set on 2026-08-13, so it has to be built in the italic from the
+  italic's own K, and `KA_NECK`/`KA_NECK_LC` were measured on upright panel
+  faces and must be re-measured on italic ones before they are carried over.
+
+  **The lowercase forms are the italic's own К question, and the panel is
+  split.** Cyrillic italic traditionally replaces и with a u, п with an n and т
+  with an m. `tools/italic_forms.py` compares each face's italic Cyrillic with
+  its OWN italic Latin — one file, no cross-font registration — over the 29
+  monospace italics on this machine that carry Cyrillic:
+
+  | | takes the cursive form |
+  | --- | --- |
+  | и → u | 10 of 29 (34%) |
+  | п → n | 9 of 29 (31%) |
+  | т → m | 10 of 29 (34%) |
+  | д → g | 3 of 29 (10%) |
+  | **в → b** | **0 of 29** |
+  | **г → r** | **0 of 29** |
+
+  **Two of those correct what this thread used to claim.** It said "г д в all
+  take forms with no upright counterpart"; no monospace italic on this machine
+  does that to в or г, and only three do it to д. And every one of the ten
+  cursive faces reaches the form by **mapping the Cyrillic codepoint to the
+  Latin glyph outright** — the distance is 0.000, not 0.03 — so it is a
+  donation, not a redrawing, and it would make the italic donation list longer
+  exactly as predicted, but only for и п т й.
+
+  The split is not random and it is not a majority to be followed. The cursive
+  camp is Consolas, Inconsolata LGC, Ioskeley, Lilex, Lyth, Sudo, Victor Mono
+  and Monaspace Xenon/Radon; the upright camp is Geist, JetBrains, Roboto Mono,
+  Hack, DejaVu, Liberation, Courier, Maple, Myna and Monaspace Argon/Neon.
+  Those are two coherent houses, not a median with outliers, so **the panel
+  names the choice and cannot make it.** The decision belongs to the user's
+  eye, and it decides roughly forty letters of work; the capitals are unaffected
+  either way and can be built first.
 
   **Still true and still to do at the italic:** F12's fix reads each base's own
   top anchor, and under a slant that anchor moves with the letter, so

@@ -67,6 +67,57 @@ def font_dirs():
     return [d for d in out if os.path.isdir(d)]
 
 
+def italics(need=NEEDED):
+    """One italic per family, auto-discovered -- the same panel, sloped.
+
+    `families()` throws italics away, which is right for every reading that
+    exists to compare an upright letter with an upright letter. The italic asks
+    a different question and needs its own list: Cyrillic italic has a set of
+    lowercase forms that are not the upright sloped -- и is a u, п an n, т an m
+    -- and whether a monospace adopts them is a decision only its italic can
+    answer.
+
+    One file per family, the lightest that carries what is asked for, because
+    the form question does not change with weight and opening five weights of
+    Monaspace would make it Monaspace's answer.
+    """
+    found = {}
+    for d in font_dirs():
+        for p in sorted(glob.glob(d + "/*.ttf") + glob.glob(d + "/*.otf")):
+            try:
+                f = TTFont(p, fontNumber=0, lazy=True)
+                try:
+                    cm = f.getBestCmap()
+                    if not all(c in cm for c in need):
+                        continue
+                    sub = f["name"].getDebugName(2) or ""
+                    fam = f["name"].getDebugName(1) or os.path.basename(p)
+                    if "Italic" not in sub and "Oblique" not in sub:
+                        continue
+                    if any(s in fam for s in SKIP):
+                        continue
+                    hm = f["hmtx"]
+                    if len({hm[cm[c]][0] for c in need}) != 1:
+                        continue
+                    cap = getattr(f["OS/2"], "sCapHeight", 0) or \
+                        0.7 * f["head"].unitsPerEm
+                    gs = f.getGlyphSet()
+                    pen = AreaPen(gs)
+                    gs[cm[ord("H")]].draw(pen)
+                    w = abs(pen.value) / (cap * hm[cm[ord("H")]][0])
+                    key = fam
+                    for suf in (" Extra", " Semi", " Heavy", " Light",
+                                " Medium", " Wide", " Thin", " Black",
+                                " Bold", " Retina", " Condensed"):
+                        key = key.split(suf)[0]
+                    found.setdefault(key.strip(), []).append((w, p))
+                finally:
+                    f.close()
+            except Exception:
+                continue
+    return [(fam, sorted(lst)[0][1]) for fam, lst in sorted(found.items())]
+
+
 def families():
     """One lightest and one heaviest upright per family, auto-discovered."""
     found = {}
