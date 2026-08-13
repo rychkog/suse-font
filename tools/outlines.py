@@ -231,44 +231,62 @@ def flats(c, tol=0.6):
     return out
 
 
+# Everything on this sheet is drawn at SS times its delivered size and resolved
+# down with Lanczos. It was not, and the sheet was zoomed into and found blocky
+# -- which matters more here than on any other sheet in the repository, because
+# this one exists to show a curve's shape and a node's position, and a two-pixel
+# line drawn at delivery size cannot show either. CLAUDE.md says supersample and
+# this was the file not doing it.
+SS = 4
+CELL = 560
+
+
 def draw(cells, path):
-    pad, cw = 22, 330
+    pad, cw = 26, CELL
     W = pad + len(cells) * (cw + pad)
-    im = Image.new("RGB", (W, cw + 118), "white")
+    H = cw + 140
+    im = Image.new("RGB", (W * SS, H * SS), "white")
     d = ImageDraw.Draw(im)
-    hd = ImageFont.truetype(FACE, 21)
-    lab = ImageFont.truetype(FACE, 15)
-    d.text((pad, 18), "the outlines themselves -- on-curve nodes square, "
-           "handles to their circles", font=hd, fill=(170, 30, 30))
+    hd = ImageFont.truetype(FACE, 22 * SS)
+    lab = ImageFont.truetype(FACE, 16 * SS)
+    d.text((pad * SS, 18 * SS), "the outlines themselves -- on-curve nodes "
+           "square, handles to their circles", font=hd, fill=(170, 30, 30))
     for i, (name, cs) in enumerate(cells):
-        xs = [q[0] for c in cs for q in flat(c)]
-        ys = [q[1] for c in cs for q in flat(c)]
-        k = (cw - 40) / max(max(xs) - min(xs), max(ys) - min(ys))
-        ox = pad + i * (cw + pad) + 20
-        oy = 56 + cw - 20
+        xs = [q[0] for c in cs for q in flat(c, 96)]
+        ys = [q[1] for c in cs for q in flat(c, 96)]
+        k = (cw - 46) * SS / max(max(xs) - min(xs), max(ys) - min(ys))
+        ox = (pad + i * (cw + pad) + 23) * SS
+        oy = (62 + cw - 23) * SS
 
         def T(x, y):
             return (ox + (x - min(xs)) * k, oy - (y - min(ys)) * k)
 
         for c in cs:
-            d.line([T(*q) for q in flat(c)] , fill=(30, 30, 30), width=2)
             for p0, hs, p1 in segments(c):
                 for h in hs:
-                    d.line([T(p0[0], p0[1]) if h is hs[0] else T(p1[0], p1[1]),
-                            T(h[0], h[1])], fill=(190, 190, 190), width=1)
+                    anchor = p0 if h is hs[0] else p1
+                    d.line([T(anchor[0], anchor[1]), T(h[0], h[1])],
+                           fill=(178, 178, 190), width=SS)
                     x, y = T(h[0], h[1])
-                    d.ellipse([x - 3, y - 3, x + 3, y + 3], outline=(150, 150,
-                                                                     255))
+                    r = 4.5 * SS
+                    d.ellipse([x - r, y - r, x + r, y + r],
+                              outline=(120, 120, 220), width=SS)
+            # the curve last, over the handles, and flattened finely enough
+            # that the picture is the outline and not a polygon of it
+            d.line([T(*q) for q in flat(c, 96)], fill=(28, 28, 28),
+                   width=2 * SS, joint="curve")
             for n in c:
                 if n[2] == "offcurve":
                     continue
                 x, y = T(n[0], n[1])
-                d.rectangle([x - 4, y - 4, x + 4, y + 4],
+                r = 5.5 * SS
+                d.rectangle([x - r, y - r, x + r, y + r],
                             fill=(200, 40, 40) if n[2] == "line"
                             else (40, 90, 200))
-        d.text((pad + i * (cw + pad), 56 + cw + 12), name, font=lab,
-               fill=(110, 110, 110))
-    im.save(path)
+        d.text(((pad + i * (cw + pad)) * SS, (62 + cw + 14) * SS), name,
+               font=lab, fill=(110, 110, 110))
+    im.resize((W, H), Image.LANCZOS).save(path)
+    im.close()
 
 
 def report(ch, mname, cs, ref, cells, tag=""):

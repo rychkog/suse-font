@@ -2,13 +2,12 @@
 
     ./venv/bin/python tools/italic_sheet.py
 
-First look at a thing that did not exist an hour ago: `build_cyrillic.py` had
-only ever written into the upright source. Every letter here is the SAME
-construction as its upright, run against the italic's own Latin in un-sheared
-space and sheared back about the middle of the x-height -- so a letter built
-from a straight-sided donor comes out as the upright sloped, which is what this
-face does to its own straight capitals, and a letter built from a round one or
-from the lowercase comes out different, because the italic redraws those.
+Every letter here is the SAME construction as its upright, run against the
+italic's own Latin in un-sheared space and sheared back about the middle of the
+x-height -- so a letter built from a straight-sided donor comes out as the
+upright sloped, which is what this face does to its own straight capitals, and
+a letter built from a round one or from the lowercase comes out different,
+because the italic redraws those.
 
 Seven letters answer differently, because Cyrillic cursive restructures them
 and no shear can do that. `tools/italic_forms.py --changed` asked all 29
@@ -56,24 +55,24 @@ def text(path, s, px, fill=(20, 20, 20)):
 
 
 def main():
-    lab = ImageFont.truetype(R % "Regular", 17)
-    head = ImageFont.truetype(R % "Regular", 27)
-    sub = ImageFont.truetype(R % "Regular", 19)
+    lab = ImageFont.truetype(R % "Regular", 20)
+    head = ImageFont.truetype(R % "Regular", 32)
+    sub = ImageFont.truetype(R % "Regular", 21)
 
     rows = []
     for w in ("Regular", "Bold"):
         rows.append(("%s italic -- the capitals" % w,
-                     [text(I % w, CAPS, 40)]))
+                     [text(I % w, CAPS, 62)]))
         rows.append(("%s upright, the same line" % w,
-                     [text(R % w, CAPS, 40)]))
+                     [text(R % w, CAPS, 62)]))
     for w in ("Regular", "Bold"):
         rows.append(("%s italic -- the lowercase" % w,
-                     [text(I % w, LOWER, 40)]))
+                     [text(I % w, LOWER, 62)]))
         rows.append(("%s upright, the same line" % w,
-                     [text(R % w, LOWER, 40)]))
+                     [text(R % w, LOWER, 62)]))
     rows.append(("Regular italic -- in words, then upright below",
-                 [text(I % "Regular", s, 34) for s in WORDS]))
-    rows.append(("", [text(R % "Regular", s, 34) for s in WORDS]))
+                 [text(I % "Regular", s, 50) for s in WORDS]))
+    rows.append(("", [text(R % "Regular", s, 50) for s in WORDS]))
     for px in (12, 14):
         rows.append(("italic and upright at %dpx" % px,
                      [text(I % "Regular", MIXED, px),

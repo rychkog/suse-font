@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 # Regenerate EVERY review image from the CURRENT build, so nothing shown is
 # stale. Reviewing an image rendered before the last fix wastes a round.
+#
+# It said EVERY and regenerated four, which is the same lie as a stale picture
+# and worse for being automated: the italic sheets, the cursive pair and the
+# outline sheet were all left behind, and the ones it did make were the only
+# ones anyone thought were current.
+#
+# Every sheet here is drawn well above its delivered size and resolved down --
+# see CLAUDE.md. Anything added below has to do the same or it does not belong
+# on a review sheet.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ./venv/bin/python tools/checkpoint.py A >/dev/null
 ./venv/bin/python tools/signature_sheet.py >/dev/null
+./venv/bin/python tools/be_sheet.py >/dev/null
+./venv/bin/python tools/italic_sheet.py >/dev/null
+./venv/bin/python tools/cursive_sheet.py >/dev/null
+./venv/bin/python tools/outlines.py >/dev/null
+./venv/bin/python tools/gd_donors.py >/dev/null
 ./venv/bin/python - <<'PY'
 from PIL import Image, ImageDraw, ImageFont
 F = "fonts/ttf/SUSEMono-%s.ttf"
@@ -70,5 +84,7 @@ sheet("tools/out/be_big.png",
        ("SUSE Bold", F % "Bold"), ("JetBrains Bold", JB % "Bold"),
        ("SUSE ExtraBold", F % "ExtraBold"), ("JetBrains ExtraBold", JB % "ExtraBold")],
       "БДЦЩ", 150, 190)
-print("regenerated audit.png, be_big.png, checkpoint.png, signature.png")
+print("regenerated audit.png and be_big.png")
 PY
+echo "regenerated: checkpoint signature be_sheet italic_sheet cursive_sheet" \
+     "outlines gd_donors audit be_big"

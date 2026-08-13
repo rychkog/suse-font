@@ -45,6 +45,9 @@ from cursive import unsheared, REFS                            # noqa: E402
 OURS = "fonts/ttf/SUSEMono-RegularItalic.ttf"
 FACE = "fonts/ttf/SUSEMono-Regular.ttf"
 CW = 150
+# Drawn at SS times the delivered size and resolved down with Lanczos -- see
+# the note in tools/gd_donors.py.
+SS = 3
 
 
 def angle(path):
@@ -55,7 +58,7 @@ def angle(path):
         f.close()
 
 
-def tile(rgb, cw=CW):
+def tile(rgb, cw=CW * SS):
     c = Image.fromarray(rgb)
     c.thumbnail((cw, cw), Image.LANCZOS)
     return c
@@ -71,13 +74,15 @@ def main():
 
     pad = 16
     W = pad + (len(names) + 1) * (CW + pad)
-    im = Image.new("RGB", (W, 2 * (CW + 56) + 96), "white")
+    H = 2 * (CW + 56) + 96
+    im = Image.new("RGB", (W * SS, H * SS), "white")
     d = ImageDraw.Draw(im)
-    big = ImageFont.truetype(FACE, 23)
-    lab = ImageFont.truetype(FACE, 16)
+    big = ImageFont.truetype(FACE, 23 * SS)
+    lab = ImageFont.truetype(FACE, 16 * SS)
 
-    d.text((pad, 16), "the cursive г and д as the references draw them, and "
-           "our own italic o (grey) under each д", font=big, fill=(170, 30, 30))
+    d.text((pad * SS, 16 * SS), "the cursive г and д as the references draw "
+           "them, and our own italic o (grey) under each д", font=big,
+           fill=(170, 30, 30))
 
     for r, ch in enumerate("гд"):
         y = 60 + r * (CW + 56)
@@ -102,11 +107,13 @@ def main():
                     reg[ob] = (205, 205, 205)
             rgb[a] = (30, 30, 30) if not i else (185, 30, 30)
             c = tile(rgb)
-            x = pad + i * (CW + pad)
-            im.paste(c, (x + (CW - c.width) // 2, y + (CW - c.height) // 2))
-            d.text((x, y + CW + 12), "%s %s" % (ch, fam), font=lab,
+            x = (pad + i * (CW + pad)) * SS
+            im.paste(c, (x + (CW * SS - c.width) // 2,
+                         y * SS + (CW * SS - c.height) // 2))
+            d.text((x, (y + CW + 12) * SS), "%s %s" % (ch, fam), font=lab,
                    fill=(110, 110, 110))
 
+    im = im.resize((W, H), Image.LANCZOS)
     im.save("tools/out/gd_target.png")
     print("   wrote tools/out/gd_target.png")
 

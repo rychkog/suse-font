@@ -6,6 +6,12 @@ Never alone and never against the reference only: beside this face's own o,
 which is the letter both of them are measured against, in words, at every
 weight, and at the sizes the font is read at. A cursive letter that survives
 at display size and falls apart at 12px has not survived.
+
+The display rows are drawn large on purpose and the 12px and 14px rows are
+NOT -- their whole point is being the size the font is read at, and a reading
+row scaled up is a lie about the one thing it is there to show. Everything is
+supersampled four times and resolved down with Lanczos, so a large row is
+large because it was rendered large.
 """
 
 import sys
@@ -41,8 +47,8 @@ def main():
     pad = 22
     rows = []
     for w in WEIGHTS:
-        rows.append((w, text(I % w, LETTERS + "   " + WORDS[0], 56)))
-    rows.append(("Regular, in a line", text(I % "Regular", MIXED, 30)))
+        rows.append((w, text(I % w, LETTERS + "   " + WORDS[0], 96)))
+    rows.append(("Regular, in a line", text(I % "Regular", MIXED, 48)))
     for px in (14, 12):
         rows.append(("Regular at %dpx" % px,
                      text(I % "Regular", MIXED + "  " + WORDS[1], px)))
