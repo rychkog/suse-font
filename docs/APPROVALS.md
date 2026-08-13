@@ -183,6 +183,18 @@ left alone on purpose. Gates: all seven pass unfiltered.
 Drawn, gates passing, but nothing on record either way. Most were shown in
 checkpoint sheets, which is not approval.
 
+**The donated set was shown on 2026-08-13 and deliberately left here.**
+А В Е К М Н О Р С Т Х Ѕ Ј and а е о р с у х ѕ ј are the face's own Latin as
+components — `tools/donated.py` proves every one is still exactly its donor
+in both masters and all four built weights, that each is a plain component
+rather than a decomposed copy, and that nothing drawn is a Latin letter or a
+Latin letter mirrored. The verdict was held: *"let's keep it for now, but
+come back to this question once we're done with italic."* The construction
+is not what is in question — the design judgement in the list is, and the
+italic is what reopens it. See METHOD §9 for the three reasons and what to
+re-run. **Do not approve this set without asking again after the italic.**
+(І і are approved, in the row above, and are not part of this hold.)
+
 **The marks were corrected on 2026-08-12 — see the approval row above.**
 What is left here: **Ѐ ѐ Ѝ ѝ Ќ moved with that fix and were NOT part of the
 verdict**, which named Ё ё Ї ї Й й Ў ў І і only. Ѐ ѐ take Е е's own anchor
