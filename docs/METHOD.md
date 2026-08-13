@@ -2071,31 +2071,49 @@ the top of the vertical bars.*
 
 ## 9 · Open threads
 
-- **HELD FOR THE ITALIC: the donated set.** Shown 2026-08-13 and deliberately
-  left unrecorded — *"let's keep it for now, but come back to this question
-  once we're done with italic."* Twenty-five characters are the face's own
-  Latin as components (`donated.py` proves each is still exactly its donor),
-  and the construction is not in doubt; what is held over is the **design
-  judgement in the list itself**, and it is held over because the italic is
-  what reopens it:
+- **The donated set: decide it BEFORE the italic, not after.** Held on
+  2026-08-13 to be revisited after the italic, and that was the wrong way
+  round — corrected the same day, on the user's question *"we need to solve
+  this now then, since italic depends on this, right?"* The dependency runs
+  upright → italic and only that way. **A donation is a component**, so the
+  italic inherits whatever the upright decides, letter for letter; the italic
+  gets no vote and cannot inform the choice. Deferring the decision does not
+  gather evidence, it only means the italic is built on an unsettled base.
 
-  1. **A sloped roman keeps a donation a donation; a true italic does not.**
-     If any lowercase takes a genuinely italic form the list has to be
-     re-decided letter by letter, because the Cyrillic and the Latin stop
-     sharing a skeleton — the upright argument for а е о р с х does not carry
-     across on its own.
-  2. **у is the strongest case to re-ask.** It takes the Latin y outright,
-     which is standard and is also what Ў ў were approved on, but it is an
-     identity of *choice* rather than of shape — some Cyrillic faces give у a
-     straighter tail than their y, and an italic y's tail is exactly where a
-     face's hand shows most.
-  3. **The marks have to be re-derived, not carried.** F12's fix reads each
-     base's own top anchor; under a slant that anchor moves with the letter,
-     so `ANCHOR_FROM` is right but the numbers behind it are not transferable.
-     Re-run `marks.py` against the italic's own accented Latin.
+  **The reason the deferral looked sensible was a real fact used backwards.**
+  Measured — the upright sheared 14 degrees against the italic the face
+  actually draws, best overlap over a range of shears:
 
-  Nothing to do before the italic. Do not quietly approve the set in the
-  meantime — the ledger's "Not recorded" is correct as it stands.
+  | | overlap |
+  | --- | --- |
+  | capitals A E O P C X Y J B K M H T | 0.90–0.97 — a slant |
+  | lowercase o x j k t | 0.90–0.97 — a slant |
+  | lowercase e c s p b m | 0.79–0.88 |
+  | lowercase **n h** | 0.77 |
+  | lowercase **i** | 0.40 |
+  | lowercase **y** | 0.37 |
+  | lowercase **a** | **0.48 — single-storey** |
+
+  **SUSE Mono's italic is a slanted roman in the capitals and a true italic in
+  the lowercase.** That is a fact about the host worth having on its own.
+
+  What it does NOT do is threaten the donations. It supports them: Latin
+  italic a is single-storey and so is Cyrillic italic а; italic y's tail is
+  what Cyrillic italic у wants too. **Every donated letter survives the slant
+  as the same letter.**
+
+  **What it does change is the letters this project DRAWS**, and there it
+  makes the italic a different alphabet rather than a slanted one — Cyrillic
+  cursive и is u-shaped, п is n-shaped, т is m-shaped, and г д в all take
+  forms with no upright counterpart. So **the italic needs its own donation
+  list, derived from the italic Latin**, and it will be longer than the
+  upright's, not shorter. None of that is affected by when the upright set is
+  approved.
+
+  **Still true and still to do at the italic:** F12's fix reads each base's own
+  top anchor, and under a slant that anchor moves with the letter, so
+  `ANCHOR_FROM` is right while the numbers behind it are not transferable.
+  Re-run `marks.py` against the italic's own accented Latin.
 - **`shoulder_spine` (`recipes.py:1304`)** still carries the F2 subtraction.
 - **Three broken probes**: `HARD_SHOULDER`, `ZHE_STEM`, `YU_GAP` (the last two
   return too few faces to judge — Ж's diagonals and ю's join give variable run
