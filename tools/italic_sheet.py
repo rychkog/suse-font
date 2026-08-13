@@ -10,9 +10,22 @@ from a straight-sided donor comes out as the upright sloped, which is what this
 face does to its own straight capitals, and a letter built from a round one or
 from the lowercase comes out different, because the italic redraws those.
 
-Nothing here is drawn for the italic yet. The cursive lowercase -- и п т й and
-the forms with no upright counterpart at all -- is the next piece of work, and
-this sheet is what it will be judged against.
+Seven letters answer differently, because Cyrillic cursive restructures them
+and no shear can do that. `tools/italic_forms.py --changed` asked all 29
+monospace italics on this machine which ones they redraw, comparing each
+italic Cyrillic with its OWN upright sheared and no Latin in the test:
+
+  и й п т   are the italic's own u n m -- honest tier 1 here while they are
+            drawn in the upright, which is what a per-source table is for
+  г д       have no counterpart in either script and are donated outlines,
+            Lilex's, fitted to this face. `scripts/ge_from_lilex.py` and
+            `scripts/de_from_lilex.py`
+  м         is deliberately NOT changed: only 8 of the 29 redraw it and what
+            moves is an entry stroke, not the construction
+
+The round letters -- а б в е з о р с у ф ъ ы ь э ю -- come out redrawn for
+free, because a recipe reads `pr.paths(donor)` and the italic's own bowls are
+already the italic's.
 """
 
 import sys
@@ -66,17 +79,23 @@ def main():
                      [text(I % "Regular", MIXED, px),
                       text(R % "Regular", MIXED, px)]))
 
+    title = "the italic Cyrillic"
+    caption = ("the same constructions, run against the italic's own Latin "
+               "and sheared back about xh/2 -- except the seven that Cyrillic "
+               "cursive restructures")
+
     pad, left = 20, 26
-    W = max(max(left + sum(i.width + pad for i in r[1]) + pad
-                for r in rows), 900)
+    # the caption counts toward the width. It did not, and it has been cut off
+    # mid-word in every sheet this tool has ever produced -- the width came
+    # from the specimen rows alone, and the one line that says what the reader
+    # is looking at ran off the edge.
+    W = max(max(left + sum(i.width + pad for i in r[1]) + pad for r in rows),
+            left + int(sub.getlength(caption)) + pad, 900)
     H = 96 + sum(max(i.height for i in r[1]) + 40 for r in rows)
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
-    d.text((left, 20), "the italic Cyrillic -- first build", font=head,
-           fill=(170, 30, 30))
-    d.text((left, 54), "same constructions, run against the italic's own "
-           "Latin and sheared back about xh/2. No cursive forms yet.",
-           font=sub, fill=(140, 140, 140))
+    d.text((left, 20), title, font=head, fill=(170, 30, 30))
+    d.text((left, 54), caption, font=sub, fill=(140, 140, 140))
     y = 100
     for title, imgs in rows:
         if title:
