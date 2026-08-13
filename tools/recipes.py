@@ -27,6 +27,7 @@ from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
 from be_donor import BE as BE_DONOR
+from ge_donor import GE as GE_DONOR
 
 # Multiple of the face's own corner radius, for the letters whose arm is too
 # short to carry the whole thing.
@@ -2839,29 +2840,6 @@ def _stroke_path(pts, w, steps=14):
     return q if area(q) > 0 else reverse(q)
 
 
-# The cursive г and д, as SPINES normalised to their own bounding box: x and y
-# both run 0..1 across the path's own extremes, and the recipe maps that box
-# onto this face's lowercase width and x-height. Held that way because the
-# first attempt held them as fractions of the x-height directly, which left г
-# 0.53 of its height wide where the references are 0.76-0.87 and made the
-# letter read cramped and small beside its own neighbours.
-#
-# The readings agree to a hundredth across JetBrains Mono, Consolas, Lyth Mono
-# and Ioskeley Tuned. г's spine runs x 0.09..0.67 and y 0.05..0.96 of the
-# letter's height; the five crossings that define it are
-#
-#   0.95 up: 0.29..0.39 -- a short arm, going right
-#   0.75 up: 0.65       -- its RIGHTMOST
-#   0.50 up: 0.41       -- back through the middle
-#   0.25 up: 0.09       -- its LEFTMOST
-#   0.05 up: 0.37..0.48 -- a second arm, going right
-#
-# One stroke, three phases, two inflections. It is not any Latin letter and
-# nothing is spliced into it: `2` was proposed and a 2 has a bowl and a
-# straight base bar, neither of which is here.
-GE_IT = ((0.34, 0.99), (0.60, 1.00), (0.97, 0.83), (0.55, 0.49),
-         (0.05, 0.17), (0.42, 0.00), (0.72, 0.06))
-
 # д is an x-height bowl -- the face's own o -- and a stroke that leaves the
 # bowl's shoulder, rises, and hooks LEFT to finish at 1.38 x-heights. The
 # references run 1.35-1.46. There is no descender anywhere in the letter,
@@ -2879,21 +2857,31 @@ DE_TOP = 1.38           # where the hook ends, in x-heights
 # changes with the stroke is how much white is left inside it, which is the
 # right way round.
 DE_HOOK = 0.27          # hook radius, in x-heights
-GE_WIDE = 0.82          # г's whole width, in x-heights: the references hold 0.76-0.87
-
-
-def _fit_spine(spine, x0, y0, x1, y1):
-    """Map a 0..1 spine onto the box the letter actually occupies."""
-    return [(x0 + x * (x1 - x0), y0 + y * (y1 - y0)) for x, y in spine]
 
 
 def Ge_cursive(pr):
-    """г, the italic's own -- one stroke at this face's lowercase weight."""
-    w, xh = pr.lcStem, pr.xh
-    half = GE_WIDE * xh / 2.0
-    return [_stroke_path(_fit_spine(GE_IT,
-                                    300.0 - half + w / 2.0, w / 2.0,
-                                    300.0 + half - w / 2.0, xh - w / 2.0), w)]
+    """г, taken whole from Sudo and fitted here -- see `tools/ge_donor.py`.
+
+    This letter was drawn twice from a SPINE read off the references and
+    stroked at a constant width, and rejected twice. The second rejection is
+    the one worth keeping: the spine was not what was wrong. Ink laid along a
+    centreline has no modulation and no terminals, so it reads as bent wire
+    whatever path it follows, and a perfect spine would have failed the same
+    way. That is б's fault class exactly -- nine drawings refused, and what
+    passed was not a better drawing but a donated outline.
+
+    So the outline is Sudo's. There is nothing of this face to build it from:
+    the cursive г is a top bar, a curve descending left and a foot running
+    right, it has no bowl and no counter, and no Latin or Cyrillic letter in
+    this family draws any part of it. c bulges the wrong way and mirroring is
+    banned; з's lower terminal exits left where this one has to run right.
+    What IS this face's is the height, the width, the cell, the terminal cut
+    and the weight -- `scripts/ge_from_sudo.py` has each of them and where it
+    was measured.
+    """
+    base = getattr(pr, "_pr", pr)
+    return [path([node(x, y, ty, sm) for x, y, ty, sm in c])
+            for c in GE_DONOR[base.mi]]
 
 
 def De_cursive(pr):
