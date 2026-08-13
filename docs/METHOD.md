@@ -1327,6 +1327,16 @@ Two traps inside it, both paid for:
 * **The landing is not the last crossing.** A donated д crosses the host's
   oval six times, because the donor's own bowl crown sits lower than the
   host's o. The landing is the first re-entry *after* the stroke has left.
+* **A cut leaves a stub.** The crossing falls wherever it falls, and when that
+  is near the end of one of the donor's own segments what is left over is a
+  short piece with a bow of nearly nothing — a straight line drawn as a curve,
+  carrying its own node. Beside the arc's own cut end that made **three nodes
+  strung along one straight run**, obvious at any zoom and invisible to every
+  ink reading in this repository. Carry the arc's last segment on to the stub's
+  far end instead, moving its final handle by the same amount so the tangent
+  there is unchanged: the stub has just left the oval, so it is very nearly
+  along the oval's own tangent and this is a continuation rather than a
+  redrawing. **Measure a segment's bow after any cut.**
 
 ### F17 · Fitted standing up, read leaning
 
