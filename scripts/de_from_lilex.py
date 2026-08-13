@@ -52,8 +52,8 @@ sys.path.insert(0, "scripts")
 import glyphsLib
 from geom import area, bbox
 from params import Params, Lower, _flatten
-from donor import (blend, centre, emit, fit_width, leaning, mapped, mask,
-                   poly, pts_of, same_drawing, splice, square, stand_up,
+from donor import (blend, centre, emit, leaning, mapped, mask,
+                   poly, pts_of, same_drawing, splice, stand_up, trim,
                    to_nodes, to_segs)
 
 FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
@@ -124,30 +124,38 @@ def bowl_top(sg):
 
 
 def fit(sg, pr):
-    """The donor's BOWL onto this face's o, and the width onto the panel's.
+    """The donor's BOWL onto this face's o, at ONE scale in both directions.
 
     The bowl and not the letter: the bowl is what has to end up sitting on this
     face's own o, and everything else -- how far the hook rises, how far left it
     reaches -- follows at the donor's own proportion, which `tools/gd_band.py`
     puts inside the panel already.
 
-    The width is fitted leaning, because that is where it is read (METHOD F16),
-    and by bisection because under a shear the extremes change hands as the
-    scale changes.
+    **One scale, and this is the whole of what was wrong with the letter.** The
+    height was fitted onto o and the width fitted separately onto the panel's,
+    and two independent fits are a squash: x came out 0.966 of y at Thin and
+    **0.850 at ExtraBold**. A donated outline squashed in one direction is no
+    longer the drawing that was donated -- it re-weights every stroke by the
+    direction that stroke happens to run in, so the bowl's upright walls lost a
+    seventh of their weight while the arm, which runs nearly flat where it
+    ends, kept all of its, and every edge in between got steeper. That is what
+    turned the terminal into an acute spike: `tools/de_arm.py` read the ink at
+    the tip as 1.01 of o's wall at Thin against 0.21 at ExtraBold, over a panel
+    holding 0.60..0.97, and the arm's reach fell from 0.34 to 0.26 across the
+    same masters. Three readings moving together with the squash, and Thin --
+    the master that was nearly square -- was the one that looked right.
+
+    The letter's width is therefore not fitted at all now. It is what the donor
+    draws at the size its bowl has to be, and it is measured rather than aimed
+    at; `DE_WIDE` records the panel band it has to land in.
     """
     ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
     ps = pts_of(sg[0])
-    x0 = min(q[0] for q in ps)
-    x1 = max(q[0] for q in ps)
     y0 = min(q[1] for q in ps)
-    ky = (oy1 - oy0) / (bowl_top(sg[0]) - y0)
-    tall = [[(k, [(q[0], oy0 + (q[1] - y0) * ky) for q in qs])
-             for k, qs in c] for c in sg]
-    want = DE_WIDE * leaning([q for p in pr.paths("o")
-                              for q in _flatten(p, 16)], pr.italic, pr.pivot)
-    mid = 0.5 * (x0 + x1)
-    kx = fit_width(tall[0], pr, want, mid)
-    out = [mapped(c, lambda q: (300.0 + (q[0] - mid) * kx, q[1])) for c in tall]
+    k = (oy1 - oy0) / (bowl_top(sg[0]) - y0)
+    mid = 0.5 * (min(q[0] for q in ps) + max(q[0] for q in ps))
+    out = [mapped(c, lambda q: (300.0 + (q[0] - mid) * k,
+                                oy0 + (q[1] - y0) * k)) for c in sg]
     # centred on the BOWL, so the hook lands on o and not beside it
     return centre(out, pr, 0, 0.5 * (ox0 + ox1))
 
@@ -169,7 +177,7 @@ def shape(a, b, t, pr):
     contour instead of the one it ends up with.
     """
     sg = fit(blend(a, b, t), pr)
-    outer = square(sg[0], CUT, pr.italic, min)
+    outer = trim(sg[0], CUT, pr.italic)
     ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
     got = splice(to_segs(ps[0]), (outer[0][1][-1], list(outer[1:])))
     if got is None:
@@ -234,10 +242,16 @@ def build():
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
         t, got, jn = solve(a, b, pr)
+        sh = shape(a, b, t, pr)
+        # the width is measured now, not aimed at -- see `fit`
+        wide = leaning(pts_of(sh), pr.italic, pr.pivot) / leaning(
+            [q for q in _flatten(max(pr.paths("o"), key=lambda q: abs(area(q))),
+                                 16)], pr.italic, pr.pivot)
         print("  master %d  donor axis %+.2f   hook %.2f (wanted %.2f)   "
-              "junction %.2f (panel 1.13..1.41 -- see DE_JOIN)"
-              % (mi, t, got, DE_HOOK, jn))
-        out.append((t, [to_nodes(shape(a, b, t, pr))]))
+              "junction %.2f (panel 1.13..1.41 -- see DE_JOIN)   "
+              "width %.2f (panel 1.00..1.15)"
+              % (mi, t, got, DE_HOOK, jn, wide))
+        out.append((t, [to_nodes(sh)]))
     n = {tuple(len(p) for p in ps) for _t, ps in out}
     if len(n) != 1:
         raise SystemExit("the masters came out with different nodes, %s -- the "

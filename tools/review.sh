@@ -20,6 +20,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ./venv/bin/python tools/specimen.py >/dev/null
 ./venv/bin/python tools/outlines.py >/dev/null
 ./venv/bin/python tools/gd_donors.py >/dev/null
+./venv/bin/python tools/de_arm.py >/dev/null
 ./venv/bin/python - <<'PY'
 from PIL import Image, ImageDraw, ImageFont
 F = "fonts/ttf/SUSEMono-%s.ttf"
@@ -88,4 +89,4 @@ sheet("tools/out/be_big.png",
 print("regenerated audit.png and be_big.png")
 PY
 echo "regenerated: checkpoint signature be_sheet italic_sheet cursive_sheet" \
-     "specimen outlines gd_donors audit be_big"
+     "specimen outlines gd_donors de_arm audit be_big"
