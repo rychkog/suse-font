@@ -28,6 +28,7 @@ from params import Lower, _flatten
 from probe import runs, vruns
 from be_donor import BE as BE_DONOR
 from ge_donor import GE as GE_DONOR
+from de_donor import DE as DE_DONOR
 
 # Multiple of the face's own corner radius, for the letters whose arm is too
 # short to carry the whole thing.
@@ -2746,119 +2747,6 @@ RECIPES = {
 ITALIC = {}
 
 
-def _relax(line, w, passes=60):
-    """Open any turn the stroke is too thick to make.
-
-    An offset curve folds back on itself wherever the spine's radius of
-    curvature drops below half the stroke width, and the fold fills the
-    counter: that is the blob the first cursive г and д grew at Bold and
-    ExtraBold while Thin came out fine. It is not a bug in the sampling. It is
-    the face's own rule arriving from the geometry -- a stroke cannot turn
-    tighter than its own width, which is why CLAUDE.md says corner radius
-    tracks stroke weight and not letter height.
-
-    So the spine is relaxed until every turn clears it. Each pass pulls any
-    too-sharp sample toward the midpoint of its neighbours, which opens the
-    turn and leaves the rest of the path where it was. The ends are pinned, so
-    the letter keeps its extremes and only its curvature gives way -- which is
-    what a real bold italic does: the swing comes out of the middle, never out
-    of the reach.
-    """
-    need = w * 0.62
-    line = list(line)
-    for _ in range(passes):
-        worst, at = None, None
-        for i in range(1, len(line) - 1):
-            (x0, y0), (x1, y1), (x2, y2) = line[i - 1], line[i], line[i + 1]
-            a1, b1 = x1 - x0, y1 - y0
-            a2, b2 = x2 - x1, y2 - y1
-            cross = a1 * b2 - b1 * a2
-            if abs(cross) < 1e-9:
-                continue
-            # circumradius of the three samples
-            la = math.hypot(a1, b1)
-            lb = math.hypot(a2, b2)
-            lc = math.hypot(x2 - x0, y2 - y0)
-            r = la * lb * lc / (2.0 * abs(cross))
-            if r < need and (worst is None or r < worst):
-                worst, at = r, i
-        if at is None:
-            return line
-        x0, y0 = line[at - 1]
-        x2, y2 = line[at + 1]
-        x1, y1 = line[at]
-        line[at] = (x1 + 0.5 * ((x0 + x2) / 2.0 - x1),
-                    y1 + 0.5 * ((y0 + y2) / 2.0 - y1))
-    return line
-
-
-def _stroke_path(pts, w, steps=14):
-    """Ink of width `w` laid along a centreline through `pts`, ends cut flat.
-
-    There is no offset curve in geom.py because until now nothing needed one:
-    every letter in this project is built from rectangles, the host's own
-    outlines, and diagonals with flat ends. The cursive г and д are the first
-    shapes with a curved SPINE, and a spine is what the reference gives --
-    `tools/cursive.py` reads the ridge of the distance transform, which is the
-    path with the weight divided out.
-
-    Catmull-Rom through the points, relaxed so no turn is tighter than the
-    stroke can make, then each sample offset along its own normal. `steps` is
-    fixed rather than adaptive so both masters emit the same node count, which
-    is what interpolation needs and what a curve fitted to a tolerance would
-    quietly break.
-    """
-    p = [pts[0]] + list(pts) + [pts[-1]]
-    line = []
-    for i in range(len(pts) - 1):
-        p0, p1, p2, p3 = p[i], p[i + 1], p[i + 2], p[i + 3]
-        for s in range(steps):
-            t = s / float(steps)
-            t2, t3 = t * t, t * t * t
-            line.append(tuple(
-                0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t
-                       + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2
-                       + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)
-                for k in (0, 1)))
-    line.append(tuple(pts[-1]))
-    line = _relax(line, w)
-
-    def normal(i):
-        a = line[max(0, i - 1)]
-        b = line[min(len(line) - 1, i + 1)]
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        n = math.hypot(dx, dy) or 1.0
-        return -dy / n, dx / n
-
-    half = w / 2.0
-    left, right = [], []
-    for i, (x, y) in enumerate(line):
-        nx, ny = normal(i)
-        left.append(node(x + nx * half, y + ny * half))
-        right.append(node(x - nx * half, y - ny * half))
-    q = path(left + right[::-1])
-    return q if area(q) > 0 else reverse(q)
-
-
-# д is an x-height bowl -- the face's own o -- and a stroke that leaves the
-# bowl's shoulder, rises, and hooks LEFT to finish at 1.38 x-heights. The
-# references run 1.35-1.46. There is no descender anywhere in the letter,
-# which is what makes `g` wrong as firmly as `2` is for г.
-#
-# The hook's radius is held against the STROKE and not against the letter,
-# because a hook of a fixed size closes up as the stroke thickens: at ExtraBold
-# the first attempt turned it into a blob with no white left inside it.
-DE_TOP = 1.38           # where the hook ends, in x-heights
-# The hook's radius, and г's width, are both fractions of the X-HEIGHT and not
-# multiples of the stroke. Held against the stroke, the hook came out 405 units
-# across at ExtraBold where the stem is 150 -- it swallowed the bowl, collapsed
-# its own sampled points onto each other and the font stopped converting at
-# all. A letter's silhouette is a fraction of its height at every weight; what
-# changes with the stroke is how much white is left inside it, which is the
-# right way round.
-DE_HOOK = 0.27          # hook radius, in x-heights
-
-
 def Ge_cursive(pr):
     """г, taken whole from Sudo and fitted here -- see `tools/ge_donor.py`.
 
@@ -2868,7 +2756,7 @@ def Ge_cursive(pr):
     centreline has no modulation and no terminals, so it reads as bent wire
     whatever path it follows, and a perfect spine would have failed the same
     way. That is б's fault class exactly -- nine drawings refused, and what
-    passed was not a better drawing but a donated outline.
+    passed was not a better drawing but a donated outline. METHOD F15.
 
     So the outline is Sudo's. There is nothing of this face to build it from:
     the cursive г is a top bar, a curve descending left and a foot running
@@ -2880,29 +2768,39 @@ def Ge_cursive(pr):
     was measured.
     """
     base = getattr(pr, "_pr", pr)
-    return [path([node(x, y, ty, sm) for x, y, ty, sm in c])
-            for c in GE_DONOR[base.mi]]
+    out = []
+    for c in GE_DONOR[base.mi]:
+        q = path([node(x, y, ty, sm) for x, y, ty, sm in c])
+        out.append(q if area(q) > 0 else reverse(q))
+    return out
 
 
 def De_cursive(pr):
-    """д, the italic's own -- the face's OWN o, and a hook off its shoulder.
+    """д -- this face's own o for the bowl, Lilex's hook laid over it.
 
-    The bowl is not drawn: `o` already IS this letter's bowl at this master,
-    fitted to this cell, and under an italic master `pr.paths` hands it over
-    standing up like every other donor.
+    б's recipe, part for part. A bowl is where a donor's design language sits
+    (METHOD F11) and this letter is a bowl and one stroke, so the bowl is o
+    itself -- which settles the counter, the overshoot, the x-height and the
+    fitting for nothing -- and only the hook is donated.
+
+    The hook is not spliced in. It is its own closed contour lying over the
+    bowl, turning the same way, so the two union under non-zero winding the way
+    the built font fills them; where its root swells past the plain oval it is
+    meant to, because that swell IS the junction and every reference draws one.
+
+    What was here before was a centreline stroked at a constant width, and it
+    was rejected: ink laid along a spine has no modulation and no terminals.
+    METHOD F15. `scripts/de_from_lilex.py` has the fitting and the measurements.
     """
-    w, xh = pr.lcStem, pr.xh
+    base = getattr(pr, "_pr", pr)
     bowl = clone_all(pr.paths("o"))
-    b = bbox(bowl)
-    r = DE_HOOK * xh
-    top = DE_TOP * xh
-    # up the bowl's own right side, then over and back to the left. Anchored on
-    # the bowl so it stays attached as the bowl widens across the axis.
-    sx, sy = b[2] - w * 0.5, b[1] + (b[3] - b[1]) * 0.62
-    pts = [(sx, sy), (sx + w * 0.1, top - r * 1.5),
-           (sx - r * 0.15, top - r * 0.30), (sx - r * 0.95, top),
-           (sx - r * 1.75, top - r * 0.55)]
-    return bowl + [_stroke_path(pts, w)]
+    bowl.sort(key=lambda q: -abs(area(q)))
+    out = ([bowl[0] if area(bowl[0]) > 0 else reverse(bowl[0])]
+           + [q if area(q) < 0 else reverse(q) for q in bowl[1:]])
+    for c in DE_DONOR[base.mi]:
+        h = path([node(x, y, ty, sm) for x, y, ty, sm in c])
+        out.append(h if area(h) > 0 else reverse(h))
+    return out
 
 
 ITALIC["ge-cy"] = Ge_cursive

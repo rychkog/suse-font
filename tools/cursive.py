@@ -13,9 +13,17 @@ So this reads the reference instead of naming one. Each face's г and д is
 rasterised UN-SHEARED, the distance transform is taken, and the ridge of that
 transform -- every pixel as far from the edge as anything near it -- is the
 letter's skeleton: the path a broad-nib pen walked, with the stroke thickness
-divided out. What the skeleton shows is the construction, and it is the only
-thing worth carrying across from another face, because the weight, the
-terminals and the fitting all have to be this face's own.
+divided out. What the skeleton shows is the CONSTRUCTION -- how many strokes,
+which way they turn, what joins what.
+
+**It is a judge and not a constructor**, and that took two rejected drawings
+to learn. Both were built by laying ink of a constant width along a spine read
+off this probe, and the answer to the first was to go and get a better spine.
+None of that was the fault: ink laid along a centreline has no modulation and
+no terminals, so it reads as bent wire whatever path it follows. Both letters
+are donated outlines now -- `scripts/ge_from_sudo.py` and
+`scripts/de_from_lilex.py` -- and this file is what says whether a donor is
+drawing the same letter. METHOD F15.
 
 Everything is normalised to the reference's own x-height, so the numbers
 transfer: x and y are in x-heights, with the baseline at 0.
@@ -72,16 +80,14 @@ def spine(sk, n=9):
     """The skeleton as an ORDERED path, resampled to n points, normalised to
     its own box.
 
-    Five scanline crossings is not a description of a double curve. Read off
-    the crossings, г came out a tight pinched zigzag where the reference is
-    wide and shallow, and no amount of relaxing the curvature fixed it because
-    the curvature was not what was wrong -- the path was.
+    Kept for reading a construction, not for building one -- see the note at
+    the top of this file, and do not stroke what comes out of here.
 
-    So the ridge is walked instead of sampled. Start at the pixel furthest from
-    the centre of mass, step each time to the nearest unvisited ridge pixel,
-    and stop when nothing is within a few pixels. For a letter drawn with one
-    stroke that recovers the stroke; for д's bowl it would not, which is why
-    only the hook is read this way and the bowl is the face's own o.
+    It is also not reliable. At the 0.72 ridge threshold the skeleton
+    fragments for thin strokes and the walk hops between the pieces: of five
+    references only Lyth Mono returns a plausible path. That was going to be
+    fixed by replacing the thinning, until it turned out the whole approach
+    was the wrong one and the fix would have bought nothing.
     """
     ys, xs = np.where(sk)
     pts = list(zip(xs.astype(float), ys.astype(float)))

@@ -684,6 +684,18 @@ in the reference set. Ask what the face would have had to draw for the right
 answer to be in the reference at all. If it never draws that thing, the
 reference is the wrong shape and not the letter.
 
+**And the same fault from the other end — a sound probe reading a broken
+outline.** д's junction was measured as the widest disc anywhere in the letter,
+which is a good reading and is how б's blob was found. Carrying the hook's root
+further down the bowl's wall to build the swell the panel wants, the closing
+chord ended up running from the wall's inner edge to its outer one, straight
+across the counter: it filled part of the counter in and left a wedge at the
+junction. The probe read the wedge. Both masters moved toward the target and
+the letter got worse, and nothing said so — the node counts matched, the weight
+solve was unaffected, and only rasterising the recipe and *looking* at it
+caught it. **A reading that improves while you are changing the construction is
+not evidence until you have seen the construction.** Draw it.
+
 ### F7 · Silent failure
 
 A step that does nothing and says nothing.
@@ -1210,6 +1222,81 @@ node count does not interpolate — it does not build at all, which is the good
 case. Bury by choosing the DEPTH instead: cut at the deepest x that keeps the
 end inside the stem at both masters, and the node count is structural.
 
+### F15 · A centreline stroked where an outline was needed
+
+The cursive г was built twice by reading a SPINE off the reference italics —
+the ridge of the distance transform, which is the path the pen walked with the
+stroke thickness divided out — and laying ink of a constant width along it.
+Both were rejected on sight. The second rejection is the one that taught
+something, because the response to the first was to go and get a *better*
+spine: a denser one, walked off the ridge instead of read off five scanlines,
+and relaxed so no turn was tighter than the stroke could make.
+
+None of that was the fault. **Ink laid along a centreline has no modulation
+and no terminals**, so it reads as bent wire whatever path it follows. A
+perfect spine would have failed the same way, and the two rounds spent
+improving the spine were spent on the one part that was already good enough.
+
+This is F11 arriving from the other side. There, a donor's outline was kept
+for a part the host already draws; here, a part the host *cannot* draw was
+generated rather than donated. Both are the same question — **who drew this
+curve, and did they have a reason for its shape?** A generated offset curve has
+no reason for anything: its weight is a parameter, its terminals are whatever
+the algorithm cut, and the places a real letter thins are exactly the places it
+does not.
+
+The tell was available and was missed: **б had already cost nine drawings and
+been settled by a donated outline.** When a letter has no counterpart in the
+family, the question is not how to draw it better, it is whose outline to take
+and what to give back to the host.
+
+The spine tools are not deleted — `tools/cursive.py` is a good *judge*, and
+`tools/gd_band.py` is what settled г's proportions before anything was fitted.
+They are not constructors.
+
+**And the corollary, about a donor's weight axis.** §1 says a donor's axis is
+clamped to the range it was fitted over, and `be_from_sudo` was corrected to do
+that after extrapolation drove б's branch apart. The correct statement is
+narrower than it was written, and the distinction is **what the donor is
+supplying**:
+
+* **one stroke, spliced onto the host's own part** — clamp. The stroke's root
+  and terminal move at different rates and it stops being attached to
+  anything. б's branch collapsed at t −0.8 to −1.0.
+* **the whole letter** — extrapolate freely, until the stroke passes through
+  zero. Every part scales together, so what comes out is the same drawing
+  lighter. Sudo's г is coherent to t −0.9 and turns inside out below −1.0;
+  this face's Thin needed −0.44 and its ExtraBold +1.01.
+
+The alternative — offsetting the outline inward to thin it — **folds**. An
+offset curve crosses itself wherever the radius of curvature falls below half
+the stroke width, г turns twice, and the fold reads as a lump exactly at the
+turns: the light master measured 2.49 of o's wall unthinned and 2.86 after
+being offset to a third of its weight, because the probe was measuring the
+fold. A weight axis is the one way to change a drawing's weight that a
+designer has already solved.
+
+### F16 · Fitted standing up, read leaning
+
+Every construction in this project is built un-sheared and leaned over on
+write, which is what lets one recipe serve both sources. The trap is that **a
+shear does not do the same thing to every letter**, so a proportion fitted in
+one space is not the proportion that gets read in the other.
+
+г was fitted to 0.97 of o's width standing up and came out **1.20** of o in the
+built font, against a panel of 0.92–1.04. o is an oval whose extremes sit at
+its own middle and it gains four per cent from the shear; г reaches furthest at
+three-quarters height on the right and a quarter height on the left, so the
+shear pulls those two apart and it gains fifteen. The same letter's stroke,
+solved to 0.98 of o's wall standing up, measured 0.92 built — a shear
+compresses across a diagonal and leaves an upright alone.
+
+Both figures were wrong in the same way and neither was visible in the script,
+which reported success. **Fit where the reading is taken**: the panel was
+measured on faces that were already leaning, so the comparison has to be made
+leaning too. Bisect it rather than solve it — under a shear the extremes change
+hands as the scale changes, and a closed form has to know which points win.
+
 ---
 
 ## 4 · Probe inventory
@@ -1235,6 +1322,9 @@ end inside the stem at both masters, and the node count is structural.
 | `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
+| `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
+| `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
+| `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |

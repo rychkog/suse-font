@@ -157,6 +157,13 @@ def terminals(sg):
     return ix
 
 
+def leaning(pts, deg, pivot):
+    """How wide a set of points is once the italic goes back on."""
+    t = math.tan(math.radians(deg))
+    xs = [q[0] + (q[1] - pivot) * t for q in pts]
+    return max(xs) - min(xs)
+
+
 def fit(sg, pr):
     """Sudo's г into this face's cell: o's height, 0.97 of o's width, centred.
 
@@ -165,6 +172,18 @@ def fit(sg, pr):
     tall as the face's o -- eleven faces, all 1.00 -- and Sudo draws it at
     0.98, so carrying its proportion across would import the one figure the
     references agree on being different.
+
+    The WIDTH is fitted where it is read, which is not here. Everything in this
+    project is built standing up and leaned over on write, and a shear does not
+    widen every letter by the same amount: o is an oval whose extremes sit at
+    its own middle and it gains four per cent, while this letter reaches
+    furthest at three quarters height on the right and a quarter height on the
+    left, so the shear pulls those two apart and it gains fifteen. Fitted to
+    0.97 of o standing up, г came out 1.20 of o in the built font against a
+    panel of 0.92 to 1.04 -- and the panel was read on faces that were already
+    leaning, so 1.20 is the honest comparison and the number was simply wrong.
+    Bisected rather than solved, because the extremes change hands as the
+    scale changes and a closed form would have to know which points win.
     """
     ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
     ps = pts_of(sg)
@@ -173,11 +192,35 @@ def fit(sg, pr):
     y0 = min(q[1] for q in ps)
     y1 = max(q[1] for q in ps)
     ky = (oy1 - oy0) / (y1 - y0)
-    want = (ox1 - ox0) * GE_WIDE
-    kx = want / (x1 - x0)
-    left = 300.0 - want / 2.0
-    return mapped(sg, lambda q: (left + (q[0] - x0) * kx,
-                                 oy0 + (q[1] - y0) * ky))
+    tall = [(q[0], oy0 + (q[1] - y0) * ky) for q in ps]
+    want = GE_WIDE * leaning([(x, y) for p in pr.paths("o")
+                              for x, y in _flat_pts(p)], pr.italic, pr.pivot)
+
+    def at(kx):
+        return leaning([(300.0 + (q[0] - 0.5 * (x0 + x1)) * kx, q[1])
+                        for q in tall], pr.italic, pr.pivot)
+
+    lo, hi = 0.05, 4.0
+    for _ in range(30):
+        kx = 0.5 * (lo + hi)
+        if at(kx) < want:
+            lo = kx
+        else:
+            hi = kx
+    kx = 0.5 * (lo + hi)
+    mid = 0.5 * (x0 + x1)
+    out = mapped(sg, lambda q: (300.0 + (q[0] - mid) * kx,
+                                oy0 + (q[1] - y0) * ky))
+    # centred on the cell where it will be READ, for the same reason
+    t = math.tan(math.radians(pr.italic))
+    xs = [q[0] + (q[1] - pr.pivot) * t for q in pts_of(out)]
+    return mapped(out, lambda q: (q[0] + 300.0 - 0.5 * (min(xs) + max(xs)),
+                                  q[1]))
+
+
+def _flat_pts(p, steps=16):
+    """A Glyphs contour as points, curves included."""
+    return _flatten(p, steps)
 
 
 def square(sg, ix, angle):
@@ -323,12 +366,29 @@ def solve(a, b, work, deg, pr):
     the same quantity by construction.
     """
     import weights as W
-    scale = W.XH / float(pr.cap)
-    wall = W.width(W.edt(W.mask_of([_flatten(q, 96) for q in pr.paths("o")],
-                                   scale)))
+    from gd_band import XH as BAND_XH
+    # Tied to the resolution the BAND was read at, because `weights.width`
+    # takes a pixel of bias off every reading and the same outline is not the
+    # same number at two sizes: this letter reads 0.92, 0.94 and 0.95 of o's
+    # wall in the built font with o 240, 480 and 900 pixels tall. Twice the
+    # band's own size, which is where the reading has settled to within a
+    # hundredth and the light master's wall is still only 28 pixels.
+    oy = bbox(pr.paths("o"))
+    scale = 2.0 * BAND_XH / float(oy[3] - oy[1])
+    lean = math.tan(math.radians(pr.italic))
+
+    def over(pts):
+        return [(x + (y - pr.pivot) * lean, y) for x, y in pts]
+
+    # both leaning, because a shear does not take the same amount out of every
+    # stroke -- it compresses across a diagonal and leaves an upright alone --
+    # and the letter is read leaning. Solved standing up, г came out right in
+    # this script and 0.92 of o in the built font, under the panel's floor.
+    wall = W.width(W.edt(W.mask_of(
+        [over(_flatten(q, 96)) for q in pr.paths("o")], scale)))
 
     def ratio(t):
-        ps = [poly(to_nodes(shape(a, b, t, work, deg, pr)), 40)]
+        ps = [over(poly(to_nodes(shape(a, b, t, work, deg, pr)), 40))]
         return W.width(W.edt(W.mask_of(ps, scale))) / wall
 
     lo, hi = FLOOR, 1.6

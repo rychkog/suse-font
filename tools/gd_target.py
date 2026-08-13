@@ -23,6 +23,13 @@ So this sheet asks the two questions that decide whether that answer applies:
 
 Nothing here is a donor decision -- a donor has to be OFL before it can be one
 and Consolas is on this sheet only as a reference.
+
+The row that is NOT here was the first thing tried and it was worse than
+useless: our o and each reference г drawn into the same raster, one grey and
+one red, to test whether г's curve was o's curve. The composite read as a
+double-bowled S and the hypothesis looked confirmed. It was the two letters
+being seen as one shape. **Overlay to compare two drawings of the SAME letter;
+to find out what a letter is, draw it alone.** г has no bowl at all.
 """
 
 import sys
