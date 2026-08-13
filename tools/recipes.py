@@ -2521,30 +2521,165 @@ def Em(pr, top=None, bottom=0.0):
     return [p if area(p) > 0 else reverse(p) for p in out]
 
 
-def Ka(pr):
-    """к -- the face's own k with the ascender taken off.
+# К's junction, as a fraction of the letter's own height.
+#
+# This is ZHE_WAIST, written out rather than shared. Ж and К are the only two
+# letters in this alphabet that hang an arm and a leg off one upright, they sit
+# in the same words, and Ж is approved with its waist at 0.517 -- so К takes
+# the same figure. It is copied and not referenced because a later change to Ж
+# must not silently move an approved К; that is the rule Ґ cost.
+#
+# The panel arrives at the same number from outside. Of the faces whose Latin K
+# branches and which redrew the Cyrillic rather than donating it, thirteen
+# replaced the branch with a single vertex, and every one of them put that
+# vertex between 0.503 and 0.534 of the cap -- Geist Mono 0.503, Lilex and
+# Roboto Mono 0.509, Myna 0.519, Maple Mono 0.522, Hasklig 0.528. The nine that
+# kept a branch are AverageMono, Courier New, Monaspace Xenon and Old Timey
+# Code, at two weights each: serif and display faces. `tools/ka.py`.
+KA_WAIST = 0.517
 
-    Not К at x-height, and not a construction at all. k's arm and leg already
-    live entirely below the x-height, already carry the lowercase's own stroke,
-    and are already fitted to this cell; the only thing that makes k a Latin
-    letter rather than a Cyrillic one is that its stem carries on up to the
-    ascender. Cut that and the letter IS к.
+# How far out from the stem the arm and the leg part company, over the
+# letter's own height. This is the figure that says a К is not a K.
+#
+# The arm and the leg do not meet the stem separately and they do not meet it
+# at a point: they run together as ONE stroke for a short way, and that merged
+# neck is what touches the stem. Read off the ink of every panel face that
+# un-branches its К -- the leftmost point of the white wedge between the two
+# strokes, out from the stem's right edge -- the neck is 0.181 to 0.272 of the
+# cap for К and 0.260 to 0.398 of the x-height for к, and it barely moves with
+# weight within a family: Lilex 0.262 to 0.250, Myna 0.237 to 0.238, Hasklig
+# 0.267 to 0.270. The medians are taken. `tools/ka.py`.
+#
+# Two figures rather than one because the letter's height changes across the
+# case and its width does not: к is wider for its height than К is, so the
+# same fraction of the height would leave its diagonals flatter. Expressed
+# against the WIDTH instead the panel is half as tight (0.28-0.49 against
+# 0.18-0.27), so the height is the relation and this is the case's own value.
+#
+# The neck is also what sets the two leans, and therefore the sharpness of the
+# corner where each stroke's flat cut meets it. Built without one -- with both
+# strokes springing from a point on the stem -- every corner came out 33 to 44
+# degrees against the face's own floor of 42, because the strokes had to cover
+# the whole width from the stem in half the height. With it they land at 50 to
+# 59, which is Roboto Mono's own К to the degree at both ends of its axis.
+KA_NECK = 0.245         # К, over the cap height
+KA_NECK_LC = 0.339      # к, over the x-height
 
-    The 51 panel faces that draw both agree, and not approximately: к's width
-    is 1.000 of k's with the middle half of the population inside a thousandth,
-    its left edge sits at the same place to the em, and its leg leans the same.
-    So this is the highest tier the letter allows -- everything except the
-    stem's height is the host's own drawing, inherited rather than rebuilt.
 
-    The three contours are told apart by what they do, not by their order: the
-    stem is the one that reaches above the x-height. A donor's path indices are
-    exactly the sort of thing that means something different at the other
-    master.
+def Ka(pr, donor="K", top=None, neck=KA_NECK):
+    """К -- the arm and the leg meeting the stem at one point, at Ж's waist.
+
+    This letter used to BE the Latin K, donated as a component, and the thing
+    that made that wrong is not a proportion. K here branches: its leg leaves
+    the arm out in the counter and the arm carries on underneath it down to the
+    stem, so there are two strokes running beside the stem for a quarter of the
+    cap height and the arm lands low -- 0.32 of the cap at Thin, sliding to
+    0.43 at ExtraBold. Cyrillic К is one vertex, and it sits at the middle.
+    That is a different letter, not a differently fitted one, which is why the
+    ink-area reading could not see it and the overlay could.
+
+    Everything except where the vertex goes is still the host's K, and that is
+    the point of building it this way rather than drawing a К:
+
+      * the arm and the leg keep their own PERPENDICULAR weight, taken off K's
+        own flat end cuts and divided by the lean there -- so the strokes weigh
+        what this face's diagonals weigh, at both masters, without a constant;
+      * each keeps the extreme it reaches, so the letter fills the cell exactly
+        as K does and needs no sidebearing of its own;
+      * each is cut flat at the line it lands on, cap or baseline, the way X, V,
+        W and K are cut, and buried in the stem with a vertical cut the way K
+        buries its own arm.
+
+    The slopes are what changes, and they are not chosen either: they are
+    whatever gets a stroke of that weight from that extreme to the vertex.
+    Solved by iteration because widening a stroke for its own lean moves the
+    end it is being aimed from.
+
+    What the two strokes do where they meet is the letter, and it is neither
+    of the two obvious things. They do not each land on the stem separately --
+    that crosses their outer edges inside it. They do not meet at a point on
+    the stem either: that was built, and it forced both strokes to cover the
+    whole width in half the height, which left every flat cut at a 33-to-44
+    degree spike against the face's own floor of 42. They run together as one
+    stroke for KA_NECK of the height and that merged neck meets the stem, over
+    a band one horizontal bar tall -- so the two outer edges are cut flat and
+    stepped in to the stem, exactly as Ж's four arms are.
+
+    к is this construction against k and the x-height, not К squashed: k's own
+    arm and leg carry the lowercase's diagonal weight already. The three
+    contours are told apart by what they do -- the stem is the tall one, the
+    arm is the one that reaches the top line -- never by their order, which is
+    the sort of thing that means something different at the other master.
     """
-    stem = max(pr.paths("k"), key=lambda p: bbox([p])[3])
-    b = bbox([stem])
-    return ([rect(b[0], 0.0, b[2], pr.xh)]
-            + clone_all([p for p in pr.paths("k") if p is not stem]))
+    top = pr.cap if top is None else top
+    ps = pr.paths(donor)
+    stem = max(ps, key=lambda p: bbox([p])[3] - bbox([p])[1])
+    sb = bbox([stem])
+    rest = [p for p in ps if p is not stem]
+    arm = max(rest, key=lambda p: bbox([p])[3])
+    leg = [p for p in rest if p is not arm][0]
+
+    def borrow(p, line):
+        """(perpendicular weight, the extreme it reaches) at its flat end."""
+        far = [n.position for n in p.nodes if abs(n.position.y - line) < 1.0]
+        near = [n.position for n in p.nodes if abs(n.position.y - line) >= 1.0]
+        fc = sum(n.x for n in far) / len(far)
+        nc = sum(n.x for n in near) / len(near)
+        ny = sum(n.y for n in near) / len(near)
+        s = (fc - nc) / (line - ny)
+        w = max(n.x for n in far) - min(n.x for n in far)
+        return w / math.hypot(1.0, s), max(n.x for n in far)
+
+    xv, yv = sb[2], top * KA_WAIST
+    xa = xv + neck * top
+
+    def stroke(p, line):
+        """A stroke from the apex out to the extreme its donor reaches.
+
+        Returns its lean, its horizontal width, and where its OUTER edge sits
+        at the height the neck is cut at. Solved by iteration because widening
+        a stroke for its own lean moves the end it is aimed from.
+        """
+        wp, R = borrow(p, line)
+        s = 1.0 if line > yv else -1.0
+        for _ in range(6):
+            h = wp * math.hypot(1.0, s)
+            s = (R - h - xa) / (line - yv)
+        return s, wp * math.hypot(1.0, s)
+
+    s_a, h_a = stroke(arm, top)
+    s_l, h_l = stroke(leg, 0.0)
+    # the band the merged neck meets the stem over: one horizontal, centred on
+    # the junction. Below one bar the neck reads as a hairline joint at Thin;
+    # above it the two shelves cross and the letter fills in.
+    yT, yB = yv + pr.bar / 2.0, yv - pr.bar / 2.0
+    # each outer edge is the inner one a stroke to its left, cut where the band
+    # is. Clamped to the stem: at the heaviest master the shelf runs out.
+    La = max(xv, xa - h_a + s_a * (yT - yv))
+    Lb = max(xv, xa - h_l + s_l * (yB - yv))
+
+    return [rect(sb[0], 0.0, sb[2], top),
+            _ka_body(xv, yT, yB, La, Lb, xa, yv,
+                     R_a=bbox([arm])[2], R_l=bbox([leg])[2],
+                     h_a=h_a, h_l=h_l, top=top)]
+
+
+def _ka_body(xv, yT, yB, La, Lb, xa, yv, R_a, R_l, h_a, h_l, top):
+    """К's arm, leg and neck as one contour -- the shape Roboto Mono draws.
+
+    Nine nodes, the same nine at every master, which is what a font that
+    interpolates needs: up the stem's right edge, out along the top shelf, up
+    the arm's outer edge to its flat cut, back down its inner edge to the
+    apex, out along the leg's inner edge to ITS flat cut, and back along the
+    leg's outer edge to the bottom shelf.
+    """
+    q = path([node(xv, yT), node(La, yT),
+              node(R_a - h_a, top), node(R_a, top),
+              node(xa, yv),
+              node(R_l, 0.0), node(R_l - h_l, 0.0),
+              node(Lb, yB), node(xv, yB)])
+    return q if area(q) > 0 else reverse(q)
+
 
 
 def lc(fn, **kw):
@@ -2569,7 +2704,7 @@ RECIPES = {
     "De-cy": De, "Ef-cy": Ef, "Yu-cy": Yu, "E-cy": E_ukr, "Be-cy": Be,
     "Softsign-cy": Soft, "Hardsign-cy": Hard, "Yeru-cy": Yeru,
     "Ereversed-cy": E_rev, "Ze-cy": Ze, "Ii-cy": Ii, "Che-cy": Che,
-    "U-cy": U, "Ya-cy": Ya, "Zhe-cy": Zhe,
+    "U-cy": U, "Ya-cy": Ya, "Zhe-cy": Zhe, "Ka-cy": Ka,
 
     # ---- lowercase: the stem-and-bar block ----------------------------
     # г н т have no capital recipe to reuse -- Г splices E's nodes, Н and Т
@@ -2585,7 +2720,14 @@ RECIPES = {
     # from spliced Latin outlines, so Lower alone re-sizes them.
     "de-cy": lc(De), "zhe-cy": lc(Zhe), "el-cy": lc(El, outward=EL_OUTWARD),
     "che-cy": lc(Che), "ereversed-cy": lc(E_rev), "ya-cy": lc(Ya),
-    "yeru-cy": lc(Yeru), "ka-cy": Ka, "em-cy": lc(Em),
+    "yeru-cy": lc(Yeru),
+    # Lower, not pr: the neck is a HORIZONTAL, and this face draws 61 there at
+    # Regular where the capital draws 74. Run against the capital's bar the
+    # signature gate reads к's neck at 1.21 of the face's own lowercase
+    # horizontal -- the one number in the letter that has a weight in it, and
+    # so the one that had to come from the lowercase's own view.
+    "ka-cy": lambda pr: Ka(Lower(pr), "k", pr.xh, KA_NECK_LC),
+    "em-cy": lc(Em),
     "ze-cy": lc(Ze_lc), "be-cy": lc(Be_lc),
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),

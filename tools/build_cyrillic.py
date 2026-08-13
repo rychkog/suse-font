@@ -82,7 +82,12 @@ def plan(font):
 ANCHOR_FROM = {
     "Ie-cy": "E",       # tier 1: it IS E
     "I-cy": "I",
-    "Ka-cy": "K",
+    # К is NOT here any more. It was, while it was the Latin K donated whole,
+    # and K's anchor travels further than any other in this table -- 312 at
+    # Thin to 354 at ExtraBold. Ќ followed that and its drawn ќ could not, so
+    # the pair was knowingly out of step; the ledger says so. К is drawn now
+    # and it is symmetric about nothing K is symmetric about, so it takes the
+    # middle of the cell, which is where Ѓ ѓ ќ already sit.
     "U-cy": "Y",        # drawn from Y's fork, and a mark sits over the fork
     "Ii-cy": "N",
     "ie-cy": "e",       # tier 1: it IS e

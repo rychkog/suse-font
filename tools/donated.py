@@ -2,7 +2,7 @@
 
     ./venv/bin/python tools/donated.py
 
-Twenty-five Cyrillic characters are not drawn at all: they are the face's own
+Twenty-four Cyrillic characters are not drawn at all: they are the face's own
 Latin, referenced as a component, so they follow it through the weight axis
 and carry its optical fitting for nothing. That is the cheapest correct answer
 this project has, and it stays correct only as long as three things hold.
@@ -19,11 +19,22 @@ this project has, and it stays correct only as long as three things hold.
    and C, and a mirror would show up here as an exact match under reflection.
 
 The donation list itself is a design judgement and is not checked here, only
-declared: А В Е І К М Н О Р С Т Х Ѕ Ј and а е і о р с у х ѕ ј. What makes it
+declared: А В Е І М Н О Р С Т Х Ѕ Ј and а е і о р с у х ѕ ј. What makes it
 honest is that every one is a letter Cyrillic and Latin genuinely share. The
 letters that only LOOK shareable are drawn instead, and that is the whole
 list: т is not the Latin t, п is not n, и is not a mirrored N, м is not m,
-н is not h, к takes only k's arm and leg.
+н is not h.
+
+**К and к were on this list and came off it on 2026-08-13.** They were the one
+pair the panel argued about -- 31 of 65 faces draw К apart from K -- and the
+reason turned out to be structural rather than a matter of fitting. K branches:
+its leg leaves the arm out in the counter and the arm carries on to the stem
+underneath it. Cyrillic К does not branch; its arm and leg run together as one
+neck off the stem, at the middle of the height. Of the panel faces whose Latin
+K branches and which redrew the Cyrillic rather than donating it, thirteen made
+exactly that change and the nine that did not are serif or display faces. So
+this list is now twenty-four, and К к are built in `recipes.py: Ka` out of K's
+and k's own arms and legs -- still the host's drawing, one tier down.
 """
 
 import sys
