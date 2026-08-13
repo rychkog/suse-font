@@ -94,7 +94,8 @@ def contours(pr, ch):
         ps = pr.paths(ch)
     out = []
     for p in slant(ps, pr.italic, pr.pivot):
-        out.append([(n.position.x, n.position.y, n.type) for n in p.nodes])
+        out.append([(n.position.x, n.position.y, n.type, n.smooth)
+                    for n in p.nodes])
     return out
 
 
@@ -166,12 +167,20 @@ def extrema(c):
 
 
 def kinks(c):
-    """Smooth joins whose two handles are not in line, in degrees."""
+    """Joins DECLARED smooth whose two handles are not in line, in degrees.
+
+    The declaration is the point. A corner is not a kink -- this letter has
+    three of them, the terminal and the two cuts where the stroke leaves and
+    rejoins the bowl, and a junction that met the oval tangentially would be
+    the fault rather than the fix. What is worth finding is a node the drawing
+    claims is continuous and is not. Read off the built font, where there are
+    no flags, every corner reports and none of it means anything.
+    """
     out = []
     segs = segments(c)
     for i, (p0, cs, p1) in enumerate(segs):
         nxt = segs[(i + 1) % len(segs)]
-        if p1[2] != "curve":
+        if p1[2] != "curve" or (len(p1) > 3 and not p1[3]):
             continue
         a = cs[-1] if cs else p0
         b = nxt[1][0] if nxt[1] else nxt[2]

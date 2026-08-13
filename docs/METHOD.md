@@ -1254,6 +1254,24 @@ The spine tools are not deleted — `tools/cursive.py` is a good *judge*, and
 `tools/gd_band.py` is what settled г's proportions before anything was fitted.
 They are not constructors.
 
+**And a donated outline is only as good as the donor's FORMAT.** г came off
+Sudo first, which is a variable TrueType, so its curves arrive as quadratics;
+expanding those segment by segment — the only expansion that keeps the node
+structure identical along the axis — gave the letter **34 on-curve nodes
+against this face's own o at 8**, each with handles too short to control
+anything and no relation to where the curve's extremes are. It passed every
+reading this project takes, because all of them read the ink. Taken off Lilex,
+which is CFF, the same letter is 16 nodes: the designer's own cubics, extremes
+on nodes. `tools/outlines.py` is the probe that sees this, and it is the only
+one that can — an ink reading is blind to it by construction.
+
+**Prefer a CFF donor.** Where a family ships statics built from one source they
+interpolate node for node, which is a weight axis without a variable font, and
+`donor.same_drawing` checks that rather than assuming it. That also keeps this
+face's own masters *inside* the donor's range instead of extrapolated off the
+end of it — Lilex's Thin to Bold covers both, where Sudo's light end had to be
+carried to −0.43 to reach this face's Thin.
+
 **And the corollary, about a donor's weight axis.** §1 says a donor's axis is
 clamped to the range it was fitted over, and `be_from_sudo` was corrected to do
 that after extrapolation drove б's branch apart. The correct statement is
@@ -1276,7 +1294,41 @@ being offset to a third of its weight, because the probe was measuring the
 fold. A weight axis is the one way to change a drawing's weight that a
 designer has already solved.
 
-### F16 · Fitted standing up, read leaning
+### F16 · A stroke laid over a bowl is not a stroke growing out of one
+
+The cursive д is a bowl and one stroke, and б's rule says the bowl has to be
+the host's own o, so only the stroke is donated. Built the obvious way — the
+stroke as its own closed contour lying over the oval, unioned by the overlap
+removal on the way to the font — every ink reading passed and the **junction**
+did not: 1.13, 1.01, 1.00 of the bowl's own wall at Thin, Regular and
+ExtraBold, against eleven references holding 1.13 to 1.41.
+
+What is missing in an overlap is the **swell**. Where a stroke grows out of a
+bowl the ink thickens, and that thickening lives in the piece of the donor's
+outline between where its stroke leaves the bowl and where it comes back —
+which is exactly the piece an overlap throws away, because an overlap keeps
+only the outer of the two and the bowl's own oval wins there. **A union is not
+a junction.**
+
+The fix is the splice б already had, and the general statement is: **when a
+donated stroke meets a host's part, the meeting has to be constructed, not
+left to a boolean.** Both cuts are found as crossings of the two outlines,
+which needs no landing angle and no choice, and the arc between them is the
+only piece of the host's oval thrown away.
+
+Two traps inside it, both paid for:
+
+* **Extending the root instead of splicing.** Carrying the stroke further
+  down the bowl's wall makes the closing chord run from the wall's inner edge
+  to its outer one — straight across the counter. It filled part of the
+  counter in and left a wedge at the junction, the probe read the wedge, both
+  masters moved toward the target and the letter got worse. F6 from the other
+  end, and only rasterising the recipe and *looking* caught it.
+* **The landing is not the last crossing.** A donated д crosses the host's
+  oval six times, because the donor's own bowl crown sits lower than the
+  host's o. The landing is the first re-entry *after* the stroke has left.
+
+### F17 · Fitted standing up, read leaning
 
 Every construction in this project is built un-sheared and leaned over on
 write, which is what lets one recipe serve both sources. The trap is that **a

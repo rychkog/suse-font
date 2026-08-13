@@ -2790,24 +2790,31 @@ def De_cursive(pr):
     itself -- which settles the counter, the overshoot, the x-height and the
     fitting for nothing -- and only the hook is donated.
 
-    The hook is not spliced in. It is its own closed contour lying over the
-    bowl, turning the same way, so the two union under non-zero winding the way
-    the built font fills them; where its root swells past the plain oval it is
-    meant to, because that swell IS the junction and every reference draws one.
+    The hook is SPLICED, not laid over. It was laid over first, as its own
+    contour overlapping the oval, and that reads as a stroke grazing a bowl
+    rather than growing out of one: the junction measured 1.00 of the bowl's
+    own wall at the heavy master against a panel running 1.13 to 1.41. What is
+    missing in an overlap is the swell, and the swell is the piece of the
+    donor's outline between where its stroke leaves the bowl and where it comes
+    back -- which is exactly the piece an overlap throws away. So the outer
+    contour here is one outline: this face's o everywhere except the arc the
+    stroke covers, and the donor's there. `donor.splice`.
 
-    What was here before was a centreline stroked at a constant width, and it
-    was rejected: ink laid along a spine has no modulation and no terminals.
-    METHOD F15. `scripts/de_from_lilex.py` has the fitting and the measurements.
+    Only the counter is still taken live off o. The outer is per-master data
+    because the splice is solved against o at that master; if o is ever
+    redrawn, `scripts/de_from_lilex.py` has to be run again.
+
+    What was here before all of that was a centreline stroked at a constant
+    width, and it was rejected: ink laid along a spine has no modulation and no
+    terminals. METHOD F15.
     """
     base = getattr(pr, "_pr", pr)
-    bowl = clone_all(pr.paths("o"))
-    bowl.sort(key=lambda q: -abs(area(q)))
-    out = ([bowl[0] if area(bowl[0]) > 0 else reverse(bowl[0])]
-           + [q if area(q) < 0 else reverse(q) for q in bowl[1:]])
+    counter = min(clone_all(pr.paths("o")), key=lambda q: abs(area(q)))
+    out = []
     for c in DE_DONOR[base.mi]:
         h = path([node(x, y, ty, sm) for x, y, ty, sm in c])
         out.append(h if area(h) > 0 else reverse(h))
-    return out
+    return out + [counter if area(counter) < 0 else reverse(counter)]
 
 
 ITALIC["ge-cy"] = Ge_cursive

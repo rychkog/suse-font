@@ -262,3 +262,9 @@ separated) if they live elsewhere.
   coordinates.
 - **A green mechanical run is not evidence a glyph is right.** Node parity
   cannot see that a glyph is the wrong size — it passed Э drawn at cap height.
+- **Every gate here reads the INK. None of them reads the OUTLINE.** A curve
+  can be lumpy, a node can sit where no extreme is, a join can kink, and a
+  hundred nodes can do the work of twelve, with every ink reading in band. г
+  shipped at 34 nodes against o's 8 that way. Run `tools/outlines.py` on
+  anything donated or newly drawn, and prefer a **CFF** donor — a TrueType
+  one arrives as quadratics and expands to a node every few units.
