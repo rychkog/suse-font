@@ -1361,6 +1361,52 @@ hands as the scale changes, and a closed form has to know which points win.
 
 ---
 
+### F18 · A donated outline fitted in x and y separately
+
+A donation is a *drawing*. Scale it, lean it, place it — but the moment its
+width and its height are fitted by two different numbers it stops being the
+drawing that was donated, because **an anisotropic scale re-weights every
+stroke by the direction that stroke happens to run in**. An upright wall keeps
+`kx` of its weight, a flat one keeps `ky`, and everything in between gets a
+share of each and comes out at a new angle. Nothing about it is a change of
+size, and every reading this project takes is about size.
+
+д's hook was fitted onto Lilex's outline with the bowl's height solved onto our
+o and the letter's width solved onto the panel's, and the two solves landed
+0.966 apart at Thin and **0.850 apart at ExtraBold**. So the bowl's upright
+walls lost a seventh of their weight at the heavy master while the arm, which
+runs nearly flat where it ends, kept all of its; every edge in between got
+steeper, and the terminal ended in an acute spike. Three readings moved
+together with the squash — the ink at the arm's tip went 1.01 → 0.39 → 0.19 of
+o's wall across the three weights against a panel holding 0.60–0.97, and the
+arm's reach fell 0.34 → 0.26. It was rejected on sight before any of them was
+taken.
+
+Two things this cost, worth having in advance:
+
+- **The master that looked right was the one that was nearly square.** Thin sat
+  at 0.966 and read fine, so the fault presented as "the bold is wrong" and
+  invited a fix at the bold end. A distortion that varies per master will
+  always look like a problem with one master.
+- **Fit ONE thing and measure the rest.** The bowl has to sit on this face's o
+  — that is the constraint the splice needs and there is only one of it. The
+  letter's width is then whatever the donor draws at that size, and `DE_WIDE`
+  went from a target to a band the result is checked against. It landed at 1.00
+  and 1.04 against a panel of 1.00–1.15, which is the point: the donor's own
+  proportion was already inside the band, and squashing it to hit a number was
+  work that made the letter worse.
+
+The same shape of error at one remove: **a threshold in units cannot decide a
+question about shape.** `donor.absorb` dropped a leftover stub when its bow was
+under 1.0 unit, and the same drawing left a 49-unit stub bowing 0.18 at one
+master and a 128-unit stub bowing 1.85 at the other — so the stub was absorbed
+at one master and kept at the other, the two came out with different node
+counts, and the font would not interpolate. As fractions of their own chords
+they are 0.004 and 0.014, both straight to well inside a tenth of a per cent of
+the em and both on the same side of any honest line. Straightness is a ratio.
+
+---
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
@@ -1386,6 +1432,7 @@ hands as the scale changes, and a closed form has to know which points win.
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
 | `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
+| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, and the ink AT the tip. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
 | `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |

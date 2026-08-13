@@ -158,6 +158,77 @@ def square(sg, i, angle, reach=min):
     return out
 
 
+def trim(sg, i, angle):
+    """A terminal CUT ACROSS the stroke -- both edges trimmed back to one line.
+
+    `square` does the other thing: it drags both ends of the terminal out to
+    whichever of them already reaches further, so the letter keeps its extent.
+    That is right for a terminal whose two ends sit nearly above one another,
+    which is most of them. It is wrong for д's, whose ends sit far apart along
+    a leaning edge -- extending the near one there does not square the terminal
+    off, it stretches it, and drags its lower corner out into the sidebearing
+    as an acute spike. Ours came out 39 units long at Thin and 142 at
+    ExtraBold, and the ink at the tip read 1.01 of o's wall against 0.21: not
+    the same terminal at the two masters, with the heavy one ending in a point.
+    The panel's ∂-form faces hold 0.60 to 0.97. `tools/de_arm.py`.
+
+    So cut where BOTH edges still have material -- the further-RIGHT of the two
+    ends -- and trim each of them to it. The terminal that comes out is as long
+    as the stroke is thick there, which is what a cut terminal is, and it
+    cannot leave a corner sticking out past the cut because there is nothing
+    past the cut.
+
+    `sg[i]` is the terminal; `sg[i-1]` arrives at it and `sg[i+1]` leaves.
+    """
+    t = math.tan(math.radians(angle))
+
+    def slant(q):
+        return q[0] - q[1] * t
+
+    n = len(sg)
+    prev, nxt = (i - 1) % n, (i + 1) % n
+    a, b = sg[prev][1][-1], sg[i][1][-1]
+    e = max(slant(a), slant(b))
+    if abs(slant(a) - slant(b)) < 1e-6:
+        return list(sg)
+
+    def where(p0, seg, want, default, lo=0.0, hi=1.0):
+        """t at which this segment's slant passes `want`, by bisection.
+
+        `default` when it never reaches it -- the edge already stops short of
+        the cut and there is nothing to take off it.
+        """
+        f0 = slant(bez_at(p0, seg, lo)) - want
+        f1 = slant(bez_at(p0, seg, hi)) - want
+        if f0 * f1 > 0:
+            return default
+        for _ in range(60):
+            mid = 0.5 * (lo + hi)
+            if (slant(bez_at(p0, seg, mid)) - want) * f0 > 0:
+                lo = mid
+            else:
+                hi = mid
+        return 0.5 * (lo + hi)
+
+    p0 = sg[(prev - 1) % n][1][-1]
+    # the terminal starts where `head` now ends, so P needs no name
+    head, _tail, _P = cut(p0, sg[prev], where(p0, sg[prev], e, 1.0))
+    _head, tail, Q = cut(b, sg[nxt], where(b, sg[nxt], e, 0.0))
+    out = list(sg)
+    out[prev] = head
+    out[i] = ("line", [Q])
+    out[nxt] = tail
+    return out
+
+
+def bez_at(p0, seg, t):
+    """A point along one segment."""
+    kind, ps = seg
+    if kind != "curve":
+        return (p0[0] + (ps[0][0] - p0[0]) * t, p0[1] + (ps[0][1] - p0[1]) * t)
+    return bez(p0, ps[0], ps[1], ps[2], t)
+
+
 def bez(p0, c1, c2, p3, t):
     u = 1.0 - t
     return (u**3 * p0[0] + 3*u*u*t * c1[0] + 3*u*t*t * c2[0] + t**3 * p3[0],
@@ -433,7 +504,7 @@ def bow(p0, seg, steps=16):
     return worst
 
 
-def absorb(arc, stroke, D, flat=1.0):
+def absorb(arc, stroke, D, flat=0.03):
     """Take a straight stub off the front of the stroke into the arc.
 
     A cut lands wherever the two outlines cross, and when that is near the end
@@ -449,10 +520,24 @@ def absorb(arc, stroke, D, flat=1.0):
     own tangent -- it has just left it -- so this is a continuation and not a
     redrawing, and where it does bend the oval outward is the junction, which
     is where the letter is supposed to bend outward.
+
+    **`flat` is a fraction of the stub's own chord, not a count of units.** It
+    was a count, at 1.0, and a count is a length test where the question is a
+    STRAIGHTNESS one: the same drawing left a 49-unit stub bowing 0.18 at one
+    master and a 128-unit stub bowing 1.85 at the other, so the threshold fell
+    between them, the stub was absorbed at one master and kept at the other,
+    and the two came out with different node counts and would not interpolate.
+    As fractions of their own chords those are 0.004 and 0.014, both of them
+    straight to well inside a tenth of a per cent of the em, and both on the
+    same side of any honest line. A test whose answer depends on how big the
+    letter happens to be cannot decide a question about its shape.
     """
-    if len(stroke) < 2 or bow(D, stroke[0]) > flat:
+    if len(stroke) < 2:
         return arc, stroke, D
     E = stroke[0][1][-1]
+    chord = math.hypot(E[0] - D[0], E[1] - D[1]) or 1.0
+    if bow(D, stroke[0]) / chord > flat:
+        return arc, stroke, D
     dx, dy = E[0] - D[0], E[1] - D[1]
     kind, ps = arc[-1]
     if kind == "curve":
@@ -460,6 +545,57 @@ def absorb(arc, stroke, D, flat=1.0):
     else:
         arc = arc[:-1] + [(kind, [E])]
     return arc, stroke[1:], E
+
+
+def tangent(prev, nxt, node, bias=0.5):
+    """Make a join tangent-continuous: the two handles either side of `node`
+    put on one line through it, each keeping its own length.
+
+    Where the stroke LEAVES the bowl the letter is still bowl becoming stroke,
+    and the outline there has to be smooth -- it is one wall carrying on
+    upward, which is what makes the ∂ construction read as one stroke. Cutting
+    two different curves at their crossing does not give that for free: the
+    oval arrives at one angle and the donor's stroke leaves at another, and the
+    join came out breaking 24 degrees at Thin and 29 at ExtraBold. A break that
+    size in the middle of a run is not a corner, it is an accident -- a real
+    corner in this letter is the terminal at 56 and the junction at 141.
+
+    The landing is left alone. A stroke coming back down ONTO a bowl does meet
+    it at an angle, every reference draws that corner, and smoothing it would
+    be inventing a fillet no one drew.
+
+    `bias` is how much of the direction comes from the outgoing side; a half
+    each is the smallest move that fixes both.
+    """
+    import math as _m
+
+    def unit(a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        h = _m.hypot(dx, dy) or 1.0
+        return (dx / h, dy / h), h
+
+    (ix, iy), li = unit(prev, node)
+    (ox, oy), lo = unit(node, nxt)
+    dx = ix * (1.0 - bias) + ox * bias
+    dy = iy * (1.0 - bias) + oy * bias
+    h = _m.hypot(dx, dy) or 1.0
+    dx, dy = dx / h, dy / h
+    return ((node[0] - dx * li, node[1] - dy * li),
+            (node[0] + dx * lo, node[1] + dy * lo))
+
+
+def close_join(arc, stroke):
+    """`tangent` applied to the seam between the bowl's arc and the stroke."""
+    if not arc or not stroke:
+        return arc, stroke
+    ka, pa = arc[-1]
+    kb, pb = stroke[0]
+    if ka != "curve" or kb != "curve":
+        return arc, stroke
+    node = pa[-1]
+    a2, b1 = tangent(pa[-2], pb[0], node)
+    return (arc[:-1] + [(ka, [pa[0], a2, node])],
+            [(kb, [b1, pb[1], pb[2]])] + stroke[1:])
 
 
 def splice(bowl, hook, steps=16):
@@ -505,10 +641,12 @@ def splice(bowl, hook, steps=16):
             continue
         if tail is None:
             _s, rev = reverse_run(D, stroke)
-            segs, rev, _e = absorb(segs, rev, L)
+            segs, rev, e = absorb(segs, rev, L)
+            segs, rev = close_join(segs, rev)
             best = (s0, segs + rev)
         else:
-            segs, tail, _e = absorb(segs, tail, D)
+            segs, tail, e = absorb(segs, tail, D)
+            segs, tail = close_join(segs, tail)
             best = (s0, segs + tail)
         break
     return best
