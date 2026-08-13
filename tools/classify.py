@@ -155,7 +155,12 @@ TIERS = [
 # are the shapes to the eye. So they are honest tier 1 here while being drawn
 # in the upright, which is the whole point of a per-source table.
 #
-# г and д have no Latin counterpart in either script and are drawn.
+# г and д have no counterpart in either script. г is not drawn: it was, twice,
+# from a spine read off the references and stroked at a constant width, and it
+# was rejected twice -- ink laid along a centreline has no modulation and no
+# terminals, so it reads as bent wire whatever path it follows. It is Sudo's
+# outline now, fitted to this face's height, width, cell, terminal cut and
+# weight. `scripts/ge_from_sudo.py`, and METHOD F15 for the fault class.
 #
 # м is deliberately NOT here. Only 8 of the 29 redraw it, and what changes is
 # an entry stroke on the first stem rather than the letter's structure, so it
@@ -165,7 +170,7 @@ ITALIC = {
     "ii-cy": (1, "u"),          # и IS the italic u
     "pe-cy": (1, "n"),          # п IS the italic n
     "te-cy": (1, "m"),          # т IS the italic m
-    "ge-cy": (3, "the cursive г, drawn"),
+    "ge-cy": (3, "the cursive г, Sudo's outline fitted to this face"),
     "de-cy": (3, "the cursive д, drawn"),
 }
 

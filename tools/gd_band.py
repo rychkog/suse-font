@@ -84,20 +84,21 @@ def main():
                 (gx1 - gx0) / float(ox1 - ox0),        # г's width
                 (gy1 - gy0) / float(oy1 - oy0),        # г's height
                 (st.median(hook) / wall) if hook else None,   # д's hook
+                W.junction(d, wall),                   # д's junction swell
                 (dy1 - dy0) / float(oy1 - oy0),        # д's height
                 (dx1 - dx0) / float(ox1 - ox0)))       # д's width
         except Exception as e:
             print("   %-22s %s" % (fam, e))
 
     rows.sort()
-    print("\n   %-22s %5s | %-17s | %-17s" % ("", "stem", "г  over o",
-                                              "д  over o"))
-    print("   %-22s %5s | %5s %5s %5s | %5s %5s %5s"
-          % ("", "/em", "ink", "wide", "tall", "hook", "tall", "wide"))
-    for s, fam, gs, gw, gh, dh, dt, dw in rows:
-        print("   %-22s %.3f | %5.2f %5.2f %5.2f | %5s %5.2f %5.2f"
+    print("\n   %-22s %5s | %-17s | %-23s" % ("", "stem", "г  over o",
+                                                "д  over o"))
+    print("   %-22s %5s | %5s %5s %5s | %5s %5s %5s %5s"
+          % ("", "/em", "ink", "wide", "tall", "hook", "join", "tall", "wide"))
+    for s, fam, gs, gw, gh, dh, dj, dt, dw in rows:
+        print("   %-22s %.3f | %5.2f %5.2f %5.2f | %5s %5.2f %5.2f %5.2f"
               % (fam, s, gs, gw, gh,
-                 "  .  " if dh is None else "%5.2f" % dh, dt, dw))
+                 "  .  " if dh is None else "%5.2f" % dh, dj, dt, dw))
 
     def band(i, lo=0.0):
         v = sorted(r[i] for r in rows if r[i] is not None)
@@ -106,7 +107,8 @@ def main():
     print()
     for i, what in ((2, "г's stroke over o's wall"), (3, "г's width over o's"),
                     (4, "г's height over o's"), (5, "д's hook over o's wall"),
-                    (6, "д's height over o's"), (7, "д's width over o's")):
+                    (6, "д's junction over o's wall"),
+                    (7, "д's height over o's"), (8, "д's width over o's")):
         m, lo, hi = band(i)
         print("   %-26s median %.2f, %.2f..%.2f" % (what, m, lo, hi))
 
@@ -127,10 +129,11 @@ def main():
         gx0, gy0, gx1, gy1 = box(g)
         dx0, dy0, dx1, dy1 = box(d)
         hook = W.branch_of(d)
-        print("   %-22s      | %5.2f %5.2f %5.2f | %5s %5.2f %5.2f"
+        print("   %-22s      | %5.2f %5.2f %5.2f | %5s %5.2f %5.2f %5.2f"
               % (w, W.width(W.edt(g)) / wall, (gx1 - gx0) / float(ox1 - ox0),
                  (gy1 - gy0) / float(oy1 - oy0),
                  "  .  " if not hook else "%5.2f" % (st.median(hook) / wall),
+                 W.junction(d, wall),
                  (dy1 - dy0) / float(oy1 - oy0),
                  (dx1 - dx0) / float(ox1 - ox0)))
 

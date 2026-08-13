@@ -210,6 +210,12 @@ things that hung this machine outright:
   This is not a licence to grep the gate — the whole log must be read, just
   not regenerated.
 
+  **And never pipe it into `head`.** `head` closes the pipe as soon as it has
+  its lines, `tee` takes the SIGPIPE, and the gate is killed part way through:
+  the log looked complete at 99 lines against the real 208, with the signature
+  readings and the verdict simply absent. Redirect to the file and read the
+  file — which then costs the second run this rule exists to avoid.
+
 The same applies to probes. A numpy crop `a[y0:y1, x0:x1]` is a **view** that
 keeps the entire canvas alive, so a probe holding a dozen cropped glyphs was
 holding a dozen full rasters — `.copy()` at the crop. And rasterise no larger
