@@ -50,10 +50,11 @@ sys.path.insert(0, "tools")
 sys.path.insert(0, "scripts")
 
 import glyphsLib
-from geom import bbox
+from geom import area, bbox
 from params import Params, Lower, _flatten
 from donor import (blend, centre, emit, fit_width, leaning, mapped, mask,
-                   poly, pts_of, same_drawing, square, stand_up, to_nodes)
+                   poly, pts_of, same_drawing, splice, square, stand_up,
+                   to_nodes, to_segs)
 
 FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
 CP = 0x0434
@@ -84,25 +85,23 @@ HOOK = (3, 4, 5, 6, 7, 8, 9)
 # The terminal is the one straight segment inside the hook.
 CUT = 5
 
-# What the junction measures, and why it is NOT solved for.
+# What the junction measures. The swell where the stroke grows out of the bowl
+# runs 1.13 to 1.41 of o's own wall across the eleven references, median 1.21.
 #
-# The swell where the hook grows out of the bowl runs 1.13 to 1.41 of o's wall
-# across the eleven references, and this letter reads 1.13 at Thin, 1.01 at
-# Regular and 1.00 at ExtraBold -- the hook meets the bowl without thickening
-# at all at the heavy end, which is under everything measured.
+# It is not a number that is solved for -- it is what the splice produces. A
+# stroke merely OVERLAPPING the oval, which is what this was, has no swell at
+# all: 1.13 / 1.01 / 1.00 at Thin, Regular and ExtraBold, under everything
+# measured, and it reads as a stroke grazing a bowl rather than growing out of
+# one. The swell lives in the piece of the donor's outline between where its
+# stroke leaves the bowl and where it comes back, and that is exactly the piece
+# an overlap throws away. Spliced, it is the donor's own.
 #
-# The obvious fix is wrong and was built before it was looked at. Carrying the
-# hook's root further down the bowl's right wall means cutting into the
-# donor's segment 2, and the chord that then closes the contour runs from the
-# crown -- the wall's INNER edge -- down to a point on its OUTER edge, straight
-# across the counter. Under non-zero winding that fills part of the counter in;
-# it also put a wedge at the junction, and the junction probe was reading the
-# wedge. Both masters "improved" and the letter got worse. METHOD F6, again.
-#
-# Doing it properly means the hook's inner boundary following the COUNTER
-# contour rather than the outer one, which is a splice across two contours --
-# `scripts/be_from_sudo.py`'s whole machinery, for a swell. Recorded and left.
-DE_JOIN = None
+# Carrying the root further down the wall was tried first, before the splice,
+# and is recorded because the way it failed is worth keeping: the chord closing
+# the contour then ran from the wall's inner edge to its outer one, straight
+# across the counter, filling part of it in and leaving a wedge at the
+# junction. The junction probe read the wedge, both masters moved toward the
+# target, and the letter got worse. METHOD F6, from the other end.
 
 
 def bowl_top(sg):
@@ -143,24 +142,32 @@ def fit(sg, pr):
     return centre(out, pr, 0, 0.5 * (ox0 + ox1))
 
 
-def hook(sg):
-    """The hook alone, closed off across its own root.
-
-    Kept as its own contour rather than spliced into the oval. It is cut at the
-    donor's own handover point, where the bowl's right wall stops being bowl
-    and carries on as the hook, and closed with a chord across the stroke
-    there -- which lies inside the bowl's ink, so the seam is not on the
-    outside of anything. See DE_JOIN for what that costs and why it stands.
-    """
-    outer = sg[0]
-    start = outer[HOOK[0] - 1][1][-1]
-    body = [outer[i] for i in HOOK]
-    return [("start", [start])] + body + [("line", [start])]
-
-
 def shape(a, b, t, pr):
+    """The letter's outer contour: this face's o with the stroke grown out of it.
+
+    Not the stroke laid over the bowl, which is what this was and what the
+    junction reading found wanting -- a stroke that merely overlaps an oval
+    meets it with no swell at all, 1.00 of the bowl's own wall at the heavy
+    master against a panel that runs 1.13 to 1.41. The swell is the donor's
+    and it lives in the piece of its outline between where the stroke leaves
+    the bowl and where it comes back, which is exactly the piece an overlap
+    throws away. `donor.splice` keeps it.
+
+    The terminal is cut before the splice rather than after: it only moves two
+    points, they are the far end of the letter from the junction, and doing it
+    here means naming the segment by the index it has in the donor's own
+    contour instead of the one it ends up with.
+    """
     sg = fit(blend(a, b, t), pr)
-    return square(hook(sg), HOOK.index(CUT) + 1, pr.italic, min)
+    outer = square(sg[0], CUT, pr.italic, min)
+    ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
+    got = splice(to_segs(ps[0]), (outer[0][1][-1], list(outer[1:])))
+    if got is None:
+        raise SystemExit("the stroke does not cross this face's o twice -- it "
+                         "is not attached to the bowl and the letter would "
+                         "come out in two pieces")
+    start, segs = got
+    return [("start", [start])] + segs
 
 
 def solve(a, b, pr):
@@ -184,9 +191,13 @@ def solve(a, b, pr):
 
     bowl = [over(_flatten(q, 96)) for q in pr.paths("o")]
     wall = W.width(W.edt(mask([bowl], scale)))
+    hole = over(_flatten(sorted(pr.paths("o"),
+                                key=lambda q: -abs(area(q)))[1], 96))
 
+    # one group, XORed: the letter is a single outer contour now, with o's own
+    # counter punched out of it, and that is what the built font fills
     def ink(t):
-        return mask([bowl, [over(poly(to_nodes(shape(a, b, t, pr)), 40))]],
+        return mask([[over(poly(to_nodes(shape(a, b, t, pr)), 40)), hole]],
                     scale)
 
     def ratio(t):
