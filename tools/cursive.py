@@ -41,7 +41,11 @@ from PIL import Image, ImageDraw, ImageFont                    # noqa: E402
 from weights import edt                                        # noqa: E402
 
 REFS = ("JetBrains Mono", "Consolas", "Lyth Mono", "Ioskeley Tuned", "Lilex")
-PX = 220                # tall enough to resolve a skeleton, small enough to be free
+# High enough that the un-shearing, which moves whole pixels, does not bake its
+# own staircase into every edge before anything downsamples it. At 220 the
+# sheets built on this read blocky at any size worth looking at; the cost is
+# quadratic in this number and 480 is still under three megapixels a glyph.
+PX = 480
 
 
 def unsheared(path, ch, angle):
