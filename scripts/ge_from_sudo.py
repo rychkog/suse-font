@@ -255,38 +255,6 @@ def bez(p0, p1, p2, p3, t):
             u**3 * p0[1] + 3*u*u*t * p1[1] + 3*u*t*t * p2[1] + t**3 * p3[1])
 
 
-def walk(sg, steps=10):
-    """A run of segments as a polyline, its start included."""
-    at = sg[0][1][-1]
-    pts = [at]
-    for kind, p in sg[1:]:
-        if kind == "curve":
-            for s in range(1, steps + 1):
-                pts.append(bez(at, p[0], p[1], p[2], s / float(steps)))
-            at = p[2]
-        else:
-            pts.append(p[0])
-            at = p[0]
-    return pts
-
-
-def ray(o, d, poly):
-    """How far from o, along d, the polyline is. None if it is not ahead."""
-    best = None
-    for i in range(len(poly) - 1):
-        ax, ay = poly[i]
-        ex, ey = poly[i + 1][0] - ax, poly[i + 1][1] - ay
-        den = d[0] * ey - d[1] * ex
-        if abs(den) < 1e-9:
-            continue
-        fx, fy = ax - o[0], ay - o[1]
-        s = (fx * ey - fy * ex) / den
-        u = (fx * d[1] - fy * d[0]) / den
-        if s > 1e-6 and -1e-9 <= u <= 1.0 + 1e-9 and (best is None or s < best):
-            best = s
-    return best
-
-
 def to_nodes(sg):
     out = []
     for kind, pts in sg[1:]:
