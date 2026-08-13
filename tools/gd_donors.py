@@ -44,6 +44,7 @@ CW = 132
 # a glyph raster straight into a cell leaves the raster's own staircase in the
 # picture; at three times over it is gone.
 SS = 3
+SCALE = 2
 
 
 def angle(path):
@@ -107,7 +108,7 @@ def main():
                          y * SS + (CW * SS - c.height) // 2))
             d.text((x, (y + CW + 10) * SS), fam, font=lab, fill=(110, 110, 110))
 
-    im = im.resize((W, H), Image.LANCZOS)
+    im = im.resize((W * SCALE, H * SCALE), Image.LANCZOS)
     im.save("tools/out/gd_donors.png")
     print("   wrote tools/out/gd_donors.png")
 

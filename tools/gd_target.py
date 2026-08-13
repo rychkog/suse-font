@@ -48,6 +48,7 @@ CW = 150
 # Drawn at SS times the delivered size and resolved down with Lanczos -- see
 # the note in tools/gd_donors.py.
 SS = 3
+SCALE = 2
 
 
 def angle(path):
@@ -113,7 +114,7 @@ def main():
             d.text((x, (y + CW + 12) * SS), "%s %s" % (ch, fam), font=lab,
                    fill=(110, 110, 110))
 
-    im = im.resize((W, H), Image.LANCZOS)
+    im = im.resize((W * SCALE, H * SCALE), Image.LANCZOS)
     im.save("tools/out/gd_target.png")
     print("   wrote tools/out/gd_target.png")
 

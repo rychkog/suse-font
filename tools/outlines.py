@@ -238,6 +238,10 @@ def flats(c, tol=0.6):
 # line drawn at delivery size cannot show either. CLAUDE.md says supersample and
 # this was the file not doing it.
 SS = 4
+# Delivered at SCALE times its nominal size as well as supersampled. The two
+# are different: SS buys a clean edge, SCALE buys a picture that is still a
+# picture when it is looked at closely, which on this sheet is the whole point.
+SCALE = 2
 CELL = 560
 
 
@@ -285,7 +289,7 @@ def draw(cells, path):
                             else (40, 90, 200))
         d.text(((pad + i * (cw + pad)) * SS, (62 + cw + 14) * SS), name,
                font=lab, fill=(110, 110, 110))
-    im.resize((W, H), Image.LANCZOS).save(path)
+    im.resize((W * SCALE, H * SCALE), Image.LANCZOS).save(path)
     im.close()
 
 

@@ -32,7 +32,24 @@ from PIL import Image, ImageDraw, ImageFont                    # noqa: E402
 
 R = "fonts/ttf/SUSEMono-%s.ttf"
 I = "fonts/ttf/SUSEMono-%sItalic.ttf"
+
+# SS is the supersample used to get a clean edge; SCALE is how much bigger than
+# its nominal size the whole sheet is DELIVERED.
+#
+# They are not the same thing and confusing them is what made this sheet look
+# terrible. Supersampling alone gives a properly antialiased 14-pixel line --
+# which is then fourteen actual pixels tall in the PNG, and anything that shows
+# the PNG larger than 1:1 is enlarging fourteen pixels. The sheet was sharp and
+# tiny, which reads as low quality and is.
+#
+# So every row is rendered at SCALE times its nominal size, natively, at the
+# real outline. The rows that exist to show what a READING size looks like
+# cannot be rendered large -- a 12-pixel letter drawn at 36 pixels is a
+# different rasterisation -- so those are drawn at 12 and enlarged by whole
+# pixels with NEAREST, which magnifies the actual pixel grid instead of
+# inventing a smoother one. See `line`.
 SS = 4
+SCALE = 3
 
 INK = (24, 24, 28)
 DIM = (128, 132, 140)
@@ -74,29 +91,41 @@ SHELL = [
 ]
 
 
-def line(path, s, px, fill=INK):
-    """One line, supersampled and resolved down. Tabs become four spaces --
-    PIL draws a tab as nothing at all, which silently eats the indentation."""
+def line(path, s, px, fill=INK, real=False):
+    """One line at SCALE times `px`.
+
+    `real=True` means the row is showing what that size actually looks like on
+    a screen: the line is drawn at `px` and then enlarged by whole pixels, so
+    what is magnified is the rasterisation and not the outline. Everything else
+    is drawn at the full size against the real outline.
+
+    Tabs become four spaces -- PIL draws a tab as nothing at all, which
+    silently eats the indentation.
+    """
     s = s.replace("\t", "    ")
-    f = ImageFont.truetype(path, px * SS)
-    w = int(f.getlength(s)) + px * SS
-    h = int(px * SS * 1.45)
+    at = px if real else px * SCALE
+    f = ImageFont.truetype(path, at * SS)
+    w = int(f.getlength(s)) + at * SS
+    h = int(at * SS * 1.45)
     im = Image.new("RGB", (max(w, 1), h), "white")
     ImageDraw.Draw(im).text((0, 0), s, font=f, fill=fill)
     out = im.resize((max(1, w // SS), max(1, h // SS)), Image.LANCZOS)
     im.close()
+    if real:
+        out = out.resize((out.width * SCALE, out.height * SCALE),
+                         Image.NEAREST)
     return out
 
 
-def block(rows, px, weight="Regular"):
+def block(rows, px, weight="Regular", real=False):
     """A run of lines, each with its own font and colour, as one image."""
     kind = {"com": (I % weight, COMMENT), "str": (R % weight, STR),
             "code": (R % weight, INK), "dim": (R % weight, DIM),
             "plain": (R % weight, INK)}
-    imgs = [line(kind[k][0], s, px, kind[k][1]) for k, s in rows]
+    imgs = [line(kind[k][0], s, px, kind[k][1], real) for k, s in rows]
     W = max(i.width for i in imgs)
-    lh = int(px * 1.55)
-    im = Image.new("RGB", (W, lh * len(imgs) + px // 2), "white")
+    lh = int(px * SCALE * 1.55)
+    im = Image.new("RGB", (W, lh * len(imgs) + px), "white")
     for n, i in enumerate(imgs):
         im.paste(i, (0, n * lh))
     return im
@@ -107,24 +136,26 @@ def main():
     # as wide as the longest label or the label runs into the specimen -- which
     # it did, and the one that says what the italic is doing was the one cut in
     # half. Above costs a line and cannot collide.
-    pad = 26
-    lab = ImageFont.truetype(R % "Regular", 17)
-    head = ImageFont.truetype(R % "Regular", 32)
-    sub = ImageFont.truetype(R % "Regular", 20)
+    pad = 26 * SCALE
+    lab = ImageFont.truetype(R % "Regular", 17 * SCALE)
+    head = ImageFont.truetype(R % "Regular", 30 * SCALE)
+    sub = ImageFont.truetype(R % "Regular", 19 * SCALE)
 
     rows = [
-        ("the Ukrainian pangram at 30px -- Ґ Є І Ї and the apostrophe are "
-         "the letters this project exists for",
-         [line(R % "Regular", PANGRAM, 30)]),
-        ("the same, italic", [line(I % "Regular", PANGRAM, 30)]),
-        ("Russian at 30px", [line(R % "Regular", RU, 30)]),
-        ("prose at 15px", [block([("plain", s) for s in PROSE], 15)]),
-        ("prose at 13px", [block([("plain", s) for s in PROSE], 13)]),
-        ("Go at 14px -- comments italic, as an editor sets them",
-         [block(CODE, 14)]),
-        ("Go at 12px", [block(CODE, 12)]),
-        ("Go at 14px, Bold", [block(CODE, 14, "Bold")]),
-        ("a terminal at 13px", [block(SHELL, 13)]),
+        ("the Ukrainian pangram -- Ґ Є І Ї and the apostrophe are the "
+         "letters this project exists for",
+         [line(R % "Regular", PANGRAM, 26)]),
+        ("the same, italic", [line(I % "Regular", PANGRAM, 26)]),
+        ("Russian", [line(R % "Regular", RU, 26)]),
+        ("prose", [block([("plain", s) for s in PROSE], 15)]),
+        ("Go -- comments italic, as an editor sets them", [block(CODE, 14)]),
+        ("the same, Bold", [block(CODE, 14, "Bold")]),
+        ("a terminal", [block(SHELL, 13)]),
+        ("and the sizes it is actually READ at, magnified %dx so the pixels "
+         "are the real ones: prose at 15px" % SCALE,
+         [block([("plain", s) for s in PROSE], 15, real=True)]),
+        ("Go at 13px, magnified %dx" % SCALE, [block(CODE, 13, real=True)]),
+        ("Go at 11px, magnified %dx" % SCALE, [block(CODE, 11, real=True)]),
     ]
 
     title = "prose and code -- the two jobs this face has"
@@ -135,20 +166,21 @@ def main():
     W = max(max(pad + i.width + pad for _t, im in rows for i in im),
             pad + int(sub.getlength(caption)) + pad,
             pad + max(int(lab.getlength(t)) for t, _im in rows) + pad, 900)
-    H = 108 + sum(max(i.height for i in im) + 52 for _t, im in rows)
+    H = 108 * SCALE + sum(max(i.height for i in im) + 52 * SCALE
+                          for _t, im in rows)
     sheet = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(sheet)
-    d.text((pad, 22), title, font=head, fill=(170, 30, 30))
-    d.text((pad, 62), caption, font=sub, fill=(140, 140, 140))
-    y = 108
+    d.text((pad, 22 * SCALE), title, font=head, fill=(170, 30, 30))
+    d.text((pad, 60 * SCALE), caption, font=sub, fill=(140, 140, 140))
+    y = 108 * SCALE
     for name, imgs in rows:
         d.text((pad, y), name, font=lab, fill=(125, 125, 125))
-        y += 26
+        y += 26 * SCALE
         x = pad
         for i in imgs:
             sheet.paste(i, (x, y))
             x += i.width + pad
-        y += max(i.height for i in imgs) + 26
+        y += max(i.height for i in imgs) + 26 * SCALE
     sheet.save("tools/out/specimen.png")
     print("   wrote tools/out/specimen.png", sheet.size)
 
