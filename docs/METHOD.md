@@ -2071,6 +2071,31 @@ the top of the vertical bars.*
 
 ## 9 · Open threads
 
+- **HELD FOR THE ITALIC: the donated set.** Shown 2026-08-13 and deliberately
+  left unrecorded — *"let's keep it for now, but come back to this question
+  once we're done with italic."* Twenty-five characters are the face's own
+  Latin as components (`donated.py` proves each is still exactly its donor),
+  and the construction is not in doubt; what is held over is the **design
+  judgement in the list itself**, and it is held over because the italic is
+  what reopens it:
+
+  1. **A sloped roman keeps a donation a donation; a true italic does not.**
+     If any lowercase takes a genuinely italic form the list has to be
+     re-decided letter by letter, because the Cyrillic and the Latin stop
+     sharing a skeleton — the upright argument for а е о р с х does not carry
+     across on its own.
+  2. **у is the strongest case to re-ask.** It takes the Latin y outright,
+     which is standard and is also what Ў ў were approved on, but it is an
+     identity of *choice* rather than of shape — some Cyrillic faces give у a
+     straighter tail than their y, and an italic y's tail is exactly where a
+     face's hand shows most.
+  3. **The marks have to be re-derived, not carried.** F12's fix reads each
+     base's own top anchor; under a slant that anchor moves with the letter,
+     so `ANCHOR_FROM` is right but the numbers behind it are not transferable.
+     Re-run `marks.py` against the italic's own accented Latin.
+
+  Nothing to do before the italic. Do not quietly approve the set in the
+  meantime — the ledger's "Not recorded" is correct as it stands.
 - **`shoulder_spine` (`recipes.py:1304`)** still carries the F2 subtraction.
 - **Three broken probes**: `HARD_SHOULDER`, `ZHE_STEM`, `YU_GAP` (the last two
   return too few faces to judge — Ж's diagonals and ю's join give variable run
