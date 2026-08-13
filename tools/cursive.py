@@ -68,7 +68,77 @@ def skeleton(a):
     return d >= 0.72 * m, m
 
 
+def spine(sk, n=9):
+    """The skeleton as an ORDERED path, resampled to n points, normalised to
+    its own box.
+
+    Five scanline crossings is not a description of a double curve. Read off
+    the crossings, г came out a tight pinched zigzag where the reference is
+    wide and shallow, and no amount of relaxing the curvature fixed it because
+    the curvature was not what was wrong -- the path was.
+
+    So the ridge is walked instead of sampled. Start at the pixel furthest from
+    the centre of mass, step each time to the nearest unvisited ridge pixel,
+    and stop when nothing is within a few pixels. For a letter drawn with one
+    stroke that recovers the stroke; for д's bowl it would not, which is why
+    only the hook is read this way and the bowl is the face's own o.
+    """
+    ys, xs = np.where(sk)
+    pts = list(zip(xs.astype(float), ys.astype(float)))
+    if len(pts) < 8:
+        return None
+    cx, cy = sum(x for x, _ in pts) / len(pts), sum(y for _, y in pts) / len(pts)
+    start = max(pts, key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
+    left = set(pts)
+    left.discard(start)
+    walk = [start]
+    while left:
+        x, y = walk[-1]
+        nxt = min(left, key=lambda q: (q[0] - x) ** 2 + (q[1] - y) ** 2)
+        if (nxt[0] - x) ** 2 + (nxt[1] - y) ** 2 > 36:
+            break
+        walk.append(nxt)
+        left.discard(nxt)
+    if len(walk) < 8:
+        return None
+    # resample by index, then normalise to the path's own box with y up
+    step = (len(walk) - 1) / float(n - 1)
+    out = [walk[int(round(i * step))] for i in range(n)]
+    X = [p[0] for p in out]
+    Y = [p[1] for p in out]
+    x0, x1 = min(X), max(X)
+    y0, y1 = min(Y), max(Y)
+    sx = (x1 - x0) or 1.0
+    sy = (y1 - y0) or 1.0
+    return [((x - x0) / sx, 1.0 - (y - y0) / sy) for x, y in out]
+
+
+def spines():
+    """Print the ordered spine of г from every reference, to paste."""
+    from panel import italics
+    from fontTools.ttLib import TTFont
+    paths = dict(italics())
+    for fam in REFS:
+        if fam not in paths:
+            continue
+        f = TTFont(paths[fam], fontNumber=0, lazy=True)
+        try:
+            ang = abs(getattr(f["post"], "italicAngle", 0.0)) or 12.0
+        finally:
+            f.close()
+        a = unsheared(paths[fam], "г", ang)
+        if a is None:
+            continue
+        sk, _ = skeleton(a)
+        sp = spine(sk)
+        if sp:
+            print("   %-16s %s" % (fam, ", ".join("(%.2f, %.2f)" % p
+                                                  for p in sp)))
+
+
 def main():
+    if "--spine" in sys.argv:
+        return spines()
     from panel import italics
     paths = dict(italics())
     rows = []

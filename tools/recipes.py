@@ -2745,6 +2745,52 @@ RECIPES = {
 ITALIC = {}
 
 
+def _relax(line, w, passes=60):
+    """Open any turn the stroke is too thick to make.
+
+    An offset curve folds back on itself wherever the spine's radius of
+    curvature drops below half the stroke width, and the fold fills the
+    counter: that is the blob the first cursive г and д grew at Bold and
+    ExtraBold while Thin came out fine. It is not a bug in the sampling. It is
+    the face's own rule arriving from the geometry -- a stroke cannot turn
+    tighter than its own width, which is why CLAUDE.md says corner radius
+    tracks stroke weight and not letter height.
+
+    So the spine is relaxed until every turn clears it. Each pass pulls any
+    too-sharp sample toward the midpoint of its neighbours, which opens the
+    turn and leaves the rest of the path where it was. The ends are pinned, so
+    the letter keeps its extremes and only its curvature gives way -- which is
+    what a real bold italic does: the swing comes out of the middle, never out
+    of the reach.
+    """
+    need = w * 0.62
+    line = list(line)
+    for _ in range(passes):
+        worst, at = None, None
+        for i in range(1, len(line) - 1):
+            (x0, y0), (x1, y1), (x2, y2) = line[i - 1], line[i], line[i + 1]
+            a1, b1 = x1 - x0, y1 - y0
+            a2, b2 = x2 - x1, y2 - y1
+            cross = a1 * b2 - b1 * a2
+            if abs(cross) < 1e-9:
+                continue
+            # circumradius of the three samples
+            la = math.hypot(a1, b1)
+            lb = math.hypot(a2, b2)
+            lc = math.hypot(x2 - x0, y2 - y0)
+            r = la * lb * lc / (2.0 * abs(cross))
+            if r < need and (worst is None or r < worst):
+                worst, at = r, i
+        if at is None:
+            return line
+        x0, y0 = line[at - 1]
+        x2, y2 = line[at + 1]
+        x1, y1 = line[at]
+        line[at] = (x1 + 0.5 * ((x0 + x2) / 2.0 - x1),
+                    y1 + 0.5 * ((y0 + y2) / 2.0 - y1))
+    return line
+
+
 def _stroke_path(pts, w, steps=14):
     """Ink of width `w` laid along a centreline through `pts`, ends cut flat.
 
@@ -2755,10 +2801,11 @@ def _stroke_path(pts, w, steps=14):
     `tools/cursive.py` reads the ridge of the distance transform, which is the
     path with the weight divided out.
 
-    Catmull-Rom through the points, then each sample offset along its own
-    normal. `steps` is fixed rather than adaptive so both masters emit the same
-    node count, which is what interpolation needs and what a curve fitted to a
-    tolerance would quietly break.
+    Catmull-Rom through the points, relaxed so no turn is tighter than the
+    stroke can make, then each sample offset along its own normal. `steps` is
+    fixed rather than adaptive so both masters emit the same node count, which
+    is what interpolation needs and what a curve fitted to a tolerance would
+    quietly break.
     """
     p = [pts[0]] + list(pts) + [pts[-1]]
     line = []
@@ -2773,6 +2820,7 @@ def _stroke_path(pts, w, steps=14):
                        + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)
                 for k in (0, 1)))
     line.append(tuple(pts[-1]))
+    line = _relax(line, w)
 
     def normal(i):
         a = line[max(0, i - 1)]
@@ -2791,19 +2839,6 @@ def _stroke_path(pts, w, steps=14):
     return q if area(q) > 0 else reverse(q)
 
 
-# The cursive г, as a spine in x-heights with x from the letter's own left
-# edge. Read off the reference skeletons, which agree to a hundredth across
-# JetBrains Mono, Consolas, Lyth Mono and Ioskeley Tuned:
-#
-#   at 0.95 of the height the path runs 0.29..0.39 -- a short arm, going right
-#   at 0.75 it is at its RIGHTMOST, 0.65
-#   at 0.50 it is back through the middle, 0.41
-#   at 0.25 it is at its LEFTMOST, 0.09
-#   at 0.05 it runs 0.37..0.48 -- a second arm, going right
-#
-# So it is ONE stroke with three phases and two inflections, and it is not any
-# Latin letter: `2` was proposed and is wrong -- a 2 has a bowl and a straight
-# base bar and this has neither. Nothing is spliced here for that reason.
 # The cursive г and д, as SPINES normalised to their own bounding box: x and y
 # both run 0..1 across the path's own extremes, and the recipe maps that box
 # onto this face's lowercase width and x-height. Held that way because the
