@@ -135,6 +135,40 @@ TIERS = [
     (0x02BC, "apostrophemod", 1, "quoteright"),
 ]
 
+# What the ITALIC does differently, name -> (tier, note).
+#
+# Not a second alphabet: the italic runs the same table and the same recipes,
+# and picks up the italic's own redrawn bowls and true-italic lowercase for
+# nothing because a recipe reads `pr.paths(donor)`. Only the letters Cyrillic
+# CURSIVE restructures are listed here, and there are seven of them --
+# `tools/italic_forms.py --changed` asked all 29 monospace italics on this
+# machine whether they redraw a lowercase letter or merely slope it, comparing
+# each italic Cyrillic with its OWN upright sheared, no Latin in the test.
+#
+# The round letters -- а б в е з о р с у ф ъ ы ь э ю -- are redrawn by every
+# true italic, cursive or not, because a sheared bowl is an ellipse leaning the
+# wrong way. Those are already right and are not listed.
+#
+# и п т ARE the italic's own u n m, and that is not a resemblance being trusted
+# the way К was: every face on this machine that takes the cursive forms maps
+# the codepoint straight to the Latin glyph, and this face's own italic u n m
+# are the shapes to the eye. So they are honest tier 1 here while being drawn
+# in the upright, which is the whole point of a per-source table.
+#
+# г and д have no Latin counterpart in either script and are drawn.
+#
+# м is deliberately NOT here. Only 8 of the 29 redraw it, and what changes is
+# an entry stroke on the first stem rather than the letter's structure, so it
+# keeps the construction the upright approves and this is recorded rather than
+# actioned.
+ITALIC = {
+    "ii-cy": (1, "u"),          # и IS the italic u
+    "pe-cy": (1, "n"),          # п IS the italic n
+    "te-cy": (1, "m"),          # т IS the italic m
+    "ge-cy": (3, "the cursive г, drawn"),
+    "de-cy": (3, "the cursive д, drawn"),
+}
+
 
 def by_tier(t):
     return [r for r in TIERS if r[2] == t]

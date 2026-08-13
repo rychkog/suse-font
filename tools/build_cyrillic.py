@@ -17,7 +17,7 @@ from glyphsLib.types import Point
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from params import Params          # noqa: E402
-from classify import TIERS         # noqa: E402
+from classify import TIERS, ITALIC # noqa: E402
 import recipes                     # noqa: E402
 from geom import slant             # noqa: E402
 
@@ -52,17 +52,25 @@ COMPOSITES = {
 }
 
 
-def plan(font):
+def plan(font, italic=False):
     """Which target glyphs can be built now, given what already exists.
 
     A glyph is buildable when every part it needs is present -- so composites
     wait for their base, and the set grows as tiers land.
+
+    Under an italic source, seven letters answer differently. `classify.ITALIC`
+    says which and why: и п т ARE the italic's own u n m, and г д are the
+    cursive forms, which have no counterpart in either script and are drawn.
+    Everything else runs the same table and the same recipe, and comes out as
+    a true italic anyway because the recipe reads the italic's own donors.
     """
+    over = ITALIC if italic else {}
     have = {g.name for g in font.glyphs}
     out = []
     for cp, name, tier, note in TIERS:
         if name in have:
             continue
+        tier, note = over.get(name, (tier, note))
         if name in COMPOSITES:
             base, mark = COMPOSITES[name]
             if base in have or base in {n for _, n, _, _ in out}:
@@ -70,8 +78,11 @@ def plan(font):
         elif tier == 1:
             if note in have:
                 out.append((cp, name, "donor", note))
-        elif name in recipes.RECIPES:
-            out.append((cp, name, "draw", recipes.RECIPES[name]))
+        else:
+            fn = (recipes.ITALIC.get(name) if italic else None) \
+                or recipes.RECIPES.get(name)
+            if fn:
+                out.append((cp, name, "draw", fn))
     return out
 
 
@@ -146,12 +157,13 @@ def main():
     if "--rebuild" in sys.argv:
         print(f"  dropped {len(rebuild(font))} glyphs to redraw them")
     prs = [Params(font, mi) for mi in range(len(font.masters))]
+    italic = bool(prs[0].italic)
 
     added = []
     marks = []
     # two passes so composites can see bases added in the first
     for _ in range(2):
-        for cp, name, kind, arg in plan(font):
+        for cp, name, kind, arg in plan(font, italic):
             g = GSGlyph()
             g.name = name
             g.unicodes = ["%04X" % cp]
