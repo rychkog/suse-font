@@ -171,7 +171,7 @@ ITALIC = {
     "pe-cy": (1, "n"),          # п IS the italic n
     "te-cy": (1, "m"),          # т IS the italic m
     "ge-cy": (3, "the cursive г, Sudo's outline fitted to this face"),
-    "de-cy": (3, "the cursive д, drawn"),
+    "de-cy": (3, "the cursive д, our own o + Lilex's hook"),
 }
 
 
