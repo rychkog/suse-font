@@ -547,7 +547,7 @@ def absorb(arc, stroke, D, flat=0.03):
     return arc, stroke[1:], E
 
 
-def tangent(prev, nxt, node, bias=0.5):
+def tangent(prev, nxt, node, bias=0.0):
     """Make a join tangent-continuous: the two handles either side of `node`
     put on one line through it, each keeping its own length.
 
@@ -564,8 +564,16 @@ def tangent(prev, nxt, node, bias=0.5):
     it at an angle, every reference draws that corner, and smoothing it would
     be inventing a fillet no one drew.
 
-    `bias` is how much of the direction comes from the outgoing side; a half
-    each is the smallest move that fixes both.
+    `bias` is how much of the direction comes from the OUTGOING side, and it is
+    zero: at the departure the letter is this face's own o carrying on upward,
+    so the bowl's tangent wins outright and the donated stroke is turned onto
+    it. Splitting the difference at a half was tried and is worse in the one
+    place it can be measured -- the widest disc in the letter sits exactly at
+    this seam, and rotating the bowl's wall outward to meet the stroke put it
+    at **1.75** of o's own wall at Thin against a panel of 1.13..1.41, where
+    letting the bowl win reads 1.09. Which is also the rule the rest of the
+    project runs on: where a donation and this face disagree, this face is the
+    authority on the shape.
     """
     import math as _m
 

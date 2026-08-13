@@ -35,12 +35,17 @@ the eleven monospace italics that actually draw the cursive:
     overshoot, the x-height and the fitting for nothing;
   * the height, 1.38 of o's (panel 1.31..1.50), which is where Lilex already
     draws it;
-  * the width, 1.04 of o's (panel 1.00..1.15), fitted LEANING -- see METHOD
-    F16, and note the letter this replaces read 1.25;
-  * the hook's weight, 0.89 of o's own wall (panel 0.86..0.93), solved on
-    Lilex's own two weights read as an axis. Almost exactly what б's branch
-    weighs against the same bowl, which is worth noticing: the two letters are
-    the same construction in mirror and the panel says so.
+  * the width, MEASURED and not fitted -- 1.00 and 1.05 of o's against a panel
+    of 1.00..1.15, read LEANING (METHOD F16). It used to be fitted, and fitting
+    it separately from the height is what squashed the donor by a seventh at
+    the heavy master and put a spike on the terminal. One scale. METHOD F18;
+  * the ARM's own weight, 0.93 of o's wall (panel 0.87..0.97), solved on
+    Lilex's own two weights read as an axis and read down the arm's own
+    columns by `tools/de_arm.py`. It was read by `weights.branch_of` before,
+    across ROWS, with the last of them trimmed by the bowl -- which reported
+    0.89 and was believed while the arm itself measured **0.56 of o's wall at
+    Thin**. The letter was too light for the whole of its light half and every
+    reading taken of it said otherwise.
 """
 import math
 import os
@@ -62,7 +67,13 @@ OUT = "tools/de_donor.py"
 SRC = "sources/SUSEMono-Italic.glyphs"
 
 # What the letter should measure, over this face's own o -- `tools/gd_band.py`.
-DE_HOOK = 0.89          # the hook's weight over o's wall   panel 0.86..0.93
+DE_HOOK = 0.93          # the ARM's own weight over o's wall  panel 0.87..0.97
+#
+# Read by `tools/de_arm.py` down the arm's own columns, not by
+# `weights.branch_of` by rows. The old target was 0.89 on branch_of and it
+# was hit at both masters while the arm actually measured 0.56 of o's wall
+# at Thin -- a solve is only ever as good as what it is solving for, and
+# this one was pointed at a quantity that is not the arm. METHOD F18.
 DE_WIDE = 1.04          # the whole letter's width over o's panel 1.00..1.15
 
 # Lilex draws this letter as one stroke: up the bowl's right side, on over the
@@ -198,6 +209,7 @@ def solve(a, b, pr):
     band's own resolution: METHOD F16.
     """
     import statistics as st
+    import numpy as np
     import weights as W
     from gd_band import XH as BAND_XH
     oy = bbox(pr.paths("o"))
@@ -219,8 +231,39 @@ def solve(a, b, pr):
                     scale)
 
     def ratio(t):
-        rows = W.branch_of(ink(t))
-        return (st.median(rows) / wall) if rows else 99.0
+        """The ARM's own weight, read down the arm's own columns.
+
+        Not `weights.branch_of`, which is what this targeted and which was
+        measuring the wrong thing. branch_of reads by ROWS and trims the last
+        of them by the bowl's wall, and both are wrong for this letter: the arm
+        curves over the top, so a row cuts across it only where it happens to
+        be upright, and a trim that depends on the junction means changing the
+        junction moves this reading and moves the solve that targets it --
+        CLAUDE.md rule 5, two constants justifying each other, which is exactly
+        what happened when the seam was changed and the axis at the light
+        master slid from +0.17 to -0.33 on its own.
+
+        The cost of that was not a wobble, it was the letter: branch_of
+        reported 0.87 and 0.89 at the two masters and was believed, while the
+        arm itself measured **0.56 of o's wall at Thin** against a panel of
+        0.87..0.97. The arm has been too light the whole time and every
+        reading taken of it said otherwise. `tools/de_arm.py`.
+        """
+        m = ink(t)
+        ys, xs = np.where(m)
+        split = ys.max() + 1 - int(round((oy[3] - oy[1]) * scale))
+        if split <= ys.min() + 2:
+            return 99.0
+        above = m[:split]
+        if not above.any():
+            return 99.0
+        e = W.edt(m)
+        cols = np.where(above.any(axis=0))[0]
+        drop = max(1, len(cols) // 6)
+        keep = cols[drop:-drop]
+        if not len(keep):
+            return 99.0
+        return st.median([2.0 * e[:split, c].max() / wall for c in keep])
 
     lo, hi = -1.2, 3.0
     for _ in range(16):
@@ -230,6 +273,16 @@ def solve(a, b, pr):
         else:
             hi = mid
     t = 0.5 * (lo + hi)
+    # a bisection that ends against its own bracket has not solved anything --
+    # it has run out of room and is about to report the far end as the answer.
+    # It did: at one setting this landed at -1.20 with the hook reading 3.05 of
+    # o's wall and printed it as a result. METHOD's own note about a solve
+    # running to the end of its bracket and reporting success, again.
+    if min(abs(t - -1.2), abs(t - 3.0)) < 1e-3:
+        raise SystemExit("the donor's axis ran to the end of its bracket at "
+                         "%+.2f and the reading there is %.2f, not %.2f -- "
+                         "this is not a solution, it is the bracket"
+                         % (t, ratio(t), DE_HOOK))
     return t, ratio(t), W.width(W.edt(ink(t))) / wall
 
 

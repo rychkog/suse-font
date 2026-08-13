@@ -36,8 +36,12 @@ What comes back to this face, all of it from `tools/gd_band.py` over the eleven
 monospace italics that actually draw the cursive -- the other eighteen slope
 their upright and are not evidence about a letter they do not draw:
 
-  * the height, 1.00 of o's, which is what every one of the eleven reads;
-  * the width, 0.97 of o's (panel 0.92..1.04), fitted LEANING (METHOD F16);
+  * the height, 1.00 of o's, which is what every one of the eleven reads, and
+    which is the ONE fit -- the same scale goes on x, so what arrives is the
+    donor's drawing and not that drawing squashed (METHOD F18);
+  * the width, then, is measured rather than aimed at: 1.02 and 1.03 of o's
+    against a panel of 0.92..1.04, read LEANING because that is where a reader
+    takes it (METHOD F16);
   * the terminals, cut vertical in the italic's own space -- this face cuts
     213 of its 242 terminals at exactly 0 or 90 degrees;
   * the weight, 0.98 of this face's own o wall (panel 0.96..1.05). г weighs
@@ -51,7 +55,7 @@ sys.path.insert(0, "scripts")
 import glyphsLib
 from geom import bbox
 from params import Params, Lower, _flatten
-from donor import (blend, centre, emit, fit_width, leaning, mapped, mask,
+from donor import (blend, centre, emit, leaning, mapped, mask,
                    poly, pts_of, same_drawing, square, stand_up, to_nodes)
 
 FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
@@ -73,18 +77,30 @@ CUTS = ((2, max), (10, min))
 
 
 def fit(sg, pr):
-    """Lilex's г into this face's cell: o's height, 0.97 of o's width."""
+    """Lilex's г onto o's height, at ONE scale in both directions.
+
+    The height and not the width, because the height is the figure the panel is
+    unanimous on -- every one of the eleven faces draws this letter exactly as
+    tall as its own o -- and because there can only be one fit. It used to be
+    two, o's height in y and 0.97 of o's width in x, and two independent fits
+    are a squash: a donated outline scaled by different numbers in the two
+    directions is no longer the drawing that was donated, it is that drawing
+    with every stroke re-weighted by the direction it happens to run in and
+    every diagonal at a new angle. That is what was wrong with д, where the two
+    numbers came out 0.850 apart at the heavy master and put an acute spike on
+    the terminal; the same fit was here, and the same fit is the same fault
+    whether or not the letter has yet been rejected for it. METHOD F18.
+
+    So the width is measured now instead of aimed at, and `GE_WIDE` records the
+    band it has to land in rather than the number it is set to.
+    """
     ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
     ps = pts_of(sg)
-    x0, x1 = min(q[0] for q in ps), max(q[0] for q in ps)
     y0, y1 = min(q[1] for q in ps), max(q[1] for q in ps)
-    ky = (oy1 - oy0) / (y1 - y0)
-    tall = mapped(sg, lambda q: (q[0], oy0 + (q[1] - y0) * ky))
-    want = GE_WIDE * leaning([q for p in pr.paths("o")
-                              for q in _flatten(p, 16)], pr.italic, pr.pivot)
-    mid = 0.5 * (x0 + x1)
-    kx = fit_width(tall, pr, want, mid)
-    out = mapped(tall, lambda q: (300.0 + (q[0] - mid) * kx, q[1]))
+    k = (oy1 - oy0) / (y1 - y0)
+    mid = 0.5 * (min(q[0] for q in ps) + max(q[0] for q in ps))
+    out = mapped(sg, lambda q: (300.0 + (q[0] - mid) * k,
+                                oy0 + (q[1] - y0) * k))
     return centre([out], pr)[0]
 
 
@@ -130,6 +146,16 @@ def solve(a, b, pr):
         else:
             hi = mid
     t = 0.5 * (lo + hi)
+    # a bisection that ends against its own bracket has not solved anything --
+    # it has run out of room and is about to report the far end as the answer.
+    # It did: at one setting this landed at -1.20 with the hook reading 3.05 of
+    # o's wall and printed it as a result. METHOD's own note about a solve
+    # running to the end of its bracket and reporting success, again.
+    if min(abs(t - -1.0), abs(t - 2.5)) < 1e-3:
+        raise SystemExit("the donor's axis ran to the end of its bracket at "
+                         "%+.2f and the reading there is %.2f, not %.2f -- "
+                         "this is not a solution, it is the bracket"
+                         % (t, ratio(t), GE_INK))
     return t, ratio(t)
 
 
@@ -142,9 +168,15 @@ def build():
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
         t, got = solve(a, b, pr)
+        sg = shape(a, b, t, pr)
+        # the width is measured now, not aimed at -- see `fit`
+        wide = leaning(pts_of(sg), pr.italic, pr.pivot) / leaning(
+            [q for p in pr.paths("o") for q in _flatten(p, 16)],
+            pr.italic, pr.pivot)
         print("  master %d  donor axis %+.2f   г measures %.2f of o's wall, "
-              "wanted %.2f" % (mi, t, got, GE_INK))
-        out.append((t, [to_nodes(shape(a, b, t, pr))]))
+              "wanted %.2f   width %.2f (panel 0.92..1.04)"
+              % (mi, t, got, GE_INK, wide))
+        out.append((t, [to_nodes(sg)]))
     n = {tuple(len(p) for p in ps) for _t, ps in out}
     if len(n) != 1:
         raise SystemExit("the masters came out with different nodes, %s -- the "

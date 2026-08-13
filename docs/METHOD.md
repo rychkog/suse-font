@@ -1405,6 +1405,28 @@ counts, and the font would not interpolate. As fractions of their own chords
 they are 0.004 and 0.014, both straight to well inside a tenth of a per cent of
 the em and both on the same side of any honest line. Straightness is a ratio.
 
+
+And the sharpest edge of the same class: **a solve is only ever as good as the
+quantity it is solving for.** д's arm was fitted by bisecting the donor's own
+weight axis until `weights.branch_of` reported 0.89 of o's wall, and it did, at
+both masters. `branch_of` reads across ROWS and trims the last of them by the
+bowl's own wall. Both are wrong for this letter -- the arm curves over the top,
+so a row cuts across it only where it happens to be upright, and a trim that
+depends on the junction means changing the junction silently moves the reading
+and therefore the solve. Read down the arm's own columns instead and the same
+letter measured **0.56** of o's wall at Thin, against a panel of 0.87..0.97 that
+is tight enough to be a real relation. The arm had been too light for the whole
+of the family's light half, and the number watching it had said 0.89 throughout.
+
+Two habits come out of that:
+
+- **A probe written for one letter is evidence about that letter.** `branch_of`
+  was written for б, whose branch IS upright and whose junction IS at the end
+  of a row, and it was reused here because both letters are "a bowl with a
+  stroke". They are not the same shape and it was not the same measurement.
+- **When two readings of one part disagree, the letter is the tiebreak.** The
+  arm read 0.89 and looked thin. Looking was right.
+
 ---
 
 ## 4 · Probe inventory
