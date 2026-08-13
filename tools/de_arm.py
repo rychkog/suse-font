@@ -81,10 +81,22 @@ def read(path):
     wide = max(3, int(0.06 * ow))
     tip = e[:split, ax0:ax0 + wide]
     tipwt = (2.0 * tip.max() / wall) if tip.any() and wall else None
+    # the arm's own weight, along the arm. `weights.branch_of` reads by ROWS
+    # and trims the last of them by the bowl's wall, which is two wrong things
+    # for this letter: the arm curves over the top, so a row cuts across it
+    # only where it happens to be upright, and a trim that depends on the
+    # junction means changing the junction moves this reading and moves the
+    # solve that targets it. CLAUDE.md rule 5, two constants justifying each
+    # other. Read down the arm's own columns instead, dropping a sixth at each
+    # end -- the terminal's cut at one end, the bowl at the other.
+    cols = np.where(above.any(axis=0))[0]
+    drop = max(1, len(cols) // 6)
+    ridge = [2.0 * e[:split, c].max() / wall for c in cols[drop:-drop]]
+    armwt = st.median(ridge) if ridge and wall else None
     pad = int(0.10 * ow)
     crop = d[max(0, ay0 - pad):split,
              max(0, ax0 - pad):ax0 + int(0.45 * bw)].copy()
-    return ((ax0 - bx0) / bw, (split - ay0) / float(oh), tipwt,
+    return ((ax0 - bx0) / bw, (split - ay0) / float(oh), tipwt, armwt,
             d, split, crop)
 
 
@@ -111,8 +123,8 @@ def main():
     for w in ("Thin", "Regular", "ExtraBold"):
         got = read(OURS % w)
         if not isinstance(got, str):
-            rows.append(("ours, " + w,) + got[:3])
-            cells.append(("ours, " + w, (25, 25, 25), got[3], got[4], got[5]))
+            rows.append(("ours, " + w,) + got[:4])
+            cells.append(("ours, " + w, (25, 25, 25), got[4], got[5], got[6]))
 
     for fam, path in sorted(italics()):
         try:
@@ -123,22 +135,25 @@ def main():
             if isinstance(got, str):
                 print("   %-22s %s" % (fam, got))
                 continue
-            rows.append((fam,) + got[:3])
-            cells.append((fam, (185, 30, 30), got[3], got[4], got[5]))
+            rows.append((fam,) + got[:4])
+            cells.append((fam, (185, 30, 30), got[4], got[5], got[6]))
         except Exception as e:
             print("   %-22s %s" % (fam, e))
 
-    print("\n   %-22s %6s %6s %6s" % ("", "reach", "rise", "tipwt"))
-    for fam, reach, rise, tipwt in rows:
-        print("   %-22s %6.2f %6.2f %6s"
+    print("\n   %-22s %6s %6s %6s %6s"
+          % ("", "reach", "rise", "tipwt", "armwt"))
+    for fam, reach, rise, tipwt, armwt in rows:
+        print("   %-22s %6.2f %6.2f %6s %6s"
               % (fam, reach, rise,
-                 "  .  " if tipwt is None else "%6.2f" % tipwt))
+                 "  .  " if tipwt is None else "%6.2f" % tipwt,
+                 "  .  " if armwt is None else "%6.2f" % armwt))
 
     ref = [r for r in rows if not r[0].startswith("ours")]
     print()
     for i, what in ((1, "arm's reach across the bowl"),
                     (2, "arm's rise over o's height"),
-                    (3, "ink at the tip over o's wall")):
+                    (3, "ink at the tip over o's wall"),
+                    (4, "the arm's own weight over o's wall")):
         v = sorted(r[i] for r in ref if r[i] is not None)
         print("   %-30s median %5.2f, %5.2f..%5.2f  (%d faces)"
               % (what, st.median(v), v[1], v[-2], len(v)))
