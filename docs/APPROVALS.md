@@ -133,6 +133,18 @@ exactly the face's own, and both diagonals cut flat at cap and baseline the way
 X, V, W and K are cut. `Б` remains outside on ExtraBold ink at 1.07 against a
 panel floor of 1.08, which is recorded on Б's own row and predates this.
 
+**Judged in the company it keeps, not against the Latin** (`tools/ka_company.py`,
+asked for on the day). Every diagonal this face draws, read off the built
+outlines as its angle from the horizontal: at ExtraBold К holds 55–60 where Х
+holds 63–66, И 63, У 69 and Ж 81, so **К is the shallowest diagonal in the
+Cyrillic and visibly so in an alphabet strip.** That is inherited and not
+introduced — the face's own LATIN K is the shallowest thing it draws too, 55–63
+against X's 63–66, N's 64 and V's 74–76, and К sits inside K's own range at
+both masters. It is worth writing down that the redraw moved the letter TOWARDS
+its neighbours rather than away: the donated К took K's own 52 as its shallowest
+edge at Regular and the drawn one takes 54, and к went from k's 43 to 48. At
+ExtraBold the shallowest edge is unchanged at 55 and 46.
+
 **Recorded because it will be asked again:** К has left the donated set, so
 `donated.py` now declares twenty-four and **К no longer follows the Latin into
 the italic for free** — it will have to be built there from the italic's own K.
