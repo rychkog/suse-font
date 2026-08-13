@@ -117,7 +117,71 @@ def undeclared(donated):
     return out
 
 
+def panel():
+    """How the panel solves the same 25 -- donate, or draw?
+
+    Three answers are possible in a font file and they are not the same
+    decision, so they are counted apart:
+
+    - **one glyph**: both codepoints map to the SAME glyph. The face has
+      decided the two letters are one letter, which is what this project does.
+    - **two glyphs, one shape**: separate glyphs with identical outlines. The
+      same design decision, kept as two glyphs so either can be moved later.
+    - **drawn apart**: the outlines differ, by however little.
+
+    A face that has no Cyrillic at all is not a vote either way and is left
+    out of the count, which is why the totals differ per letter.
+    """
+    from panel import families
+    pairs = [(cy, note) for cy, _n, note in declared() if len(note) == 1]
+    tally = {cy: [0, 0, 0] for cy, _ in pairs}
+    seen = 0
+    apart = {cy: [] for cy, _ in pairs}
+    for fam, path in families():
+        try:
+            f = TTFont(path, fontNumber=0, lazy=True)
+        except Exception:
+            continue
+        try:
+            cm, gs = f.getBestCmap(), f.getGlyphSet()
+            if not any(ord(cy) in cm for cy, _ in pairs):
+                continue
+            seen += 1
+            for cy, la in pairs:
+                if ord(cy) not in cm or ord(la) not in cm:
+                    continue
+                if cm[ord(cy)] == cm[ord(la)]:
+                    tally[cy][0] += 1
+                elif contours(f, cm[ord(cy)], cm, gs) == \
+                        contours(f, cm[ord(la)], cm, gs):
+                    tally[cy][1] += 1
+                else:
+                    tally[cy][2] += 1
+                    apart[cy].append(fam)
+        except Exception:
+            continue
+        finally:
+            f.close()
+    print("   %d panel faces carry Cyrillic\n" % seen)
+    print("   %-4s %-9s %-16s %-11s %s"
+          % ("", "one glyph", "two, same shape", "drawn apart", "share same"))
+    for cy, la in pairs:
+        one, two, off = tally[cy]
+        tot = one + two + off
+        if not tot:
+            continue
+        print("   %s=%s  %-9d %-16d %-11d %.0f%%"
+              % (cy, la, one, two, off, 100.0 * (one + two) / tot))
+    print()
+    for cy, la in pairs:
+        if apart[cy]:
+            print("   %s drawn apart from %s in: %s"
+                  % (cy, la, ", ".join(sorted(apart[cy]))))
+
+
 def main():
+    if "--panel" in sys.argv:
+        return panel()
     font = glyphsLib.load(open(SRC))
     rows = declared()
     bad = []
