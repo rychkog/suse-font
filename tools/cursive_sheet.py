@@ -23,6 +23,15 @@ from PIL import Image, ImageDraw, ImageFont                    # noqa: E402
 I = "fonts/ttf/SUSEMono-%sItalic.ttf"
 LAB = "fonts/ttf/SUSEMono-Regular.ttf"
 SS = 4
+# SS is the supersample used to get a clean edge; SCALE is how much bigger than
+# its nominal size the whole sheet is DELIVERED. They are not the same thing.
+# Supersampling alone gives a properly antialiased 14-pixel line -- which is
+# then fourteen actual pixels tall in the PNG, and anything showing the PNG
+# above 1:1 is enlarging fourteen pixels. Sharp and tiny reads as low quality
+# and is. Rows that exist to show a READING size are drawn at that size and
+# enlarged by whole pixels with NEAREST, so what is magnified is the real
+# rasterisation rather than a smoother invention of it.
+SCALE = 3
 
 WEIGHTS = ("Thin", "Light", "Regular", "Bold", "ExtraBold")
 LETTERS = "го до гдо"
@@ -30,16 +39,20 @@ WORDS = ("дорога, година", "ґудзик, погляд")
 MIXED = "git log --graph 'дорога' build/погода.log"
 
 
-def text(path, s, px, fill=(20, 20, 20)):
-    """One line, supersampled and resolved down -- a 1-bit fill is unreadable."""
-    f = ImageFont.truetype(path, px * SS)
+def text(path, s, px, fill=(20, 20, 20), real=False):
+    """One line at SCALE times `px`, or at `px` magnified if `real`."""
+    at = px if real else px * SCALE
+    f = ImageFont.truetype(path, at * SS)
     box = f.getbbox(s)
-    w = box[2] + px * SS
-    h = int(px * SS * 1.55)
+    w = box[2] + at * SS
+    h = int(at * SS * 1.55)
     im = Image.new("RGB", (w, h), "white")
-    ImageDraw.Draw(im).text((px * SS // 4, 0), s, font=f, fill=fill)
+    ImageDraw.Draw(im).text((at * SS // 4, 0), s, font=f, fill=fill)
     out = im.resize((max(1, w // SS), max(1, h // SS)), Image.LANCZOS)
     im.close()
+    if real:
+        out = out.resize((out.width * SCALE, out.height * SCALE),
+                         Image.NEAREST)
     return out
 
 
@@ -47,26 +60,28 @@ def main():
     pad = 22
     rows = []
     for w in WEIGHTS:
-        rows.append((w, text(I % w, LETTERS + "   " + WORDS[0], 96)))
-    rows.append(("Regular, in a line", text(I % "Regular", MIXED, 48)))
+        rows.append((w, text(I % w, LETTERS + "   " + WORDS[0], 46)))
+    rows.append(("Regular, in a line", text(I % "Regular", MIXED, 26)))
     for px in (14, 12):
-        rows.append(("Regular at %dpx" % px,
-                     text(I % "Regular", MIXED + "  " + WORDS[1], px)))
+        rows.append(("Regular at %dpx, magnified %dx" % (px, SCALE),
+                     text(I % "Regular", MIXED + "  " + WORDS[1], px,
+                          real=True)))
 
-    W = pad * 2 + max(r[1].width for r in rows) + 210
-    H = pad * 2 + sum(r[1].height + 16 for r in rows) + 40
+    pad, lead = pad * SCALE, 210 * SCALE
+    W = pad * 2 + max(r[1].width for r in rows) + lead
+    H = pad * 2 + sum(r[1].height + 16 * SCALE for r in rows) + 40 * SCALE
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
-    hd = ImageFont.truetype(LAB, 22)
-    lab = ImageFont.truetype(LAB, 15)
+    hd = ImageFont.truetype(LAB, 22 * SCALE)
+    lab = ImageFont.truetype(LAB, 15 * SCALE)
     d.text((pad, pad), "the cursive г and д, beside the o they are measured "
            "against", font=hd, fill=(170, 30, 30))
-    y = pad + 40
+    y = pad + 40 * SCALE
     for name, img in rows:
-        im.paste(img, (pad + 200, y))
-        d.text((pad, y + img.height // 2 - 8), name, font=lab,
+        im.paste(img, (pad + 200 * SCALE, y))
+        d.text((pad, y + img.height // 2 - 8 * SCALE), name, font=lab,
                fill=(120, 120, 120))
-        y += img.height + 16
+        y += img.height + 16 * SCALE
     im.save("tools/out/cursive_sheet.png")
     print("   wrote tools/out/cursive_sheet.png")
 

@@ -36,6 +36,13 @@ from PIL import Image, ImageDraw, ImageFont                    # noqa: E402
 R = "fonts/ttf/SUSEMono-%s.ttf"
 I = "fonts/ttf/SUSEMono-%sItalic.ttf"
 SS = 4
+# SS is the supersample used to get a clean edge; SCALE is how much bigger than
+# its nominal size the whole sheet is DELIVERED. They are not the same thing --
+# supersampling alone gives a properly antialiased 14-pixel line, which is then
+# fourteen actual pixels tall in the PNG. Rows showing a READING size are drawn
+# at that size and enlarged by whole pixels, so what is magnified is the real
+# rasterisation. See tools/specimen.py.
+SCALE = 3
 
 CAPS = "АБВГҐДЕЄЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ"
 LOWER = "абвгґдеєжзийклмнопрстуфхцчшщьюя"
@@ -43,68 +50,73 @@ WORDS = ("ґрунт боротьба єднати", "юність, тёщи, к
 MIXED = "git commit -m 'юність' build/ґрунт-єднати.log"
 
 
-def text(path, s, px, fill=(20, 20, 20)):
-    f = ImageFont.truetype(path, px * SS)
+def text(path, s, px, fill=(20, 20, 20), real=False):
+    at = px if real else px * SCALE
+    f = ImageFont.truetype(path, at * SS)
     box = f.getbbox(s)
-    w, h = box[2] + px * SS, int(px * SS * 1.6)
+    w, h = box[2] + at * SS, int(at * SS * 1.6)
     im = Image.new("RGB", (w, h), "white")
-    ImageDraw.Draw(im).text((px * SS // 4, 0), s, font=f, fill=fill)
+    ImageDraw.Draw(im).text((at * SS // 4, 0), s, font=f, fill=fill)
     out = im.resize((max(1, w // SS), max(1, h // SS)), Image.LANCZOS)
     im.close()
+    if real:
+        out = out.resize((out.width * SCALE, out.height * SCALE),
+                         Image.NEAREST)
     return out
 
 
 def main():
-    lab = ImageFont.truetype(R % "Regular", 20)
-    head = ImageFont.truetype(R % "Regular", 32)
-    sub = ImageFont.truetype(R % "Regular", 21)
+    lab = ImageFont.truetype(R % "Regular", 17 * SCALE)
+    head = ImageFont.truetype(R % "Regular", 28 * SCALE)
+    sub = ImageFont.truetype(R % "Regular", 18 * SCALE)
 
     rows = []
     for w in ("Regular", "Bold"):
         rows.append(("%s italic -- the capitals" % w,
-                     [text(I % w, CAPS, 62)]))
+                     [text(I % w, CAPS, 30)]))
         rows.append(("%s upright, the same line" % w,
-                     [text(R % w, CAPS, 62)]))
+                     [text(R % w, CAPS, 30)]))
     for w in ("Regular", "Bold"):
         rows.append(("%s italic -- the lowercase" % w,
-                     [text(I % w, LOWER, 62)]))
+                     [text(I % w, LOWER, 30)]))
         rows.append(("%s upright, the same line" % w,
-                     [text(R % w, LOWER, 62)]))
+                     [text(R % w, LOWER, 30)]))
     rows.append(("Regular italic -- in words, then upright below",
-                 [text(I % "Regular", s, 50) for s in WORDS]))
-    rows.append(("", [text(R % "Regular", s, 50) for s in WORDS]))
+                 [text(I % "Regular", s, 26) for s in WORDS]))
+    rows.append(("", [text(R % "Regular", s, 26) for s in WORDS]))
     for px in (12, 14):
-        rows.append(("italic and upright at %dpx" % px,
-                     [text(I % "Regular", MIXED, px),
-                      text(R % "Regular", MIXED, px)]))
+        rows.append(("italic and upright at %dpx, magnified %dx" % (px, SCALE),
+                     [text(I % "Regular", MIXED, px, real=True),
+                      text(R % "Regular", MIXED, px, real=True)]))
 
     title = "the italic Cyrillic"
     caption = ("the same constructions, run against the italic's own Latin "
                "and sheared back about xh/2 -- except the seven that Cyrillic "
                "cursive restructures")
 
-    pad, left = 20, 26
+    pad, left = 20 * SCALE, 26 * SCALE
     # the caption counts toward the width. It did not, and it has been cut off
     # mid-word in every sheet this tool has ever produced -- the width came
     # from the specimen rows alone, and the one line that says what the reader
     # is looking at ran off the edge.
     W = max(max(left + sum(i.width + pad for i in r[1]) + pad for r in rows),
             left + int(sub.getlength(caption)) + pad, 900)
-    H = 96 + sum(max(i.height for i in r[1]) + 40 for r in rows)
+    H = 96 * SCALE + sum(max(i.height for i in r[1]) + 40 * SCALE
+                         for r in rows)
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
-    d.text((left, 20), title, font=head, fill=(170, 30, 30))
-    d.text((left, 54), caption, font=sub, fill=(140, 140, 140))
-    y = 100
+    d.text((left, 20 * SCALE), title, font=head, fill=(170, 30, 30))
+    d.text((left, 52 * SCALE), caption, font=sub, fill=(140, 140, 140))
+    y = 100 * SCALE
     for title, imgs in rows:
         if title:
             d.text((left, y), title, font=lab, fill=(150, 150, 150))
-        y += 20
+        y += 22 * SCALE
         x = left
         for i in imgs:
             im.paste(i, (x, y))
             x += i.width + pad
-        y += max(i.height for i in imgs) + 20
+        y += max(i.height for i in imgs) + 20 * SCALE
     im.save("tools/out/italic_sheet.png")
     print("wrote tools/out/italic_sheet.png", im.size)
 
