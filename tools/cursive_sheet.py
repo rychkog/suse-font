@@ -58,6 +58,8 @@ def text(path, s, px, fill=(20, 20, 20), real=False):
 
 def main():
     pad = 22
+    hd = ImageFont.truetype(LAB, 22 * SCALE)
+    lab = ImageFont.truetype(LAB, 15 * SCALE)
     rows = []
     for w in WEIGHTS:
         rows.append((w, text(I % w, LETTERS + "   " + WORDS[0], 46)))
@@ -67,18 +69,22 @@ def main():
                      text(I % "Regular", MIXED + "  " + WORDS[1], px,
                           real=True)))
 
-    pad, lead = pad * SCALE, 210 * SCALE
+    pad = pad * SCALE
+    # the label column is as wide as the widest label, measured. Fixed at 210
+    # it was narrower than "Regular at 14px, magnified 3x" and that label ran
+    # straight into the specimen -- the same fault the specimen sheet had, in
+    # the file that was supposed to have learnt it.
+    lead = max(int(lab.getlength(n)) for n, _i in rows) + pad
     W = pad * 2 + max(r[1].width for r in rows) + lead
     H = pad * 2 + sum(r[1].height + 16 * SCALE for r in rows) + 40 * SCALE
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
-    hd = ImageFont.truetype(LAB, 22 * SCALE)
-    lab = ImageFont.truetype(LAB, 15 * SCALE)
+
     d.text((pad, pad), "the cursive г and д, beside the o they are measured "
            "against", font=hd, fill=(170, 30, 30))
     y = pad + 40 * SCALE
     for name, img in rows:
-        im.paste(img, (pad + 200 * SCALE, y))
+        im.paste(img, (pad + lead, y))
         d.text((pad, y + img.height // 2 - 8 * SCALE), name, font=lab,
                fill=(120, 120, 120))
         y += img.height + 16 * SCALE
