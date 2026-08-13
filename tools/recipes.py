@@ -2732,3 +2732,14 @@ RECIPES = {
     "pe-cy": lc(Pe), "sha-cy": lc(Sha), "shcha-cy": lc(Shcha),
     "tse-cy": lc(Tse), "ii-cy": lc(Ii, donor="n"),
 }
+
+
+# Recipes that differ under an ITALIC master, name -> fn. Anything absent
+# falls back to RECIPES, which is right for all but a handful: run against the
+# italic source, the same construction reads the italic's own donors and comes
+# out a true italic on its own.
+#
+# Only the letters Cyrillic CURSIVE restructures belong here, and и п т are
+# not among them -- they ARE the italic's own u n m, handled as tier 1 in
+# `classify.ITALIC` rather than as a drawing.
+ITALIC = {}
