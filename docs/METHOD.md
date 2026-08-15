@@ -1429,6 +1429,62 @@ Two habits come out of that:
 
 ---
 
+### F19 · A quantity nobody sets is a quantity nobody can interpolate
+
+д's arm was donated as an outline and then fitted, blended along a weight
+axis, cut at its terminal and spliced into the bowl. Four steps, each of which
+moves an end of the stroke, and not one of them answerable for how thick the
+stroke is anywhere. What came out of one donor:
+
+| | Thin | ExtraBold | the panel's ∂-form faces |
+| --- | --- | --- | --- |
+| free end ÷ root, along the arm | **6.32** | **0.54** | 0.64–1.01 |
+| ink at the free end ÷ o's wall | 0.98 | 0.26 | 0.79–1.09 |
+
+Not two weights of one drawing -- two different letters. At Thin the root was
+strangled to a hairline where the splice landed and the tip was a club; at
+ExtraBold the tip was a spike. Every *size* reading of the letter was in band
+throughout, because a size is not a thickness.
+
+**Take the donor apart into what it actually carries.** A donated stroke says
+two things: where it GOES, and how thick it is along the way. The first cannot
+be reconstructed from any reading this project takes -- it is the whole reason
+to donate. The second can, and must be, because a donated thickness is a
+donated wall and this face has one of its own. `donor.dissect` pairs the two
+edges off against each other by how far along its own length each point sits,
+and returns the spine and the half-width; `donor.stroke` draws the edges back
+out as cubics against a half-width set here. The arm's weight, its taper and
+its terminal are now three constants against o's wall and every other reading
+is measured against the panel afterwards.
+
+Two habits out of it:
+
+* **set one end of a thing and measure the other.** Rule 5 is about two
+  constants justifying each other; this is the same fault with nobody at all
+  in the chair. If a reading matters, something has to be answerable for it.
+* **a helper carries the conditions of the letter it was written for.**
+  `donor.absorb` takes a straight stub off the front of a spliced stroke and
+  carries the bowl's last segment out to meet it. That is a continuation when
+  the cut lands at the END of one of the donor's own segments, which is the
+  case it was written for, in б. Where the cut lands in the middle of a curve
+  it is a lie: it drags the oval outward to reach, and it put the widest disc
+  in д at **1.64** of o's own wall against a panel of 1.13–1.41. Off, the same
+  letter reads 1.29. It is now `splice(..., tidy=)`, on for б because б is
+  approved and off for д. Same shape as the note in
+  `reused-code-carries-donor-constraints`: a copied constant encodes the
+  sibling's condition, not yours.
+
+**And a probe reads what it is pointed at, not what it is named after.**
+`de_arm`'s figure for the ink at the free end took the widest disc fitting
+within a band at the very end of the arm. No disc within *w* of a cut end can
+be wider than *w*, so as soon as the stroke was thicker than the band the
+reading was the band's and not the terminal's -- our ExtraBold read 0.21 with
+its terminal drawn at 0.77 of the wall and cut square, and the panel's own
+band came out 0.49–0.97 when the truth is 0.79–1.09. Read an eighth of the
+arm back from the end, clear of the corner, and every face moves. A saturating
+probe does not look broken; it looks like a finding.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
@@ -1454,7 +1510,8 @@ Two habits come out of that:
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
 | `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
-| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, and the ink AT the tip. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
+| `de_vs_d.py` | **is the cursive д a `d` with a different ascender, or an `o` with a hook?** Both descriptions fit the picture and they are different letters to build. Reads below the x-height, over the same face's own `d`: how straight the right-hand side is (worst departure from a fitted line, over the run), how much of `d`'s ink д also covers, and where its bowl sits in `d`'s widths. The answer is `o`: the panel's д reads 0.082–0.137 there against its own d's 0.002–0.149-but-median-0.009 and its own o's 0.110–0.210. Draws the two over each other in the frame they share | no |
+| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
 | `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |

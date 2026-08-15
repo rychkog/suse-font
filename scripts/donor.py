@@ -606,7 +606,7 @@ def close_join(arc, stroke):
             [(kb, [b1, pb[1], pb[2]])] + stroke[1:])
 
 
-def splice(bowl, hook, steps=16):
+def splice(bowl, hook, steps=16, tidy=True):
     """One contour: the host's bowl with the donor's stroke growing out of it.
 
     `bowl` and `hook` are both (start, segments). The stroke's outer edge
@@ -619,6 +619,15 @@ def splice(bowl, hook, steps=16):
     Returns (start, segments), or None when the two do not cross twice, which
     means the stroke is not attached and the caller should say so rather than
     emit a letter in two pieces.
+
+    `tidy` is `absorb`, and it is on because б wants it and б is approved.
+    It was written for a donated outline being cut at ITS OWN segment ends,
+    where what is left over is a dead straight stub; carrying the bowl's last
+    segment out to the stub's far end is a continuation there. Where the cut
+    lands in the middle of a curve it is not: it drags the oval outward to
+    reach, and the widest disc in д sat at 1.64 of o's own wall because of it,
+    against a panel of 1.13..1.41. Off, the same letter reads 1.29. A helper
+    carries the conditions of the letter it was written for. METHOD F19.
     """
     bs, bsegs = bowl
     hs, hsegs = hook
@@ -649,11 +658,13 @@ def splice(bowl, hook, steps=16):
             continue
         if tail is None:
             _s, rev = reverse_run(D, stroke)
-            segs, rev, e = absorb(segs, rev, L)
+            if tidy:
+                segs, rev, _e = absorb(segs, rev, L)
             segs, rev = close_join(segs, rev)
             best = (s0, segs + rev)
         else:
-            segs, tail, e = absorb(segs, tail, D)
+            if tidy:
+                segs, tail, _e = absorb(segs, tail, D)
             segs, tail = close_join(segs, tail)
             best = (s0, segs + tail)
         break
@@ -681,3 +692,153 @@ def _nearest(start, segs, q, steps=64):
         else:
             lo = m1
     return i, 0.5 * (lo + hi)
+
+
+# ---------------------------------------------------------------------------
+# Taking a donated stroke apart, and drawing one.
+#
+# A donated outline can be fitted, blended and spliced and still not be a
+# drawing: the arm of д came out with its free end six times the thickness of
+# its root at one master and half of it at the other, from ONE donor, because
+# every one of those steps moved an end of it and none of them was answerable
+# for how thick it was anywhere. A quantity nobody sets is a quantity nobody
+# can interpolate. So take the donor apart into the two things it actually
+# says -- where the stroke GOES, and how thick it is along the way -- keep the
+# first, and set the second here against this face's own wall.
+#
+# This is not `METHOD` F15, which rejected a centreline stroked at a CONSTANT
+# width and cut off square: that has no modulation and no terminal, and reads
+# as bent wire. This has a width that changes along the stroke, taken from the
+# panel, and a terminal cut the way this face cuts its own.
+
+
+def resample(pts, n):
+    """A polyline re-cut into `n` points spaced evenly along its own length."""
+    run = [0.0]
+    for i in range(1, len(pts)):
+        run.append(run[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                        pts[i][1] - pts[i - 1][1]))
+    total = run[-1] or 1.0
+    out, j = [], 1
+    for k in range(n):
+        want = total * k / float(n - 1)
+        while j < len(run) - 1 and run[j] < want:
+            j += 1
+        f = (want - run[j - 1]) / ((run[j] - run[j - 1]) or 1.0)
+        out.append((pts[j - 1][0] + (pts[j][0] - pts[j - 1][0]) * f,
+                    pts[j - 1][1] + (pts[j][1] - pts[j - 1][1]) * f))
+    return out
+
+
+def dissect(sg, near, far, n=160):
+    """A stroke's two edges read as a spine and the half-width along it.
+
+    `near` and `far` are the segment indices of the two edges, each given in
+    the direction that runs from the stroke's FREE END back towards its root;
+    the terminal between them is not needed and is not read. The two are paired
+    off by how far along each of them a point sits, as a fraction of that
+    edge's own length, which is the only pairing that stays put when one edge
+    is longer than the other -- and they always are, since the outside of a
+    curve is longer than the inside.
+
+    Returns (spine, half), both `n` long, running from the free end to the root.
+    """
+    a = resample(_run(sg, near), n)
+    b = resample(_run(sg, far), n)
+    spine = [(0.5 * (p[0] + q[0]), 0.5 * (p[1] + q[1])) for p, q in zip(a, b)]
+    half = [0.5 * math.hypot(p[0] - q[0], p[1] - q[1]) for p, q in zip(a, b)]
+    return spine, half
+
+
+def _run(sg, idx, steps=24):
+    """The segments at `idx`, in the order given, as one dense polyline.
+
+    A negative index means that segment walked backwards, which is how the
+    edge that the contour draws root-first is read free-end-first.
+    """
+    pts = []
+    for k in idx:
+        j = abs(k)
+        p0 = sg[j - 1][1][-1]
+        run = [at(p0, [sg[j]], 0, s / float(steps)) for s in range(steps + 1)]
+        if k < 0:
+            run.reverse()
+        pts += run if not pts else run[1:]
+    return pts
+
+
+def fit_cubic(p0, t0, p3, t3, mid):
+    """The cubic from p0 to p3 that leaves along t0, arrives along t3, and
+    passes through `mid` at its own halfway.
+
+    Handles are solved rather than guessed: B(0.5) is a fixed combination of
+    the four points, so asking it to equal `mid` leaves two linear equations
+    in the two handle lengths. Where they are parallel and there is no answer
+    -- a straight run -- the plain third-of-the-chord handles are right anyway.
+    """
+    cx, cy = p3[0] - p0[0], p3[1] - p0[1]
+    chord = math.hypot(cx, cy) or 1.0
+    rx = mid[0] - 0.5 * (p0[0] + p3[0])
+    ry = mid[1] - 0.5 * (p0[1] + p3[1])
+    det = t3[0] * t0[1] - t0[0] * t3[1]
+    if abs(det) < 1e-9:
+        a = b = chord / 3.0
+    else:
+        k = 8.0 / 3.0
+        a = (k * rx * -t3[1] - -t3[0] * k * ry) / det
+        b = (t0[0] * k * ry - k * rx * t0[1]) / det
+        lo, hi = 0.03 * chord, 1.2 * chord
+        a = min(hi, max(lo, a))
+        b = min(hi, max(lo, b))
+    return ("curve", [(p0[0] + t0[0] * a, p0[1] + t0[1] * a),
+                      (p3[0] - t3[0] * b, p3[1] - t3[1] * b), p3])
+
+
+def stroke(spine, half, knots):
+    """A stroke drawn as an outline: a spine, a width along it, two edges.
+
+    `spine` and `half` run ROOT to FREE END, evenly along the spine's length.
+    `knots` are the fractions of that length where the edges get a node -- a
+    handful, so the outline stays the size of a drawing rather than the size of
+    a sampling. Between them each edge is one cubic, made to leave and arrive
+    along the edge's own direction and to pass through the edge's own middle,
+    so the fitted curve is the offset curve to within a fraction of a unit
+    rather than a polygon pretending to be one.
+
+    Returned as a closed run of segments whose implied start is the root of the
+    right-hand edge -- up that edge, across the terminal, back down the left --
+    which is the order `splice` reads: out of the bowl, round, and back in.
+    """
+    n = len(spine)
+
+    def tangent_at(u):
+        i = min(n - 2, max(0, int(u * (n - 1))))
+        dx = spine[i + 1][0] - spine[i][0]
+        dy = spine[i + 1][1] - spine[i][1]
+        h = math.hypot(dx, dy) or 1.0
+        return dx / h, dy / h
+
+    def edge(u, side):
+        i = min(n - 1, max(0, int(round(u * (n - 1)))))
+        tx, ty = tangent_at(u)
+        return (spine[i][0] + side * ty * half[i],
+                spine[i][1] - side * tx * half[i])
+
+    def run(us, side, way):
+        """`way` is -1 for the edge walked back down towards the root: the
+        spine's own tangent is read root-to-tip, and an edge travelled the
+        other way leaves and arrives along the opposite of it."""
+        out = []
+        for k in range(len(us) - 1):
+            u0, u1 = us[k], us[k + 1]
+            t0, t1 = tangent_at(u0), tangent_at(u1)
+            out.append(fit_cubic(edge(u0, side), (way * t0[0], way * t0[1]),
+                                 edge(u1, side), (way * t1[0], way * t1[1]),
+                                 edge(0.5 * (u0 + u1), side)))
+        return out
+
+    up = list(knots)
+    right = run(up, +1, +1)
+    left = run(up[::-1], -1, -1)
+    return (right + [("line", [edge(1.0, -1)])] + left
+            + [("line", [edge(0.0, +1)])])

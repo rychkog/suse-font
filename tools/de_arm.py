@@ -76,10 +76,21 @@ def read(path):
     ax0, ay0, _, _ = box(above)
     bw = float(bx1 - bx0)
     # the ink AT the tip: the widest disc that fits, in the few columns at the
-    # arm's leftmost end -- the terminal, and none of the run behind it
+    # arm's leftmost end -- the terminal, and none of the run behind it.
+    #
+    # Read just BEHIND the terminal, not at it. The widest disc within `w` of
+    # a cut end cannot be wider than `w` whatever the stroke does, and near the
+    # corner itself it is smaller still, so a band that starts at the very tip
+    # reads the band and the corner rather than the stroke: ours at ExtraBold
+    # read 0.21 with its terminal drawn at 0.77 of the wall and cut square.
+    # An eighth to a fifth of the arm's own run back from the end is clear of
+    # the corner, is still the terminal's own stroke and not the arm behind it,
+    # and asks a light weight and a heavy one the same question.
     e = W.edt(d)
-    wide = max(3, int(0.06 * ow))
-    tip = e[:split, ax0:ax0 + wide]
+    ax1 = np.where(above.any(axis=0))[0].max() + 1
+    run = ax1 - ax0
+    tip = e[:split, ax0 + max(2, int(0.08 * run)):
+            ax0 + max(4, int(0.20 * run))]
     tipwt = (2.0 * tip.max() / wall) if tip.any() and wall else None
     # the arm's own weight, along the arm. `weights.branch_of` reads by ROWS
     # and trims the last of them by the bowl's wall, which is two wrong things
@@ -93,11 +104,26 @@ def read(path):
     drop = max(1, len(cols) // 6)
     ridge = [2.0 * e[:split, c].max() / wall for c in cols[drop:-drop]]
     armwt = st.median(ridge) if ridge and wall else None
+    # FLAT: how much of the arm's top edge is level. A written stroke has one
+    # highest point and falls away from it both ways; a flat run across the top
+    # is an awning, and it is what makes ours read as a bar laid over the bowl
+    # rather than a stroke leaving it. Counted as the share of the arm's
+    # columns whose top edge sits within a fiftieth of o's height of the very
+    # highest -- a share, so a long arm and a short one are asked the same
+    # question.
+    tops = np.array([np.argmax(above[:, c]) for c in cols])
+    flat = float((tops <= tops.min() + 0.02 * oh).sum()) / len(cols)
+    # TAPER: the free end's thickness over the junction end's. Below 1 the
+    # stroke thins as it leaves, which is what a pen does.
+    k = max(1, len(cols) // 6)
+    head = [2.0 * e[:split, c].max() for c in cols[:k]]
+    foot = [2.0 * e[:split, c].max() for c in cols[-k:]]
+    taper = st.median(head) / st.median(foot) if foot and st.median(foot) else None
     pad = int(0.10 * ow)
     crop = d[max(0, ay0 - pad):split,
              max(0, ax0 - pad):ax0 + int(0.45 * bw)].copy()
     return ((ax0 - bx0) / bw, (split - ay0) / float(oh), tipwt, armwt,
-            d, split, crop)
+            flat, taper, d, split, crop)
 
 
 def tile(m, ink, cell=CELL * SS, rule=None):
@@ -123,8 +149,8 @@ def main():
     for w in ("Thin", "Regular", "ExtraBold"):
         got = read(OURS % w)
         if not isinstance(got, str):
-            rows.append(("ours, " + w,) + got[:4])
-            cells.append(("ours, " + w, (25, 25, 25), got[4], got[5], got[6]))
+            rows.append(("ours, " + w,) + got[:6])
+            cells.append(("ours, " + w, (25, 25, 25), got[6], got[7], got[8]))
 
     for fam, path in sorted(italics()):
         try:
@@ -135,25 +161,26 @@ def main():
             if isinstance(got, str):
                 print("   %-22s %s" % (fam, got))
                 continue
-            rows.append((fam,) + got[:4])
-            cells.append((fam, (185, 30, 30), got[4], got[5], got[6]))
+            rows.append((fam,) + got[:6])
+            cells.append((fam, (185, 30, 30), got[6], got[7], got[8]))
         except Exception as e:
             print("   %-22s %s" % (fam, e))
 
-    print("\n   %-22s %6s %6s %6s %6s"
-          % ("", "reach", "rise", "tipwt", "armwt"))
-    for fam, reach, rise, tipwt, armwt in rows:
-        print("   %-22s %6.2f %6.2f %6s %6s"
-              % (fam, reach, rise,
-                 "  .  " if tipwt is None else "%6.2f" % tipwt,
-                 "  .  " if armwt is None else "%6.2f" % armwt))
+    print("\n   %-22s %6s %6s %6s %6s %6s %6s"
+          % ("", "reach", "rise", "tipwt", "armwt", "flat", "taper"))
+    for r in rows:
+        print("   %-22s %s"
+              % (r[0], " ".join("%6s" % ("  .  " if v is None else "%6.2f" % v)
+                                for v in r[1:])))
 
     ref = [r for r in rows if not r[0].startswith("ours")]
     print()
     for i, what in ((1, "arm's reach across the bowl"),
                     (2, "arm's rise over o's height"),
                     (3, "ink at the tip over o's wall"),
-                    (4, "the arm's own weight over o's wall")):
+                    (4, "the arm's own weight over o's wall"),
+                    (5, "share of the top edge that is flat"),
+                    (6, "free end's thickness over the root's")):
         v = sorted(r[i] for r in ref if r[i] is not None)
         print("   %-30s median %5.2f, %5.2f..%5.2f  (%d faces)"
               % (what, st.median(v), v[1], v[-2], len(v)))
