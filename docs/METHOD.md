@@ -1301,7 +1301,7 @@ the host's own o, so only the stroke is donated. Built the obvious way — the
 stroke as its own closed contour lying over the oval, unioned by the overlap
 removal on the way to the font — every ink reading passed and the **junction**
 did not: 1.13, 1.01, 1.00 of the bowl's own wall at Thin, Regular and
-ExtraBold, against eleven references holding 1.13 to 1.41.
+ExtraBold, against eleven references holding 1.13 to 1.34.
 
 What is missing in an overlap is the **swell**. Where a stroke grows out of a
 bowl the ink thickens, and that thickening lives in the piece of the donor's
@@ -1438,7 +1438,7 @@ stroke is anywhere. What came out of one donor:
 
 | | Thin | ExtraBold | the panel's ∂-form faces |
 | --- | --- | --- | --- |
-| free end ÷ root, along the arm | **6.32** | **0.54** | 0.64–1.01 |
+| free end ÷ root, along the arm | **6.32** | **0.54** | 0.81–0.91 |
 | ink at the free end ÷ o's wall | 0.98 | 0.26 | 0.79–1.09 |
 
 Not two weights of one drawing -- two different letters. At Thin the root was
@@ -1468,11 +1468,20 @@ Two habits out of it:
   the cut lands at the END of one of the donor's own segments, which is the
   case it was written for, in б. Where the cut lands in the middle of a curve
   it is a lie: it drags the oval outward to reach, and it put the widest disc
-  in д at **1.64** of o's own wall against a panel of 1.13–1.41. Off, the same
+  in д at **1.64** of o's own wall against a panel of 1.13–1.34. Off, the same
   letter reads 1.29. It is now `splice(..., tidy=)`, on for б because б is
   approved and off for д. Same shape as the note in
   `reused-code-carries-donor-constraints`: a copied constant encodes the
   sibling's condition, not yours.
+
+**A face is not evidence about itself.** `panel.italics()` reads the fonts
+installed on the machine, and SUSE Mono is installed on this one — twice, as
+two family names. So every band `de_arm` and `gd_band` printed contained the
+letter being judged, at whatever build happened to be installed, voting for
+itself. It cost a real figure: the taper floor read 0.64 with our own rejected
+д in the band and 0.79 without it. Rule 5 again, with nobody noticing there
+were two constants because one of them was wearing the panel's clothes. The
+probes now drop any family whose name starts with the face's own.
 
 **And a probe reads what it is pointed at, not what it is named after.**
 `de_arm`'s figure for the ink at the free end took the widest disc fitting

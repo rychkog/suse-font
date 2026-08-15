@@ -5,7 +5,7 @@
 Both descriptions fit the picture; they are different letters to build. Ours
 takes this face's own **o** for the whole bowl and grafts a donated hook onto
 its crown, and every round since has been spent on that graft -- a blob at the
-departure, a pinch at the landing, a junction 1.64 against a ceiling of 1.41.
+departure, a pinch at the landing, a junction 1.64 against a ceiling of 1.34.
 
 The panel can settle it, because a face's own `d` is right there beside its д
 in the same file at the same weight. Read below the x-height, where д has only
@@ -132,6 +132,15 @@ def main():
             cells.append(("ours, " + w, got[6], got[7], got[8]))
 
     for fam, path in sorted(italics()):
+        # THIS FACE IS NOT EVIDENCE ABOUT ITSELF. `italics()` reads the fonts
+        # installed on the machine, and SUSE Mono is one of them -- so a band
+        # built here quietly contained the very letter it was being used to
+        # judge, twice over, at whatever build happened to be installed. The
+        # taper floor came out 0.64 with them in and 0.79 with them out, and
+        # 0.64 was our own rejected д voting for itself. CLAUDE.md rule 5 with
+        # nobody noticing there were two of them.
+        if fam.startswith("SUSE Mono"):
+            continue
         try:
             g = W.render(path, "г", XH)
             if g is None or not is_cursive_ge(g):

@@ -114,10 +114,20 @@ def read(path):
     tops = np.array([np.argmax(above[:, c]) for c in cols])
     flat = float((tops <= tops.min() + 0.02 * oh).sum()) / len(cols)
     # TAPER: the free end's thickness over the junction end's. Below 1 the
-    # stroke thins as it leaves, which is what a pen does.
-    k = max(1, len(cols) // 6)
-    head = [2.0 * e[:split, c].max() for c in cols[:k]]
-    foot = [2.0 * e[:split, c].max() for c in cols[-k:]]
+    # stroke thins as it leaves, which is what a pen does. The free end is read
+    # over the same eighth-to-a-fifth band as `tipwt` and for the same reason --
+    # a column at the very end of a stroke holds the corner, not the stroke,
+    # and the heavier the weight the more of the reading is corner.
+    # and the root end read a tenth in from ITS end for the same reason: the
+    # last columns of the arm are where it merges into the bowl, and the disc
+    # there is the junction's, not the arm's -- read by the last sixth,
+    # Ioskeley Tuned's arm came out 1.70 times thicker at the tip than at the
+    # root, which is the junction being divided into.
+    def band(lo, hi):
+        return [2.0 * e[:split, c].max()
+                for c in cols[max(1, int(lo * run)):max(2, int(hi * run))]]
+
+    head, foot = band(0.08, 0.20), band(0.72, 0.88)
     taper = st.median(head) / st.median(foot) if foot and st.median(foot) else None
     pad = int(0.10 * ow)
     crop = d[max(0, ay0 - pad):split,
@@ -153,6 +163,15 @@ def main():
             cells.append(("ours, " + w, (25, 25, 25), got[6], got[7], got[8]))
 
     for fam, path in sorted(italics()):
+        # THIS FACE IS NOT EVIDENCE ABOUT ITSELF. `italics()` reads the fonts
+        # installed on the machine, and SUSE Mono is one of them -- so a band
+        # built here quietly contained the very letter it was being used to
+        # judge, twice over, at whatever build happened to be installed. The
+        # taper floor came out 0.64 with them in and 0.79 with them out, and
+        # 0.64 was our own rejected д voting for itself. CLAUDE.md rule 5 with
+        # nobody noticing there were two of them.
+        if fam.startswith("SUSE Mono"):
+            continue
         try:
             g = W.render(path, "г", XH)
             if g is None or not is_cursive_ge(g):

@@ -54,6 +54,9 @@ def main():
     from panel import italics
     rows = []
     for fam, path in sorted(italics()):
+        # this face is not evidence about itself -- see de_arm.py
+        if fam.startswith("SUSE Mono"):
+            continue
         try:
             o = W.render(path, "o", XH)
             if o is None:
