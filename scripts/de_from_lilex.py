@@ -87,7 +87,7 @@ SRC = "sources/SUSEMono-Italic.glyphs"
 # The panel, over the eight monospace italics that draw the ∂ form:
 #   the free end  0.79..1.09 of o's wall, median 0.88
 #   the arm       0.87..0.97, median 0.93
-#   free end over root, along the arm  0.64..1.01, median 0.87
+#   free end over root, along the arm  0.81..0.91, median 0.86
 #
 # The free end is barely lighter than the wall: this letter does not taper
 # away to a point in any of them, it thins by about a tenth and is then cut.
@@ -199,7 +199,7 @@ def wall(pr, y=None):
     wall came out half again as thick as it is and its middle a long way
     outside itself, which put the arm's root off the wall and left a lump where
     the two met -- the widest disc in the letter read 1.79 of the wall at Thin
-    against a panel ceiling of 1.41. METHOD F16 is the same mistake in the
+    against a panel ceiling of 1.34. METHOD F16 is the same mistake in the
     other direction: measure the quantity, not a section of it that happens to
     be easy. So take the point on the outer contour at that height and the
     point on the counter NEAREST to it, which is across the wall by
@@ -379,7 +379,7 @@ def build():
             [q for q in _flatten(max(pr.paths("o"), key=lambda q: abs(area(q))),
                                  16)], pr.italic, pr.pivot)
         print("  master %d  arm %.2f (0.87..0.97)  free end %.2f (0.79..1.09)"
-              "  taper %.2f (0.64..1.01)  junction %.2f (1.13..1.41)"
+              "  taper %.2f (0.81..0.91)  junction %.2f (1.13..1.34)"
               "  width %.2f (1.00..1.15)"
               % (mi, armwt, tip, taper, jn, wide))
         out.append((0.0, [to_nodes(sh)]))

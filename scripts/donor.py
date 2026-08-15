@@ -570,7 +570,7 @@ def tangent(prev, nxt, node, bias=0.0):
     it. Splitting the difference at a half was tried and is worse in the one
     place it can be measured -- the widest disc in the letter sits exactly at
     this seam, and rotating the bowl's wall outward to meet the stroke put it
-    at **1.75** of o's own wall at Thin against a panel of 1.13..1.41, where
+    at **1.75** of o's own wall at Thin against a panel of 1.13..1.34, where
     letting the bowl win reads 1.09. Which is also the rule the rest of the
     project runs on: where a donation and this face disagree, this face is the
     authority on the shape.
@@ -626,7 +626,7 @@ def splice(bowl, hook, steps=16, tidy=True):
     segment out to the stub's far end is a continuation there. Where the cut
     lands in the middle of a curve it is not: it drags the oval outward to
     reach, and the widest disc in д sat at 1.64 of o's own wall because of it,
-    against a panel of 1.13..1.41. Off, the same letter reads 1.29. A helper
+    against a panel of 1.13..1.34. Off, the same letter reads 1.29. A helper
     carries the conditions of the letter it was written for. METHOD F19.
     """
     bs, bsegs = bowl
