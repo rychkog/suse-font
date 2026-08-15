@@ -1,4 +1,4 @@
-"""Take Lilex's hook for the cursive д, and build the bowl from this face's o.
+"""The cursive д: this face's own o, with the arm drawn out of its own wall.
 
 Lilex (https://github.com/mishamyrt/Lilex, Mikhail Myrt) is under the SIL Open
 Font License 1.1, which is what lets it be an outline donor; SUSE Mono is under
@@ -9,46 +9,56 @@ Writes `tools/de_donor.py`. Run it from the repository root:
 
     ./venv/bin/python scripts/de_from_lilex.py
 
-This is б's recipe, part for part, and for the same reason. д is a bowl and one
-stroke, and a bowl is where a donor's own design language sits (METHOD F11), so
-the bowl is this face's own o and only the hook is donated. Unlike б the hook
-is not spliced onto the oval: it is kept as its own closed contour overlapping
-o, which is what the letter already did and what the pipeline already accepts,
-so there is no landing angle to solve and no seam to assert. Where the hook's
-root swells past the plain oval it is meant to -- that swell IS the junction,
-and every reference draws it.
+**What is donated here is a PATH, not an outline.** Three rounds were spent
+fitting Lilex's own hook onto this face -- scaling it, blending its two weights
+along an axis solved for weight, cutting its terminal, splicing its root into
+o -- and the tail was rejected each time. `tools/de_arm.py` says what those
+four steps left: the arm's free end came out **six times as thick as its root
+at Thin and half as thick at ExtraBold**, from one donor, and the flat blunt
+bar that produced reads as an awning laid over the bowl rather than a stroke
+leaving it. Every step moved an end of the arm and not one of them was
+answerable for how thick it was anywhere. A quantity nobody sets is a quantity
+nobody can interpolate. METHOD F19.
+
+So the donor is taken apart into the two things a donation actually carries --
+where the stroke GOES, and how thick it is along the way. `donor.dissect`
+pairs the arm's two edges off against each other and returns its spine and its
+half-width. The spine is kept: no reading this project takes can be turned
+into a path, and this face draws no stroke that does what this one does. The
+half-width is thrown away and set here instead, against this face's own o
+wall, because a donated thickness is a donated wall and this face has one of
+its own. `donor.stroke` then draws the two edges back out as cubics.
+
+This is not METHOD F15, which rejected a centreline stroked at a CONSTANT width
+with its ends cut off square -- that has no modulation and no terminal and
+reads as bent wire. This one is thicker at the root than at the free end by
+the amount the panel says, and ends in the cut this face cuts.
+
+What comes back from that:
+
+  * the letter is ONE outline, and the arm is the bowl's own wall carrying on
+    upward. The spine starts on the middle of o's right-hand wall and `splice`
+    turns the departure onto the bowl's own tangent, so there is no seam;
+  * the arm's weight and its taper are the constants below, and its reach,
+    rise, terminal and junction are then MEASURED against the panel rather
+    than aimed at -- `build` prints all five every run;
+  * the bowl is this face's own o, untouched, which settles the counter, the
+    overshoot, the x-height and the fitting for nothing. The panel says that
+    is the right bowl: its д's right-hand side is as round as its own o's
+    (0.110 against 0.141 of dev over run) and nothing like its own d's stem
+    (0.009). `tools/de_vs_d.py`. д is not d;
+  * no weight solve, no donor axis, no bracket guard, no absorbed stub. All
+    four existed to keep an emergent thickness in band and none of them has
+    anything to do any more.
 
 Why Lilex and not Sudo, which is this project's donor of record and supplied
 г. Sudo draws the OTHER cursive д, the one with a descender, shaped like a g.
 Both forms are real and this face has settled on the ∂ form, so Sudo's is the
-wrong letter here -- rule 9, METHOD F13. Of the OFL italics on this machine
-that draw the ∂ form, Lilex is the one whose weights are structurally
-identical: its Thin and Bold italics carry the same segments in the same order,
-which is what lets them serve as a weight axis. The static families that do not
-(JetBrains Mono, Ioskeley) differ by a node or two per contour, and a font
-whose masters disagree on node count does not build.
-
-What comes back to this face, all of it measured by `tools/gd_band.py` over
-the eleven monospace italics that actually draw the cursive:
-
-  * the bowl -- this face's own o, untouched, which settles the counter, the
-    overshoot, the x-height and the fitting for nothing;
-  * the height, 1.38 of o's (panel 1.31..1.50), which is where Lilex already
-    draws it;
-  * the width, MEASURED and not fitted -- 1.00 and 1.05 of o's against a panel
-    of 1.00..1.15, read LEANING (METHOD F16). It used to be fitted, and fitting
-    it separately from the height is what squashed the donor by a seventh at
-    the heavy master and put a spike on the terminal. One scale. METHOD F18;
-  * the ARM's own weight, 0.93 of o's wall (panel 0.87..0.97), solved on
-    Lilex's own two weights read as an axis and read down the arm's own
-    columns by `tools/de_arm.py`. It was read by `weights.branch_of` before,
-    across ROWS, with the last of them trimmed by the bowl -- which reported
-    0.89 and was believed while the arm itself measured **0.56 of o's wall at
-    Thin**. The letter was too light for the whole of its light half and every
-    reading taken of it said otherwise.
+wrong letter here -- rule 9, METHOD F13. And Lilex is CFF, so its curves are
+the designer's own cubics rather than quadratics expanded to a node every few
+units, which matters when a spine is being read off them.
 """
 import math
-import os
 import sys
 
 sys.path.insert(0, "tools")
@@ -57,72 +67,66 @@ sys.path.insert(0, "scripts")
 import glyphsLib
 from geom import area, bbox
 from params import Params, Lower, _flatten
-from donor import (blend, centre, emit, leaning, mapped, mask,
-                   poly, pts_of, same_drawing, splice, stand_up, trim,
-                   to_nodes, to_segs)
+from donor import (centre, dissect, emit, leaning, mapped, mask, poly,
+                   pts_of, resample, same_drawing, splice, stand_up, stroke,
+                   trim, to_nodes, to_segs)
 
 FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
 CP = 0x0434
 OUT = "tools/de_donor.py"
 SRC = "sources/SUSEMono-Italic.glyphs"
 
-# What the letter should measure, over this face's own o -- `tools/gd_band.py`.
-DE_HOOK = 0.93          # the ARM's own weight over o's wall  panel 0.87..0.97
+# The arm's own weight, over this face's own o wall, at each end of it. These
+# are SET, and everything else about the arm is measured against the panel
+# afterwards -- which is the whole change. They used to be emergent: the arm's
+# thickness was whatever survived a fit, a two-weight blend, a terminal cut and
+# a splice, and `tools/de_arm.py` caught what that produced -- the free end six
+# times the root at Thin and half of it at ExtraBold, from one donor. A
+# quantity nobody sets is a quantity nobody can interpolate.
 #
-# Read by `tools/de_arm.py` down the arm's own columns, not by
-# `weights.branch_of` by rows. The old target was 0.89 on branch_of and it
-# was hit at both masters while the arm actually measured 0.56 of o's wall
-# at Thin -- a solve is only ever as good as what it is solving for, and
-# this one was pointed at a quantity that is not the arm. METHOD F18.
-DE_WIDE = 1.04          # the whole letter's width over o's panel 1.00..1.15
+# The panel, over the eight monospace italics that draw the ∂ form:
+#   the free end  0.79..1.09 of o's wall, median 0.88
+#   the arm       0.87..0.97, median 0.93
+#   free end over root, along the arm  0.64..1.01, median 0.87
+#
+# The free end is barely lighter than the wall: this letter does not taper
+# away to a point in any of them, it thins by about a tenth and is then cut.
+# That figure was 0.72 an hour ago and it was the probe, not the panel --
+# `de_arm` read the widest disc that fits within a band at the very end of the
+# arm, and no disc within `w` of a cut end is wider than `w`, so the band was
+# being measured instead of the terminal. Read an eighth of the arm back from
+# the end, clear of the corner, the same eight faces say 0.88.
+DE_TIP = 0.86           # at the free end   panel 0.79..1.09
+DE_ROOT = 0.98          # where it leaves the bowl's own wall
 
-# Lilex draws this letter as one stroke: up the bowl's right side, on over the
-# top and back to the left, ending in a cut terminal. These are the segments of
-# its outer contour that are HOOK rather than bowl -- from where the bowl's
-# right wall carries on upward, round the top, and back down the hook's
-# underside. Counted off by index because the two weights carry the same
-# segments in the same order, which `same_drawing` asserts before anything
-# else runs.
+# How far the spine carries on DOWN the bowl's wall past the donor's root,
+# over o's height. The stroke has to start well inside the bowl's ink so that
+# `splice` has an unambiguous crossing to cut at on each side; none of this run
+# is ever seen. Its width closes down over the same run so it stays inside the
+# wall rather than sitting on it, which is what makes the crossing a crossing.
+DE_DEEP = 0.34
+
+# Where the two edges get a node, as fractions of the VISIBLE arm. Three
+# cubics an edge, and the first of them starts down in the buried run --
+# `splice` throws away whatever is inside the bowl, so a knot spent down there
+# is a knot spent on nothing. The letter comes out at 16 nodes against o's 8;
+# г shipped at 34 once and was rejected for it.
+KNOTS = (0.0, 0.38, 0.70, 1.0)
+TERM = len(KNOTS) - 1   # the terminal is the segment after the last one up
+
+# The segments of Lilex's own outer contour that are ARM rather than bowl.
+# `HOOK` is what `bowl_top` reads to know where the donor's crown stops rising,
+# which is what `fit` scales onto this face's o. The two runs given to
+# `dissect` are the arm's two edges, each in the direction that runs from the
+# free end back towards the root: negative means that segment walked backwards.
 #
-# Lilex's own segments 8 and 9 -- a three-unit notch where the underside meets
-# the bowl's crown -- are kept, and `tools/outlines.py` flags the shorter of
-# them. Dropping them was tried and is worse: the closing chord then runs from
-# the underside straight to the departure point across the stroke's corner,
-# which turned a 3-unit segment into a 126-degree kink and an extreme missed by
-# 19 units. The whole root sits buried inside the bowl's ink and comes out in
-# the overlap removal, which is the answer to all three findings there.
+# 5 is the terminal, and it is not read. Lilex's Thin cuts it 19 units long,
+# straight across the stroke; its Bold cuts 126 at a shallow slant. Pairing two
+# edges off either side of an oblique cut is a guess at one end, which is the
+# second reason only the Thin is used here.
 HOOK = (3, 4, 5, 6, 7, 8, 9)
-
-# The terminal is the one straight segment inside the hook.
-CUT = 5
-
-# What the junction measures. The swell where the stroke grows out of the bowl
-# runs 1.13 to 1.41 of o's own wall across the eleven references, median 1.21.
-#
-# It is not a number that is solved for -- it is what the splice produces. A
-# stroke merely OVERLAPPING the oval, which is what this was, has no swell at
-# all: 1.13 / 1.01 / 1.00 at Thin, Regular and ExtraBold, under everything
-# measured, and it reads as a stroke grazing a bowl rather than growing out of
-# one. The swell lives in the piece of the donor's outline between where its
-# stroke leaves the bowl and where it comes back, and that is exactly the piece
-# an overlap throws away. Spliced, it is the donor's own.
-#
-# The splice's own cuts land wherever the two outlines cross, and when that is
-# near the end of one of the donor's segments the leftover is a STUB: at Thin
-# the departure fell at 0.94 and left 36 units with a bow of 0.02, a dead
-# straight piece of curve carrying its own node, which beside the arc's cut end
-# made three nodes strung along one straight run. Visible at any zoom and
-# invisible to every ink reading. `donor.absorb` carries the arc's last segment
-# on to the stub's far end instead, which is also where the Thin junction's
-# 1.34 became 1.49 -- above the panel's ceiling, and the one figure here still
-# outside it.
-#
-# Carrying the root further down the wall was tried first, before the splice,
-# and is recorded because the way it failed is worth keeping: the chord closing
-# the contour then ran from the wall's inner edge to its outer one, straight
-# across the counter, filling part of it in and leaving a wedge at the
-# junction. The junction probe read the wedge, both masters moved toward the
-# target, and the letter got worse. METHOD F6, from the other end.
+OUTER = (-4, -3)
+UNDER = (6, 7, 8, 9)
 
 
 def bowl_top(sg):
@@ -156,9 +160,9 @@ def fit(sg, pr):
     same masters. Three readings moving together with the squash, and Thin --
     the master that was nearly square -- was the one that looked right.
 
-    The letter's width is therefore not fitted at all now. It is what the donor
-    draws at the size its bowl has to be, and it is measured rather than aimed
-    at; `DE_WIDE` records the panel band it has to land in.
+    The letter's width is therefore not fitted at all now. It is what the
+    donor draws at the size its bowl has to be, and `build` measures it against
+    the panel's 1.00..1.15 rather than aiming at it.
     """
     ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
     ps = pts_of(sg[0])
@@ -171,42 +175,162 @@ def fit(sg, pr):
     return centre(out, pr, 0, 0.5 * (ox0 + ox1))
 
 
-def shape(a, b, t, pr):
-    """The letter's outer contour: this face's o with the stroke grown out of it.
+def _cross(poly, y):
+    """Where a closed polyline crosses the height `y`, as x values."""
+    out = []
+    n = len(poly)
+    for i in range(n):
+        (ax, ay), (bx, by) = poly[i], poly[(i + 1) % n]
+        if (ay > y) != (by > y):
+            out.append(ax + (y - ay) * (bx - ax) / ((by - ay) or 1e-12))
+    return out
 
-    Not the stroke laid over the bowl, which is what this was and what the
-    junction reading found wanting -- a stroke that merely overlaps an oval
-    meets it with no swell at all, 1.00 of the bowl's own wall at the heavy
-    master against a panel that runs 1.13 to 1.41. The swell is the donor's
-    and it lives in the piece of its outline between where the stroke leaves
-    the bowl and where it comes back, which is exactly the piece an overlap
-    throws away. `donor.splice` keeps it.
 
-    The terminal is cut before the splice rather than after: it only moves two
-    points, they are the far end of the letter from the junction, and doing it
-    here means naming the segment by the index it has in the donor's own
-    contour instead of the one it ends up with.
+def wall(pr, y=None):
+    """This face's own o, read at height `y`: the middle of its right-hand
+    wall, and how thick that wall is ACROSS itself.
+
+    The arm is the bowl's wall carrying on upward, so the wall is both where
+    the stroke starts and what it weighs.
+
+    Across itself and not along a row. A row through a wall is only the wall's
+    own thickness where the wall stands upright, and the arm leaves near the
+    top of the bowl where it has already begun to turn: read by rows there, o's
+    wall came out half again as thick as it is and its middle a long way
+    outside itself, which put the arm's root off the wall and left a lump where
+    the two met -- the widest disc in the letter read 1.79 of the wall at Thin
+    against a panel ceiling of 1.41. METHOD F16 is the same mistake in the
+    other direction: measure the quantity, not a section of it that happens to
+    be easy. So take the point on the outer contour at that height and the
+    point on the counter NEAREST to it, which is across the wall by
+    construction wherever the wall happens to be pointing.
     """
-    sg = fit(blend(a, b, t), pr)
-    outer = trim(sg[0], CUT, pr.italic)
     ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
-    got = splice(to_segs(ps[0]), (outer[0][1][-1], list(outer[1:])))
+    out = [q for q in _flatten(ps[0], 48)]
+    inn = [q for q in _flatten(ps[1], 48)]
+    if y is None:
+        ys = [q[1] for q in out]
+        y = 0.5 * (min(ys) + max(ys))
+    xs = _cross(out, y)
+    if not xs:
+        raise SystemExit("this face's o has no right-hand wall at %.0f -- the "
+                         "arm has nowhere to start" % y)
+    a = (max(xs), y)
+    b = min(inn, key=lambda q: (q[0] - a[0]) ** 2 + (q[1] - a[1]) ** 2)
+    return (0.5 * (a[0] + b[0]), 0.5 * (a[1] + b[1])), math.hypot(
+        a[0] - b[0], a[1] - b[1])
+
+
+def _along(pts, hs, n):
+    """A polyline and a width carried along it, re-cut evenly by length."""
+    out = resample(pts, n)
+    keep = []
+    run = [0.0]
+    for i in range(1, len(pts)):
+        run.append(run[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                        pts[i][1] - pts[i - 1][1]))
+    total = run[-1] or 1.0
+    for k in range(n):
+        want = total * k / float(n - 1)
+        j = 1
+        while j < len(run) - 1 and run[j] < want:
+            j += 1
+        f = (want - run[j - 1]) / ((run[j] - run[j - 1]) or 1.0)
+        keep.append(hs[j - 1] + (hs[j] - hs[j - 1]) * f)
+    return out, keep
+
+
+def arm(sg, pr):
+    """The arm's spine, and how thick the arm is along it.
+
+    The spine is the donor's -- where the stroke GOES is what a donation is
+    for, and no reading this project takes can be turned into a path. The
+    thickness is not: it is this face's own wall at each end, tapering between
+    them, because a donated thickness is a donated wall and this face has one
+    of its own.
+
+    Lilex's THIN italic and not its Bold, and one weight rather than the two
+    read as an axis. Two reasons, both measured. Its Thin cuts the terminal 19
+    units long, straight across the stroke, where its Bold cuts 126 units at a
+    shallow slant -- and a spine is found by pairing the two edges off, which
+    an oblique cut makes a guess at one end. And the axis is what stopped the
+    letter interpolating: the same blend that put the donor at +0.11 for one
+    master and +1.07 for the other carried Lilex's own taper, 0.25 at Thin
+    against 0.80 at Bold, into two masters that then had to be one drawing.
+
+    Below the donor's root the spine carries on down the middle of this face's
+    own wall -- not along the donor's tangent, which leaves the wall as soon as
+    the wall turns. That run is buried in the bowl and only exists so `splice`
+    has something to cut.
+    """
+    spine, _half = dissect(sg, OUTER, UNDER)                 # free end -> root
+    root = spine[-1]
+    mid, _w = wall(pr, root[1])
+    spine = [(x + (mid[0] - root[0]), y + (mid[1] - root[1]))
+             for x, y in spine]
+    root = spine[-1]
+
+    oy = bbox(pr.paths("o"))
+    deep = root[1] - DE_DEEP * (oy[3] - oy[1])
+    bury = [wall(pr, y)[0]
+            for y in [root[1] - (root[1] - deep) * k / 12.0
+                      for k in range(1, 13)]]
+
+    _m, wall_w = wall(pr)
+    pts = spine + bury
+    run = [0.0]
+    for i in range(1, len(pts)):
+        run.append(run[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                        pts[i][1] - pts[i - 1][1]))
+    seen = run[len(spine) - 1] or 1.0
+    hs = []
+    for d in run:
+        s = d / seen
+        if s <= 1.0:
+            k = DE_TIP + (DE_ROOT - DE_TIP) * s
+        else:
+            k = DE_ROOT * max(0.70, 1.0 - 0.9 * (s - 1.0))
+        hs.append(0.5 * wall_w * k)
+    pts, hs = _along(pts, hs, 160)
+    return pts[::-1], hs[::-1], seen / (run[-1] or 1.0)
+
+
+def shape(donor, pr):
+    """The letter: this face's o with the arm drawn out of its own wall.
+
+    One outer contour, as before -- `splice` cuts the bowl where the stroke
+    leaves it and where it comes back, keeps the piece between, and turns the
+    departure onto the bowl's own tangent so the wall becomes the arm without
+    a corner. What is spliced in is no longer a piece of somebody else's
+    letter, though: it is a stroke of this face's own weight drawn along the
+    donor's path, which is the answer to a tail that was neither this face's
+    nor the donor's but what four transformations left of one.
+    """
+    sg = fit([donor], pr)[0]
+    spine, half, seen = arm(sg, pr)
+    # the knots are laid over the VISIBLE arm and the buried run gets one, so
+    # the same fractions mean the same places at both masters
+    at_root = 1.0 - seen
+    ks = [at_root + (1.0 - at_root) * k for k in KNOTS]
+    st = stroke(spine, half, [0.0] + ks[1:])
+    st = trim(st, TERM, pr.italic)
+    ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
+    got = splice(to_segs(ps[0]), (st[-1][1][-1], list(st)),
+                 tidy=False)
     if got is None:
-        raise SystemExit("the stroke does not cross this face's o twice -- it "
-                         "is not attached to the bowl and the letter would "
-                         "come out in two pieces")
+        raise SystemExit("the arm does not cross this face's o twice -- it is "
+                         "not attached to the bowl and the letter would come "
+                         "out in two pieces")
     start, segs = got
     return [("start", [start])] + segs
 
 
-def solve(a, b, pr):
-    """Where on the donor's two weights the hook weighs what the panel says.
+def readings(sh, pr):
+    """What the arm came out measuring: its weight, its free end, its taper.
 
-    Read off the render with the bowl in place, because `weights.branch_of`
-    finds the hook by where the counter stops -- the stroke above the bowl's
-    own crown, trimmed at each end by the bowl's wall so the terminal's cut and
-    the junction do not decide the answer. Both leaning, and at twice the
-    band's own resolution: METHOD F16.
+    Set the width and measure the rest -- these are the readings `DE_TIP` and
+    `DE_ROOT` are answerable for, taken the same way `tools/de_arm.py` takes
+    them off the built font, so the two can be compared before a build.
     """
     import statistics as st
     import numpy as np
@@ -220,91 +344,45 @@ def solve(a, b, pr):
         return [(x + (y - pr.pivot) * lean, y) for x, y in pts]
 
     bowl = [over(_flatten(q, 96)) for q in pr.paths("o")]
-    wall = W.width(W.edt(mask([bowl], scale)))
+    wl = W.width(W.edt(mask([bowl], scale)))
     hole = over(_flatten(sorted(pr.paths("o"),
                                 key=lambda q: -abs(area(q)))[1], 96))
-
-    # one group, XORed: the letter is a single outer contour now, with o's own
-    # counter punched out of it, and that is what the built font fills
-    def ink(t):
-        return mask([[over(poly(to_nodes(shape(a, b, t, pr)), 40)), hole]],
-                    scale)
-
-    def ratio(t):
-        """The ARM's own weight, read down the arm's own columns.
-
-        Not `weights.branch_of`, which is what this targeted and which was
-        measuring the wrong thing. branch_of reads by ROWS and trims the last
-        of them by the bowl's wall, and both are wrong for this letter: the arm
-        curves over the top, so a row cuts across it only where it happens to
-        be upright, and a trim that depends on the junction means changing the
-        junction moves this reading and moves the solve that targets it --
-        CLAUDE.md rule 5, two constants justifying each other, which is exactly
-        what happened when the seam was changed and the axis at the light
-        master slid from +0.17 to -0.33 on its own.
-
-        The cost of that was not a wobble, it was the letter: branch_of
-        reported 0.87 and 0.89 at the two masters and was believed, while the
-        arm itself measured **0.56 of o's wall at Thin** against a panel of
-        0.87..0.97. The arm has been too light the whole time and every
-        reading taken of it said otherwise. `tools/de_arm.py`.
-        """
-        m = ink(t)
-        ys, xs = np.where(m)
-        split = ys.max() + 1 - int(round((oy[3] - oy[1]) * scale))
-        if split <= ys.min() + 2:
-            return 99.0
-        above = m[:split]
-        if not above.any():
-            return 99.0
-        e = W.edt(m)
-        cols = np.where(above.any(axis=0))[0]
-        drop = max(1, len(cols) // 6)
-        keep = cols[drop:-drop]
-        if not len(keep):
-            return 99.0
-        return st.median([2.0 * e[:split, c].max() / wall for c in keep])
-
-    lo, hi = -1.2, 3.0
-    for _ in range(16):
-        mid = 0.5 * (lo + hi)
-        if ratio(mid) < DE_HOOK:
-            lo = mid
-        else:
-            hi = mid
-    t = 0.5 * (lo + hi)
-    # a bisection that ends against its own bracket has not solved anything --
-    # it has run out of room and is about to report the far end as the answer.
-    # It did: at one setting this landed at -1.20 with the hook reading 3.05 of
-    # o's wall and printed it as a result. METHOD's own note about a solve
-    # running to the end of its bracket and reporting success, again.
-    if min(abs(t - -1.2), abs(t - 3.0)) < 1e-3:
-        raise SystemExit("the donor's axis ran to the end of its bracket at "
-                         "%+.2f and the reading there is %.2f, not %.2f -- "
-                         "this is not a solution, it is the bracket"
-                         % (t, ratio(t), DE_HOOK))
-    return t, ratio(t), W.width(W.edt(ink(t))) / wall
+    m = mask([[over(poly(to_nodes(sh), 40)), hole]], scale)
+    ys, _xs = np.where(m)
+    split = ys.max() + 1 - int(round((oy[3] - oy[1]) * scale))
+    above = m[:split]
+    e = W.edt(m)
+    cols = np.where(above.any(axis=0))[0]
+    k = max(1, len(cols) // 6)
+    thick = [2.0 * e[:split, c].max() for c in cols]
+    # the free end read the way `tools/de_arm.py` reads it -- the widest disc
+    # in the few columns at the very end, not a median over a sixth of the arm,
+    # which asks about the run behind the terminal and not about the terminal
+    lo_c, hi_c = max(2, int(0.08 * len(cols))), max(4, int(0.20 * len(cols)))
+    return (st.median(thick[k:-k]) / wl,
+            2.0 * e[:split, cols[0] + lo_c:cols[0] + hi_c].max() / wl,
+            st.median(thick[:k]) / st.median(thick[-k:]),
+            W.width(W.edt(m)) / wl)
 
 
 def build():
     font = glyphsLib.load(open(SRC))
-    a, b, deg = same_drawing(FILES, CP, "д")
+    a, _b, deg = same_drawing(FILES, CP, "д")
     a = [stand_up(c, deg) for c in a]
-    b = [stand_up(c, deg) for c in b]
     out = []
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
-        t, got, jn = solve(a, b, pr)
-        sh = shape(a, b, t, pr)
-        # the width is measured now, not aimed at -- see `fit`
+        sh = shape(a[0], pr)
+        armwt, tip, taper, jn = readings(sh, pr)
+        # the width is measured, not aimed at -- see `fit`
         wide = leaning(pts_of(sh), pr.italic, pr.pivot) / leaning(
             [q for q in _flatten(max(pr.paths("o"), key=lambda q: abs(area(q))),
                                  16)], pr.italic, pr.pivot)
-        print("  master %d  donor axis %+.2f   hook %.2f (wanted %.2f)   "
-              "junction %.2f (panel 1.13..1.41 -- see DE_JOIN)   "
-              "width %.2f (panel 1.00..1.15)"
-              % (mi, t, got, DE_HOOK, jn, wide))
-        out.append((t, [to_nodes(sh)]))
+        print("  master %d  arm %.2f (0.87..0.97)  free end %.2f (0.79..1.09)"
+              "  taper %.2f (0.64..1.01)  junction %.2f (1.13..1.41)"
+              "  width %.2f (1.00..1.15)"
+              % (mi, armwt, tip, taper, jn, wide))
+        out.append((0.0, [to_nodes(sh)]))
     n = {tuple(len(p) for p in ps) for _t, ps in out}
     if len(n) != 1:
         raise SystemExit("the masters came out with different nodes, %s -- the "
@@ -313,17 +391,19 @@ def build():
 
 
 def main():
-    emit(OUT, "DE", """The cursive д's hook, taken from Lilex and fitted here.
+    emit(OUT, "DE", """The cursive д, drawn here along a path taken from Lilex.
 
 Generated by scripts/de_from_lilex.py -- edit that, not this.
-Lilex is under the SIL Open Font License 1.1, which is what lets
-it be an outline donor here. Held as data rather than read from
-the donor at build time so the repository builds without a font
-that lives outside it.
+Lilex is under the SIL Open Font License 1.1, which is what
+lets it be an outline donor here. Held as data rather than read
+from the donor at build time so the repository builds without a
+font that lives outside it.
 
-The BOWL is not here: it is this face's own o, added by the
-recipe. Only the hook is the donor's, closed off across its own
-root and left to overlap the bowl.
+ONE contour plus o's own counter: the bowl is this face's o and
+the arm is a stroke of this face's own weight grown out of its
+right-hand wall, spliced so the wall carries on into it without
+a seam. Nothing of the donor's own outline survives -- only the
+line its arm travels along.
 
 UN-SHEARED, like every outline a recipe sees. One entry per
 master, in source order: contours of (x, y, type, smooth).
