@@ -781,15 +781,27 @@ def fit_cubic(p0, t0, p3, t3, mid):
     rx = mid[0] - 0.5 * (p0[0] + p3[0])
     ry = mid[1] - 0.5 * (p0[1] + p3[1])
     det = t3[0] * t0[1] - t0[0] * t3[1]
-    if abs(det) < 1e-9:
-        a = b = chord / 3.0
-    else:
+    a = b = chord / 3.0
+    if abs(det) >= 1e-9:
         k = 8.0 / 3.0
-        a = (k * rx * -t3[1] - -t3[0] * k * ry) / det
-        b = (t0[0] * k * ry - k * rx * t0[1]) / det
-        lo, hi = 0.03 * chord, 1.2 * chord
-        a = min(hi, max(lo, a))
-        b = min(hi, max(lo, b))
+        sa = (k * rx * -t3[1] - -t3[0] * k * ry) / det
+        sb = (t0[0] * k * ry - k * rx * t0[1]) / det
+        # A NEGATIVE HANDLE IS A FAILED SOLVE, NOT A SHORT ONE.
+        #
+        # `mid` can only be reached with the given tangents when the segment
+        # turns one way throughout. Across an inflection there is no answer,
+        # and the arithmetic says so by asking for a handle pointing backwards.
+        # Clamping that to a small positive number was the bug: a handle at a
+        # thirtieth of the chord is a straight line, so the fitter answered
+        # "no such curve" by drawing the flattest thing it could. Two segments
+        # per master were doing it -- the solve wanted -2.5 of the chord at
+        # Thin and -12 at ExtraBold -- and that straight run at the seam is
+        # what д was rejected for three times over. Fall back to the plain
+        # third-of-the-chord cubic, which honours both tangents and simply
+        # does not pass through `mid`. METHOD F19.
+        if sa > 0.0 and sb > 0.0:
+            hi = 1.2 * chord
+            a, b = min(hi, sa), min(hi, sb)
     return ("curve", [(p0[0] + t0[0] * a, p0[1] + t0[1] * a),
                       (p3[0] - t3[0] * b, p3[1] - t3[1] * b), p3])
 
