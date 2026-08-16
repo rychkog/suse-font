@@ -59,6 +59,7 @@ the designer's own cubics rather than quadratics expanded to a node every few
 units, which matters when a spine is being read off them.
 """
 import math
+import os
 import sys
 
 sys.path.insert(0, "tools")
@@ -67,11 +68,20 @@ sys.path.insert(0, "scripts")
 import glyphsLib
 from geom import area, bbox
 from params import Params, Lower, _flatten
-from donor import (centre, dissect, emit, leaning, mapped, mask, poly,
-                   pts_of, resample, same_drawing, splice, stand_up, stroke,
-                   trim, to_nodes, to_segs)
+from donor import (arm_of, centre, dissect, emit, find, leaning, mapped,
+                   mask, poly, pts_of, resample, segments_of, splice,
+                   stand_up, stroke, trim, to_nodes, to_segs)
 
-FILES = ("Lilex-ThinItalic.otf", "Lilex-BoldItalic.otf")
+# The donor, and it is a PATH donor: only where its stroke RUNS comes across,
+# so what has to suit this face is the bowl it was drawn to leave. Override
+# with SUSE_DE_DONOR to try another. `tools/de_paths.py` lays every candidate's
+# own stroke over this face's o; `tools/de_seam.py` shows what each does where
+# the arm lands, which is where a badly suited path shows first.
+#
+# It must be OFL, and it should be CFF: a variable TrueType arrives as
+# quadratics with a node every few units, and the spine is read off the nodes.
+DONOR = os.environ.get("SUSE_DE_DONOR",
+                       "MonaspaceXenon-WideExtraLightItalic.otf")
 CP = 0x0434
 OUT = "tools/de_donor.py"
 SRC = "sources/SUSEMono-Italic.glyphs"
@@ -96,83 +106,84 @@ SRC = "sources/SUSEMono-Italic.glyphs"
 # arm, and no disc within `w` of a cut end is wider than `w`, so the band was
 # being measured instead of the terminal. Read an eighth of the arm back from
 # the end, clear of the corner, the same eight faces say 0.88.
-DE_TIP = 0.86           # at the free end   panel 0.79..1.09
-DE_ROOT = 0.98          # where it leaves the bowl's own wall
+DE_TIP = 0.82           # at the free end   panel 0.79..1.09
+DE_ROOT = 0.86          # where it leaves the bowl's own wall
 
 # How far the spine carries on DOWN the bowl's wall past the donor's root,
 # over o's height. The stroke has to start well inside the bowl's ink so that
 # `splice` has an unambiguous crossing to cut at on each side; none of this run
 # is ever seen. Its width closes down over the same run so it stays inside the
 # wall rather than sitting on it, which is what makes the crossing a crossing.
-DE_DEEP = 0.34
+DE_DEEP = 0.12
+
 
 # Where the two edges get a node, as fractions of the VISIBLE arm. Three
 # cubics an edge, and the first of them starts down in the buried run --
 # `splice` throws away whatever is inside the bowl, so a knot spent down there
 # is a knot spent on nothing. The letter comes out at 16 nodes against o's 8;
 # г shipped at 34 once and was rejected for it.
-KNOTS = (0.0, 0.38, 0.70, 1.0)
-TERM = len(KNOTS) - 1   # the terminal is the segment after the last one up
-
-# The segments of Lilex's own outer contour that are ARM rather than bowl.
-# `HOOK` is what `bowl_top` reads to know where the donor's crown stops rising,
-# which is what `fit` scales onto this face's o. The two runs given to
-# `dissect` are the arm's two edges, each in the direction that runs from the
-# free end back towards the root: negative means that segment walked backwards.
+KNOTS = (0.0, 0.26, 0.52, 0.76, 1.0)
+# Whether the departure gets a node of its own. It does, and it has to, for a
+# reason that is about the fitting and not about the drawing: without one, the
+# lowest cubic of each edge spans the seated run AND the free arm, and a curve
+# fitted across a piece of o's own contour and a piece of the donor's path
+# averages the two into a straight line. Read down the right edge, the samples
+# bending the wrong way go from six to two once the departure has a node.
 #
-# 5 is the terminal, and it is not read. Lilex's Thin cuts it 19 units long,
-# straight across the stroke; its Bold cuts 126 at a shallow slant. Pairing two
-# edges off either side of an oblique cut is a guess at one end, which is the
-# second reason only the Thin is used here.
-HOOK = (3, 4, 5, 6, 7, 8, 9)
-OUTER = (-4, -3)
-UNDER = (6, 7, 8, 9)
+# It was tried once BEFORE the arm was seated on o and it made things worse --
+# a bulge that took the widest disc to 1.57 of o's wall -- which is the usual
+# shape of things: a fix aimed at a symptom moves it, and the same fix aimed at
+# a cause works. METHOD F19.
+DE_ROOT_KNOT = True
 
+# Over how much of o's height the path is handed over from the donor's bowl to
+# this face's, just below the crown. Wide is wrong: spread all the way down to
+# the donor's own root, the hand-over is still only half done where the arm
+# actually leaves the bowl, so the two edges part company with a curvature
+# break -- a visible corner with the arm bulging four units outside o, and the
+# straight stretch below it (which is o's own wall, and correct) reading as
+# part of the same fault. Kept to a band just under the crown, the letter is
+# this face's own o everywhere below the departure and the join has nothing to
+# break.
+DE_HAND = 0.20
 
-def bowl_top(sg):
-    """The top of the donor's own bowl -- where its crown stops rising.
+# How far INSIDE o's own outer contour the seated arm sits, in walls. Seated
+# exactly on it, the two outlines are tangent for a long run and `splice` has
+# no crossing to cut at -- it reports the arm as unattached. A hair inside, the
+# outline below the crown is o's own and nothing else, which is the point.
+DE_INSET = 0.06
 
-    The letter's own highest point is the hook, so this is read off the segment
-    that ends on the crown, which is the one the hook's notch hands over to.
-    """
-    return sg[HOOK[-1] + 1][1][-1][1]
+def fit(sg, o, pr):
+    """The donor's own o onto this face's o, at ONE scale in both directions.
 
+    Its own **o** and not its bowl. A д's bowl is not a shape two faces agree
+    on -- that is the whole reason this letter has been hard -- and an o is.
+    Everything else, how far the arm rises and how far left it reaches, then
+    follows at the donor's own proportion.
 
-def fit(sg, pr):
-    """The donor's BOWL onto this face's o, at ONE scale in both directions.
-
-    The bowl and not the letter: the bowl is what has to end up sitting on this
-    face's own o, and everything else -- how far the hook rises, how far left it
-    reaches -- follows at the donor's own proportion, which `tools/gd_band.py`
-    puts inside the panel already.
-
-    **One scale, and this is the whole of what was wrong with the letter.** The
-    height was fitted onto o and the width fitted separately onto the panel's,
-    and two independent fits are a squash: x came out 0.966 of y at Thin and
-    **0.850 at ExtraBold**. A donated outline squashed in one direction is no
-    longer the drawing that was donated -- it re-weights every stroke by the
-    direction that stroke happens to run in, so the bowl's upright walls lost a
-    seventh of their weight while the arm, which runs nearly flat where it
-    ends, kept all of its, and every edge in between got steeper. That is what
-    turned the terminal into an acute spike: `tools/de_arm.py` read the ink at
-    the tip as 1.01 of o's wall at Thin against 0.21 at ExtraBold, over a panel
-    holding 0.60..0.97, and the arm's reach fell from 0.34 to 0.26 across the
-    same masters. Three readings moving together with the squash, and Thin --
-    the master that was nearly square -- was the one that looked right.
-
-    The letter's width is therefore not fitted at all now. It is what the
-    donor draws at the size its bowl has to be, and `build` measures it against
-    the panel's 1.00..1.15 rather than aiming at it.
+    **One scale**, and fitting x and y separately was one of this letter's
+    faults: the height went onto o and the width onto the panel's, and x came
+    out 0.966 of y at Thin and 0.850 at ExtraBold. A donated outline squashed
+    in one direction is no longer the drawing that was donated -- every stroke
+    is re-weighted by the direction it happens to run in and every diagonal is
+    at a new angle. METHOD F18. The width is not fitted at all now; `build`
+    measures it against the panel's 1.00..1.15.
     """
     ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
-    ps = pts_of(sg[0])
-    y0 = min(q[1] for q in ps)
-    k = (oy1 - oy0) / (bowl_top(sg[0]) - y0)
-    mid = 0.5 * (min(q[0] for q in ps) + max(q[0] for q in ps))
-    out = [mapped(c, lambda q: (300.0 + (q[0] - mid) * k,
-                                oy0 + (q[1] - y0) * k)) for c in sg]
-    # centred on the BOWL, so the hook lands on o and not beside it
-    return centre(out, pr, 0, 0.5 * (ox0 + ox1))
+    ps = [q for c in o for q in pts_of(c)]
+    dy0, dy1 = min(q[1] for q in ps), max(q[1] for q in ps)
+    dx0, dx1 = min(q[0] for q in ps), max(q[0] for q in ps)
+    k = (oy1 - oy0) / float(dy1 - dy0)
+    mid = 0.5 * (dx0 + dx1)
+
+    def put(c):
+        return mapped(c, lambda q: (300.0 + (q[0] - mid) * k,
+                                    oy0 + (q[1] - dy0) * k))
+
+    out = [put(c) for c in sg] + [put(c) for c in o]
+    # centred on the donor's own o, so the arm lands over this face's bowl
+    both = centre(out, pr, len(sg), 0.5 * (ox0 + ox1))
+    return both[:len(sg)], both[len(sg):]
 
 
 def _cross(poly, y):
@@ -184,6 +195,13 @@ def _cross(poly, y):
         if (ay > y) != (by > y):
             out.append(ax + (y - ay) * (bx - ax) / ((by - ay) or 1e-12))
     return out
+
+
+def edge(pr, y):
+    """Where this face's own o has its right-hand OUTER edge at height `y`."""
+    ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
+    xs = _cross([q for q in _flatten(ps[0], 48)], y)
+    return max(xs) if xs else None
 
 
 def wall(pr, y=None):
@@ -217,8 +235,8 @@ def wall(pr, y=None):
                          "arm has nowhere to start" % y)
     a = (max(xs), y)
     b = min(inn, key=lambda q: (q[0] - a[0]) ** 2 + (q[1] - a[1]) ** 2)
-    return (0.5 * (a[0] + b[0]), 0.5 * (a[1] + b[1])), math.hypot(
-        a[0] - b[0], a[1] - b[1])
+    return ((0.5 * (a[0] + b[0]), 0.5 * (a[1] + b[1])),
+            math.hypot(a[0] - b[0], a[1] - b[1]))
 
 
 def _along(pts, hs, n):
@@ -240,7 +258,7 @@ def _along(pts, hs, n):
     return out, keep
 
 
-def arm(sg, pr):
+def arm(sg, runs, pr):
     """The arm's spine, and how thick the arm is along it.
 
     The spine is the donor's -- where the stroke GOES is what a donation is
@@ -263,39 +281,84 @@ def arm(sg, pr):
     the wall turns. That run is buried in the bowl and only exists so `splice`
     has something to cut.
     """
-    spine, _half = dissect(sg, OUTER, UNDER)                 # free end -> root
+    spine, _half = dissect(sg, *runs)                        # free end -> root
     root = spine[-1]
     mid, _w = wall(pr, root[1])
     spine = [(x + (mid[0] - root[0]), y + (mid[1] - root[1]))
              for x, y in spine]
     root = spine[-1]
 
+    # BELOW THE CROWN THE ARM IS THE BOWL'S RIGHT-HAND SIDE, so below the
+    # crown its OUTER EDGE is laid on this face's own o and stays there.
+    #
+    # Seated on the middle of the wall instead -- which is where it was -- the
+    # arm is narrower than the wall, so it runs up INSIDE o and then has to
+    # push out through it at the departure and come back in. That is an
+    # inflection, and an inflection is a flat spot where it turns over. Read
+    # down the right edge at ExtraBold: o's own wall bends steadily at -2 to
+    # -3 units per twentieth of its height, the arm leaves at 0.80 bending
+    # **+2.8, the other way**, passes through zero at the x-height and comes
+    # back. That reversal is what this letter was rejected for twice, and the
+    # second time it was named -- "for some reason that part is flat".
+    #
+    # With the outer edge on o's own contour there is nothing to push through
+    # and nothing to come back from: the bowl's right side and the arm are one
+    # curve, bending one way throughout. That is what the references draw. The
+    # donor's own д does not stand on a plain o either -- its right side IS the
+    # stroke coming down, and it was chosen for exactly that. The counter is
+    # still this face's o, untouched, and so is the bowl everywhere else.
+    #
+    # The widths have to be known before the arm can be seated, and they are
+    # measured along the spine, so it goes round twice: place, measure, seat,
+    # measure again. Both passes are arithmetic on 160 points.
     oy = bbox(pr.paths("o"))
-    deep = root[1] - DE_DEEP * (oy[3] - oy[1])
-    bury = [wall(pr, y)[0]
-            for y in [root[1] - (root[1] - deep) * k / 12.0
-                      for k in range(1, 13)]]
-
+    oh = oy[3] - oy[1]
+    crown = oy[3] - 0.04 * oh
+    span = DE_HAND * oh
     _m, wall_w = wall(pr)
-    pts = spine + bury
-    run = [0.0]
-    for i in range(1, len(pts)):
-        run.append(run[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
-                                        pts[i][1] - pts[i - 1][1]))
-    seen = run[len(spine) - 1] or 1.0
-    hs = []
-    for d in run:
-        s = d / seen
-        if s <= 1.0:
-            k = DE_TIP + (DE_ROOT - DE_TIP) * s
-        else:
-            k = DE_ROOT * max(0.70, 1.0 - 0.9 * (s - 1.0))
-        hs.append(0.5 * wall_w * k)
-    pts, hs = _along(pts, hs, 160)
+
+    def with_bury(sp):
+        low = sp[-1][1] - DE_DEEP * oh
+        return sp + [wall(pr, y)[0]
+                     for y in [sp[-1][1] - (sp[-1][1] - low) * k / 12.0
+                               for k in range(1, 13)]]
+
+    def widths(pts, n):
+        run = [0.0]
+        for i in range(1, len(pts)):
+            run.append(run[-1] + math.hypot(pts[i][0] - pts[i - 1][0],
+                                            pts[i][1] - pts[i - 1][1]))
+        seen = run[n - 1] or 1.0
+        hs = []
+        for d in run:
+            u = d / seen
+            if u <= 1.0:
+                k = DE_TIP + (DE_ROOT - DE_TIP) * u
+            else:
+                k = DE_ROOT * max(0.70, 1.0 - 0.9 * (u - 1.0))
+            hs.append(0.5 * wall_w * k)
+        return run, seen, hs
+
+    n = len(spine)
+    pts = with_bury(spine)
+    _run, _seen, hs = widths(pts, n)
+
+    seated = []
+    for (x, y), h in zip(pts, hs):
+        e = edge(pr, y)
+        if y >= crown or e is None:
+            seated.append((x, y))
+            continue
+        u = min(1.0, (crown - y) / span)
+        u = u * u * (3.0 - 2.0 * u)
+        seated.append((x + ((e - h - DE_INSET * wall_w) - x) * u, y))
+
+    run, seen, hs = widths(seated, n)
+    pts, hs = _along(seated, hs, 160)
     return pts[::-1], hs[::-1], seen / (run[-1] or 1.0)
 
 
-def shape(donor, pr):
+def shape(donor, o, runs, pr):
     """The letter: this face's o with the arm drawn out of its own wall.
 
     One outer contour, as before -- `splice` cuts the bowl where the stroke
@@ -306,14 +369,15 @@ def shape(donor, pr):
     donor's path, which is the answer to a tail that was neither this face's
     nor the donor's but what four transformations left of one.
     """
-    sg = fit([donor], pr)[0]
-    spine, half, seen = arm(sg, pr)
+    sg, _o = fit(donor, o, pr)
+    spine, half, seen = arm(sg[0], runs, pr)
     # the knots are laid over the VISIBLE arm and the buried run gets one, so
     # the same fractions mean the same places at both masters
     at_root = 1.0 - seen
     ks = [at_root + (1.0 - at_root) * k for k in KNOTS]
-    st = stroke(spine, half, [0.0] + ks[1:])
-    st = trim(st, TERM, pr.italic)
+    ks = [0.0] + (list(ks) if DE_ROOT_KNOT else ks[1:])
+    st = stroke(spine, half, ks)
+    st = trim(st, len(ks) - 1, pr.italic)
     ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
     got = splice(to_segs(ps[0]), (st[-1][1][-1], list(st)),
                  tidy=False)
@@ -367,12 +431,29 @@ def readings(sh, pr):
 
 def build():
     font = glyphsLib.load(open(SRC))
-    a, _b, deg = same_drawing(FILES, CP, "д")
+    path = find(DONOR)
+    a, deg = segments_of(path, CP)
+    o, _ = segments_of(path, ord("o"))
     a = [stand_up(c, deg) for c in a]
+    o = [stand_up(c, deg) for c in o]
+    ys = [q[1] for c in o for q in pts_of(c)]
+    # a margin, because a bowl's own crown can poke a unit or two above the
+    # o's top and a segment ending there is not arm. Monaspace Xenon's does,
+    # and its terminal was found on the bowl.
+    crown = max(ys) + 0.05 * (max(ys) - min(ys))
+    # the outer contour: the one whose box holds the others
+    outer = max(a, key=lambda c: (max(q[0] for q in pts_of(c))
+                                  - min(q[0] for q in pts_of(c)))
+                * (max(q[1] for q in pts_of(c))
+                   - min(q[1] for q in pts_of(c))))
+    a = [outer] + [c for c in a if c is not outer]
+    runs = arm_of(outer, crown)
+    print("  %s: the arm is segments %s and %s of its outer contour"
+          % (DONOR, runs[0], runs[1]))
     out = []
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
-        sh = shape(a[0], pr)
+        sh = shape(a, o, runs, pr)
         armwt, tip, taper, jn = readings(sh, pr)
         # the width is measured, not aimed at -- see `fit`
         wide = leaning(pts_of(sh), pr.italic, pr.pivot) / leaning(
