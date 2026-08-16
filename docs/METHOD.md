@@ -1573,6 +1573,7 @@ draw something is evidence about the path, not about the fitter.
 | `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
 | `de_vs_d.py` | **is the cursive д a `d` with a different ascender, or an `o` with a hook?** Both descriptions fit the picture and they are different letters to build. Reads below the x-height, over the same face's own `d`: how straight the right-hand side is (worst departure from a fitted line, over the run), how much of `d`'s ink д also covers, and where its bowl sits in `d`'s widths. The answer is `o`: the panel's д reads 0.082–0.137 there against its own d's 0.002–0.149-but-median-0.009 and its own o's 0.110–0.210. Draws the two over each other in the frame they share | no |
 | `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
+| `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
 | `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
@@ -2492,6 +2493,19 @@ the top of the vertical bars.*
 ---
 
 ## 9 · Open threads
+
+- **б's counter does not hold its relation to o across the weight axis**, and
+  the panel says it should. The eight ∂-form italics draw д's counter at a
+  median 0.957 of their own o's area and б's at 0.961 -- one relation, two
+  letters, which is what the user's eye reported before anything was measured.
+  Ours reads **0.854 at Thin, 0.905 at Regular and 1.057 at ExtraBold**:
+  outside the panel band at both ends and swinging by a quarter along an axis
+  the panel holds flat. **б IS APPROVED — this is a record, not a licence.**
+  Do not touch it without asking; the note exists so the next round does not
+  rediscover it and quietly "fix" a frozen glyph. `tools/de_bowl.py`.
+  д, for comparison, is flat at 1.000 at both masters because its counter IS
+  o's counter, the same points -- in band, at the ceiling of it, and the only
+  face above us is the donor.
 
 - **д's two masters do not agree on how many nodes the letter has**, 15 against
   14, so it cannot be built or blended. The cause is understood and is F19
