@@ -114,7 +114,7 @@ DE_ROOT = 0.86          # where it leaves the bowl's own wall
 # `splice` has an unambiguous crossing to cut at on each side; none of this run
 # is ever seen. Its width closes down over the same run so it stays inside the
 # wall rather than sitting on it, which is what makes the crossing a crossing.
-DE_DEEP = 0.12
+DE_DEEP = 0.46
 
 
 # Where the two edges get a node, as fractions of the VISIBLE arm. Three
@@ -151,7 +151,14 @@ DE_HAND = 0.20
 # exactly on it, the two outlines are tangent for a long run and `splice` has
 # no crossing to cut at -- it reports the arm as unattached. A hair inside, the
 # outline below the crown is o's own and nothing else, which is the point.
-DE_INSET = 0.06
+DE_INSET = 0.22         # how far INSIDE o the stroke dives at the floor
+
+# How far OUTSIDE o's own contour the stroke's outer edge rides up the bowl's
+# right side, in walls. A hair is enough: it only has to be the outline rather
+# than sit under it. And over what share of the run from the floor to the crown
+# it climbs out of the dive.
+DE_OUT = 0.02
+DE_DIVE = 0.55
 
 def fit(sg, o, pr):
     """The donor's own o onto this face's o, at ONE scale in both directions.
@@ -288,8 +295,24 @@ def arm(sg, runs, pr):
              for x, y in spine]
     root = spine[-1]
 
-    # BELOW THE CROWN THE ARM IS THE BOWL'S RIGHT-HAND SIDE, so below the
-    # crown its OUTER EDGE is laid on this face's own o and stays there.
+    # THE LETTER'S WHOLE RIGHT-HAND SIDE IS ONE STROKE.
+    #
+    # Not a bowl with a leg attached to it -- that construction cannot draw
+    # what the references draw, and four rounds were spent proving it. A bowl
+    # and an arm joined together bulge where they meet, whatever the join is
+    # made of: with the seam spliced, with the seam merely overlapped, with the
+    # arm seated on the wall, seated on the contour, floored against the bowl's
+    # own circle or held under it, the letter's right edge turned the wrong way
+    # by the same amount in the same place every time. Read down that edge, the
+    # five reference д's never turn the wrong way once in eighteen samples.
+    # They have no join there to turn at.
+    #
+    # So the stroke runs the whole way: from the arm's tip, down the right side
+    # of the bowl, to its floor. Its outer edge sits a hair OUTSIDE this face's
+    # o all the way, so that edge -- one continuous drawn curve -- is what the
+    # letter shows, and o supplies the floor, the left side and the crown. At
+    # the very bottom the stroke dives inside o so `splice` has a crossing to
+    # cut at, and that dive is buried in the bowl's own ink.
     #
     # Seated on the middle of the wall instead -- which is where it was -- the
     # arm is narrower than the wall, so it runs up INSIDE o and then has to
@@ -343,15 +366,22 @@ def arm(sg, runs, pr):
     pts = with_bury(spine)
     _run, _seen, hs = widths(pts, n)
 
+    low = pts[-1][1]
     seated = []
     for (x, y), h in zip(pts, hs):
         e = edge(pr, y)
         if y >= crown or e is None:
             seated.append((x, y))
             continue
+        # how far outside o's own contour this stretch of the stroke sits:
+        # a hair out over the bowl's side, diving inside at the floor
+        t = (y - low) / max(1.0, crown - low)
+        dive = 1.0 - min(1.0, t / DE_DIVE)
+        dive = dive * dive * (3.0 - 2.0 * dive)
+        off = (DE_OUT - (DE_OUT + DE_INSET) * dive) * wall_w
         u = min(1.0, (crown - y) / span)
         u = u * u * (3.0 - 2.0 * u)
-        seated.append((x + ((e - h - DE_INSET * wall_w) - x) * u, y))
+        seated.append((x + ((e - h + off) - x) * u, y))
 
     run, seen, hs = widths(seated, n)
     pts, hs = _along(seated, hs, 160)
