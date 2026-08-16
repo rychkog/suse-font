@@ -842,3 +842,65 @@ def stroke(spine, half, knots):
     left = run(up[::-1], -1, -1)
     return (right + [("line", [edge(1.0, -1)])] + left
             + [("line", [edge(0.0, +1)])])
+
+
+def arm_of(sg, crown, deg=0.0):
+    """Find a donated д's ARM on its outer contour: its two edges and its end.
+
+    Segment indices were named by hand for one donor, which is fine until the
+    question becomes *which donor*. A path is only as good as the bowl it was
+    drawn to leave, and choosing between donors means being able to try them.
+    So the arm is found rather than counted off:
+
+      * the arm is the run of segments lying above the donor's own crown --
+        the top of its own o. Below that the contour is bowl, and this face
+        has a bowl;
+      * its free end is the point of that run reaching furthest LEFT once the
+        donor's own slope is taken out, and the terminal is the segment
+        nearest it;
+      * everything before the terminal is the outer edge, everything after it
+        the underside.
+
+    Returns (outer, under) as index runs for `dissect`, each already in the
+    direction that runs from the free end back towards the root.
+    """
+    n = len(sg)
+    t = math.tan(math.radians(deg))
+    ends = [sg[i][1][-1] for i in range(n)]
+    # index 0 is the contour's `start` marker and not a segment. EITHER end
+    # above the crown, not both: the segments that carry the arm up out of the
+    # bowl and back down into it each have one end below, and dropping them
+    # leaves a donor like Monaspace Xenon -- whose whole arm is three segments
+    # -- with nothing but its terminal.
+    up = [i for i in range(1, n)
+          if ends[i][1] > crown or ends[i - 1][1] > crown]
+    if not up:
+        raise SystemExit("this donor's д has nothing above its own crown -- "
+                         "either it is not the ∂ form or the crown is wrong")
+    # the maximal cyclic run of them, so a stray high point on the bowl cannot
+    # split the arm in two
+    runs, cur = [], [up[0]]
+    for i in up[1:]:
+        if i == (cur[-1] + 1) % n:
+            cur.append(i)
+        else:
+            runs.append(cur)
+            cur = [i]
+    runs.append(cur)
+    if len(runs) > 1 and (runs[0][0] - runs[-1][-1]) % n == 1:
+        runs = [runs[-1] + runs[0]] + runs[1:-1]
+    run = max(runs, key=len)
+    # the terminal is the segment BOTH of whose ends reach furthest left once
+    # the donor's own slope is out -- an edge has one end at the tip and the
+    # other back along the arm, and only the terminal has both at the tip
+    def slant(q):
+        return q[0] - q[1] * t
+
+    cut = min(run, key=lambda i: slant(ends[i - 1]) + slant(ends[i]))
+    j = run.index(cut)
+    outer = [-i for i in run[:j]][::-1]
+    under = run[j + 1:]
+    if not outer or not under:
+        raise SystemExit("this donor's arm came out with only one edge -- the "
+                         "terminal was found at one end of it")
+    return outer, under

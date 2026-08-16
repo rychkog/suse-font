@@ -129,11 +129,31 @@ def read(path):
 
     head, foot = band(0.08, 0.20), band(0.72, 0.88)
     taper = st.median(head) / st.median(foot) if foot and st.median(foot) else None
+    # NOTCH: how far BELOW the x-height the wedge between the arm's underside
+    # and the bowl's crown reaches, over o's height. Every ∂ has that wedge and
+    # every reference draws its vertex at or a little above the x-height; ours
+    # plunged a fifth of o's height below it and came to an acute point there,
+    # which reads as a tongue of the arm hanging past the bowl. Found as the
+    # lowest row at which a column on the letter's right still has two runs of
+    # ink in it -- below that the wedge has closed and the two are one stroke.
+    half = (bx0 + bx1) // 2
+    deep = None
+    for c in range(half, d.shape[1]):
+        col = d[:, c]
+        if not col.any():
+            continue
+        rows = np.where(col)[0]
+        brk = np.where(np.diff(rows) > 1)[0]
+        if len(brk):
+            bot = rows[brk[-1]]
+            if deep is None or bot > deep:
+                deep = bot
+    notch = None if deep is None else (deep - split) / float(oh)
     pad = int(0.10 * ow)
     crop = d[max(0, ay0 - pad):split,
              max(0, ax0 - pad):ax0 + int(0.45 * bw)].copy()
     return ((ax0 - bx0) / bw, (split - ay0) / float(oh), tipwt, armwt,
-            flat, taper, d, split, crop)
+            flat, taper, notch, d, split, crop)
 
 
 def tile(m, ink, cell=CELL * SS, rule=None):
@@ -159,8 +179,8 @@ def main():
     for w in ("Thin", "Regular", "ExtraBold"):
         got = read(OURS % w)
         if not isinstance(got, str):
-            rows.append(("ours, " + w,) + got[:6])
-            cells.append(("ours, " + w, (25, 25, 25), got[6], got[7], got[8]))
+            rows.append(("ours, " + w,) + got[:7])
+            cells.append(("ours, " + w, (25, 25, 25), got[7], got[8], got[9]))
 
     for fam, path in sorted(italics()):
         # THIS FACE IS NOT EVIDENCE ABOUT ITSELF. `italics()` reads the fonts
@@ -180,13 +200,13 @@ def main():
             if isinstance(got, str):
                 print("   %-22s %s" % (fam, got))
                 continue
-            rows.append((fam,) + got[:6])
-            cells.append((fam, (185, 30, 30), got[6], got[7], got[8]))
+            rows.append((fam,) + got[:7])
+            cells.append((fam, (185, 30, 30), got[7], got[8], got[9]))
         except Exception as e:
             print("   %-22s %s" % (fam, e))
 
-    print("\n   %-22s %6s %6s %6s %6s %6s %6s"
-          % ("", "reach", "rise", "tipwt", "armwt", "flat", "taper"))
+    print("\n   %-22s %6s %6s %6s %6s %6s %6s %6s"
+          % ("", "reach", "rise", "tipwt", "armwt", "flat", "taper", "notch"))
     for r in rows:
         print("   %-22s %s"
               % (r[0], " ".join("%6s" % ("  .  " if v is None else "%6.2f" % v)
@@ -199,7 +219,8 @@ def main():
                     (3, "ink at the tip over o's wall"),
                     (4, "the arm's own weight over o's wall"),
                     (5, "share of the top edge that is flat"),
-                    (6, "free end's thickness over the root's")):
+                    (6, "free end's thickness over the root's"),
+                    (7, "wedge's vertex below the x-height")):
         v = sorted(r[i] for r in ref if r[i] is not None)
         print("   %-30s median %5.2f, %5.2f..%5.2f  (%d faces)"
               % (what, st.median(v), v[1], v[-2], len(v)))
