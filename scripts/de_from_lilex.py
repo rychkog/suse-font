@@ -136,17 +136,6 @@ KNOTS = (0.0, 0.26, 0.52, 0.76, 1.0)
 # a cause works. METHOD F19.
 DE_ROOT_KNOT = True
 
-# Over how much of o's height the path is handed over from the donor's bowl to
-# this face's, just below the crown. Wide is wrong: spread all the way down to
-# the donor's own root, the hand-over is still only half done where the arm
-# actually leaves the bowl, so the two edges part company with a curvature
-# break -- a visible corner with the arm bulging four units outside o, and the
-# straight stretch below it (which is o's own wall, and correct) reading as
-# part of the same fault. Kept to a band just under the crown, the letter is
-# this face's own o everywhere below the departure and the join has nothing to
-# break.
-DE_HAND = 0.20
-
 # How far INSIDE o's own outer contour the seated arm sits, in walls. Seated
 # exactly on it, the two outlines are tangent for a long run and `splice` has
 # no crossing to cut at -- it reports the arm as unattached. A hair inside, the
@@ -159,6 +148,32 @@ DE_INSET = 0.22         # how far INSIDE o the stroke dives at the floor
 # it climbs out of the dive.
 DE_OUT = 0.02
 DE_DIVE = 0.55
+
+# The height, in o's own heights, at which the bowl's fitted right shoulder
+# hands over to the donor's arm. It has to clear the donor's own crown: below
+# that the donor is still turning out of ITS bowl, which is flatter than ours,
+# and two near-parallel curves crossing at a shallow angle read as a flat with
+# a nick in it.
+DE_ARM = 1.02
+
+def ramp(t):
+    """An ease that is flat to SECOND order at both ends.
+
+    The cubic smoothstep is flat only to first order: its second derivative is
+    6 at one end and -6 at the other, so anything eased with it steps in
+    CURVATURE where the ease starts and stops. On a round letter that is the
+    reading the eye takes, and no gate here takes it.
+
+    It is used on the floor dive, whose top has to leave the departure's
+    tangency alone -- the dive is what carries the stroke inside o so `splice`
+    has a crossing, and a cubic ease would put a curvature step exactly where
+    the departure was solved to have none.
+
+    It is NOT what fixed the hollow this letter was rejected for; swapping the
+    cubic for it moved that reading by nothing at all. Recorded because the
+    swap looked like the fix and was not -- the hollow was in the path, not in
+    the ease over it."""
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
 
 def fit(sg, o, pr):
     """The donor's own o onto this face's o, at ONE scale in both directions.
@@ -289,11 +304,84 @@ def arm(sg, runs, pr):
     has something to cut.
     """
     spine, _half = dissect(sg, *runs)                        # free end -> root
+    oy = bbox(pr.paths("o"))
+    oh = oy[3] - oy[1]
+    _m, wall_w = wall(pr)
+
     root = spine[-1]
     mid, _w = wall(pr, root[1])
     spine = [(x + (mid[0] - root[0]), y + (mid[1] - root[1]))
              for x, y in spine]
-    root = spine[-1]
+
+    # THE BOWL'S RIGHT SHOULDER IS NOT o's. IT IS DRAWN TO RECEIVE THE ARM.
+    #
+    # What the eye rejected in this letter, five times, was never a rough join.
+    # It was a CONCAVITY, and the measurement that finds it is the lean of the
+    # edge -- dx/dy -- read down the right side. On a letter whose edge turns
+    # one way throughout, that lean only ever falls as you climb. Ours jumped:
+    # o's edge leans -0.52 arriving at the arm's root and the arm leaves at
+    # -0.17, so the edge slowed down where it should not have, and a slowing
+    # edge is the hollow that kept being circled in red.
+    #
+    # The jump is not the join's fault and no join can absorb it. o's shoulder
+    # is simply rounder than this arm can be received by: from its widest point
+    # up to the arm's root o swings from level to -1.04 where the arm wants
+    # -0.17. Seating the arm lower, where the two DO lean alike, removes the
+    # concavity and was measured doing it -- one turning point, nothing bending
+    # the wrong way -- but it drags the whole arm a fifth of the x-height down
+    # into the bowl, and at ExtraBold the two merge into a blob.
+    #
+    # So the bowl gives way instead, which is what the references do and what
+    # was agreed: from o's widest point up to the arm's root the right side is
+    # not o's contour but one curve fitted between them, leaving o's widest
+    # point level -- as o itself does -- and arriving along the arm's own lean.
+    # The lean therefore falls the whole way with no step anywhere, the bowl
+    # carries a little more weight on its upper right than o does, and the
+    # right side reads as what the sketch drew: one curve from floor to tip.
+    # Below the widest point it is o's own contour still, and so are the floor,
+    # the left side and the counter.
+    # The shoulder is not handed back at the arm's ROOT. Between its root and
+    # its own crown the donor's stroke is still turning out of the donor's
+    # bowl, and that bowl is flatter than ours -- carried over, that stretch
+    # runs nearly parallel to our shoulder and the two cross at a shallow
+    # angle. A shallow crossing of two near-parallel curves is a flat with a
+    # nick in it, which is what the silhouette showed at 0.86..0.92 with the
+    # join down at 0.73. Taking the shoulder all the way up to the donor's own
+    # crown puts that whole stretch INSIDE one curve, and there is no crossing
+    # left to nick.
+    es = [(edge(pr, oy[1] + (j / 200.0) * oh), oy[1] + (j / 200.0) * oh)
+          for j in range(6, 195)]
+    widest = max((e, y) for e, y in es if e is not None)[1]
+
+    acc = [0.0]
+    for i in range(1, len(spine)):
+        acc.append(acc[-1] + math.hypot(spine[i][0] - spine[i - 1][0],
+                                        spine[i][1] - spine[i - 1][1]))
+    total = acc[-1] or 1.0
+
+    star = oy[1] + DE_ARM * oh
+    j = next((i for i in range(1, len(spine)) if spine[i][1] <= star),
+             len(spine) - 1)
+    f = (star - spine[j - 1][1]) / ((spine[j][1] - spine[j - 1][1]) or 1.0)
+    u = (acc[j - 1] + (acc[j] - acc[j - 1]) * f) / total
+    k = max(2, len(spine) // 10)
+    lo, hi = max(0, j - k), min(len(spine) - 1, j + k)
+
+    y_lo, x_lo = widest, edge(pr, widest) + DE_OUT * wall_w
+    x_hi = (spine[j - 1][0] + (spine[j][0] - spine[j - 1][0]) * f
+            + 0.5 * wall_w * (DE_TIP + (DE_ROOT - DE_TIP) * u))
+    m_hi = ((spine[hi][0] - spine[lo][0])
+            / ((spine[hi][1] - spine[lo][1]) or -1.0))
+    dy = (star - y_lo) or 1.0
+
+    def shoulder(y):
+        """o's widest point to the arm's root, level at one end and along the
+        arm at the other -- the plain Hermite through both."""
+        t = (y - y_lo) / dy
+        tt = t * t
+        return ((2.0 * t - 3.0) * tt + 1.0) * x_lo \
+            + (3.0 - 2.0 * t) * tt * x_hi \
+            + (tt * t - tt) * dy * m_hi
 
     # THE LETTER'S WHOLE RIGHT-HAND SIDE IS ONE STROKE.
     #
@@ -334,11 +422,6 @@ def arm(sg, runs, pr):
     # The widths have to be known before the arm can be seated, and they are
     # measured along the spine, so it goes round twice: place, measure, seat,
     # measure again. Both passes are arithmetic on 160 points.
-    oy = bbox(pr.paths("o"))
-    oh = oy[3] - oy[1]
-    crown = oy[3] - 0.04 * oh
-    span = DE_HAND * oh
-    _m, wall_w = wall(pr)
 
     def with_bury(sp):
         low = sp[-1][1] - DE_DEEP * oh
@@ -370,18 +453,20 @@ def arm(sg, runs, pr):
     seated = []
     for (x, y), h in zip(pts, hs):
         e = edge(pr, y)
-        if y >= crown or e is None:
+        if y > star:
             seated.append((x, y))
             continue
-        # how far outside o's own contour this stretch of the stroke sits:
-        # a hair out over the bowl's side, diving inside at the floor
-        t = (y - low) / max(1.0, crown - low)
-        dive = 1.0 - min(1.0, t / DE_DIVE)
-        dive = dive * dive * (3.0 - 2.0 * dive)
+        if y >= y_lo or e is None:
+            seated.append((shoulder(y) - h, y))
+            continue
+        # below o's widest point the edge is o's own contour, a hair outside,
+        # diving inside at the floor so `splice` has a crossing to cut at.
+        # `ramp` is flat to second order at the top of that dive, so it does
+        # not disturb the shoulder handed to it there.
+        t = (y - low) / max(1.0, y_lo - low)
+        dive = ramp(1.0 - min(1.0, t / DE_DIVE))
         off = (DE_OUT - (DE_OUT + DE_INSET) * dive) * wall_w
-        u = min(1.0, (crown - y) / span)
-        u = u * u * (3.0 - 2.0 * u)
-        seated.append((x + ((e - h + off) - x) * u, y))
+        seated.append((e + off - h, y))
 
     run, seen, hs = widths(seated, n)
     pts, hs = _along(seated, hs, 160)
