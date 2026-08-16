@@ -1493,6 +1493,58 @@ band came out 0.49–0.97 when the truth is 0.79–1.09. Read an eighth of the
 arm back from the end, clear of the corner, and every face moves. A saturating
 probe does not look broken; it looks like a finding.
 
+### F20 · A concavity is not a rough join, and no join can absorb one
+
+The cursive д was rejected five times for the same stretch of its right side,
+called "a defect", then "flat", then circled in red three more times. Five
+rounds went into the JOIN — spliced, overlapped, seated on the wall, seated on
+the contour, blended with a cubic ease and then with a quintic one. Every one
+of them moved the fault and none removed it, because the fault was never in the
+join.
+
+**Read the LEAN down the silhouette — dx/dy, not the position.** On a letter
+whose edge turns one way throughout, the lean only ever falls as you climb, and
+a letter with a hollow in it has a lean that goes back up. Ours jumped by 0.35
+in one place: o's edge arrived at the arm's root leaning −0.52 and the arm left
+at −0.17. A slowing edge is a hollow. This reading finds in one line what five
+rounds of looking at the join did not, and it is cheap — the second difference
+of the rightmost ink, and a count of the silhouette's turning points, which
+every reference puts at exactly one.
+
+Three consequences, all measured:
+
+* **The jump is a fact about the two SHAPES, not about the seam.** o's shoulder
+  swings from level at its widest point to −1.04 by 0.87 of the x-height where
+  the arm wants −0.17. It is rounder than the arm can be received by, and no
+  amount of easing between them changes either number. Seating the arm lower,
+  where the two genuinely do lean alike, removes the concavity completely — and
+  drags the arm a fifth of the x-height down until at ExtraBold it merges with
+  the bowl. **The right edge came out perfect on the wrong letter.**
+* **So the bowl gives way.** From o's widest point up to the donor's own crown
+  the right side is one curve fitted between them, level where o is level and
+  arriving along the arm's own lean. The letter carries a little more weight on
+  its upper right than o does, which is what the references draw, and the lean
+  falls the whole way with no step anywhere.
+* **Take it to the donor's CROWN, not to the arm's root.** Between its root and
+  its crown a donor's stroke is still turning out of the DONOR's bowl, and that
+  bowl is not ours. Handed over at the root, that stretch runs nearly parallel
+  to our shoulder and the two cross at a shallow angle — which is a flat with a
+  nick in it, and it is exactly the nick that was circled. Carried to the crown,
+  the whole stretch is inside one curve and there is no crossing left to nick.
+  A donated path carries the bowl it was drawn to leave.
+
+**And put a standing alarm on the curve fitter.** `donor.fit_cubic` solves for
+handle lengths through a mid point; where no positive solution exists it falls
+back to plain third-of-chord handles, which ignores the mid point and draws
+something very close to the chord. Two segments per master — the pair spanning
+the departure — were falling back at both weights while every other segment
+solved cleanly at ~0.33. **A chord across the departure is the flat**, and
+nothing in the pipeline reported it. Count the fallbacks on every run; a
+non-zero count is a defect even when every ink reading is in band. Note also
+that forcing a solve made things far worse (+6 to +44 against +1.7): the
+fallback was hiding a bad target path, not creating one. A fitter refusing to
+draw something is evidence about the path, not about the fitter.
+
 
 ## 4 · Probe inventory
 
@@ -2440,6 +2492,34 @@ the top of the vertical bars.*
 ---
 
 ## 9 · Open threads
+
+- **д's two masters do not agree on how many nodes the letter has**, 15 against
+  14, so it cannot be built or blended. The cause is understood and is F19
+  again: the height at which the arm's underside enters the bowl is a quantity
+  nobody sets, and it comes out at 0.84 of the x-height at Thin against 0.99 at
+  ExtraBold. `splice` therefore cuts in a different segment at each master and
+  keeps a different number. **Nine sweeps moved it by nothing** — knot layout
+  and count, the root knot's position either way, burial depth, the buried
+  width, the arm's weight at both ends, the shoulder's anchor height, and
+  `absorb`. Setting the meeting height directly does work as a lever (both
+  masters cut in the same segment at a swell of 0.6) but a flat swell wrecks
+  ExtraBold, and deriving the swell per master from the gap it has to close —
+  the principled version — leaves the counts where they were, because the notch
+  can only push a crossing UP and ExtraBold's is already pinned at 0.99 by its
+  own thickness. **The next thing to try is the one not yet tried: give the
+  inner edge its own knot placed at a fixed HEIGHT rather than at a fraction of
+  the run**, so the cut lands in the same interval by construction. Do not pad
+  with a subdivision node — equal counts from two different structures pair
+  Thin's buried cut with ExtraBold's shoulder cut, and §8 already records that
+  node parity says nothing about correspondence.
+
+- **д's junction reads 1.59 at Thin against a panel ceiling of 1.34**, and
+  1.25 at ExtraBold which is in band. It is entangled with the notch above
+  (CLAUDE.md rule 5): every setting that lifts the meeting height fattens the
+  wedge, up to 2.13 at a notch of 0.98. Judge the pair together, never apart.
+  ExtraBold's free end (0.73 against a floor of 0.79) and its taper (0.73
+  against 0.81) were already below their floors before this round and were not
+  touched by it.
 
 - **The donated set: decide it BEFORE the italic, not after.** Held on
   2026-08-13 to be revisited after the italic, and that was the wrong way
