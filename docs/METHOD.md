@@ -1572,7 +1572,7 @@ draw something is evidence about the path, not about the fitter.
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
 | `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
 | `de_vs_d.py` | **is the cursive д a `d` with a different ascender, or an `o` with a hook?** Both descriptions fit the picture and they are different letters to build. Reads below the x-height, over the same face's own `d`: how straight the right-hand side is (worst departure from a fitted line, over the run), how much of `d`'s ink д also covers, and where its bowl sits in `d`'s widths. The answer is `o`: the panel's д reads 0.082–0.137 there against its own d's 0.002–0.149-but-median-0.009 and its own o's 0.110–0.210. Draws the two over each other in the frame they share | no |
-| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
+| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Its `rise` and `reach` are the readings that caught the HEIGHT: the arm followed the donor's own proportion and nothing checked it, so `scripts/de_from_lilex.py` prints both against this probe's band now and `DE_SIZE` aims them. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
 | `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
 | `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
@@ -2507,8 +2507,14 @@ the top of the vertical bars.*
   o's counter, the same points -- in band, at the ceiling of it, and the only
   face above us is the donor.
 
-- **д's two masters do not agree on how many nodes the letter has**, 15 against
-  14, so it cannot be built or blended. The cause is understood and is F19
+- **SOLVED — д's two masters did not agree on how many nodes the letter has**,
+  15 against 14, so it could not be built or blended. The fix is the last line
+  of this entry, written before it was tried: `DE_SEAM`, a knot on the inner
+  edge placed at a fixed HEIGHT in o's own heights rather than at a fraction of
+  the run, so `splice` cuts in the same interval at both masters by
+  construction. It is a fragile parity, though — it holds at some arm sizes and
+  not at others, which is why `DE_SIZE` could not be set freely. The diagnosis
+  as it stood: The cause is understood and is F19
   again: the height at which the arm's underside enters the bowl is a quantity
   nobody sets, and it comes out at 0.84 of the x-height at Thin against 0.99 at
   ExtraBold. `splice` therefore cuts in a different segment at each master and
@@ -2527,8 +2533,21 @@ the top of the vertical bars.*
   Thin's buried cut with ExtraBold's shoulder cut, and §8 already records that
   node parity says nothing about correspondence.
 
-- **д's junction reads 1.59 at Thin against a panel ceiling of 1.34**, and
-  1.25 at ExtraBold which is in band. It is entangled with the notch above
+- **д's arm is sized to this bowl now, and two readings still sit at their
+  edges.** Rise and reach were emergent -- they followed the donor's own
+  proportion out of `fit`, were not among the readings the recipe printed, and
+  the eye caught them before a probe did. F19, exactly. They are set by
+  `DE_SIZE` and printed now. What remains: at ExtraBold the free end reads 0.58
+  against a floor of 0.79 and the taper 0.76 against 0.81, and part of that
+  drop is the probe rather than the drawing -- both are read over a band 8% to
+  20% of the arm's own columns from the tip, and a shorter arm puts that band
+  nearer the corner, where no disc can be wider than the band. At Thin the
+  taper reads 0.97 against a ceiling of 0.91, which is the same reading from
+  the other side. Judge the terminal by eye and by a band measured in WALLS
+  before moving anything for it.
+
+- **д's junction reads 1.45 at Thin against a panel ceiling of 1.34**, and
+  1.22 at ExtraBold which is in band. It is entangled with the notch above
   (CLAUDE.md rule 5): every setting that lifts the meeting height fattens the
   wedge, up to 2.13 at a notch of 0.98. Judge the pair together, never apart.
   ExtraBold's free end (0.73 against a floor of 0.79) and its taper (0.73
