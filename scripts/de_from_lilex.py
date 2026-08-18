@@ -136,6 +136,19 @@ KNOTS = (0.0, 0.26, 0.52, 0.76, 1.0)
 # a cause works. METHOD F19.
 DE_ROOT_KNOT = True
 
+# The height, in o's own heights, of the knot the seam is cut inside. It has to
+# clear the arm's underside where it meets the bowl at BOTH masters -- Thin
+# meets at 0.84 and ExtraBold at 0.99, so anything above 0.99 leaves the two
+# cuts inside one segment and the node count stops depending on the weight.
+# None puts the knot back on the arm's root, which is what broke it.
+#
+# 1.28 rather than the 1.12 that also gives parity: it costs six nodes, 31
+# against 37, on a letter whose o is 12 and where 34 was once a rejection. The
+# only reading that pays for it is Thin's taper, 0.92 against a ceiling of
+# 0.91 -- and that reading moves with where this knot is put rather than with
+# the drawing, which is a probe following the fitting, not a letter changing.
+DE_SEAM = 1.28
+
 # How far INSIDE o's own outer contour the seated arm sits, in walls. Seated
 # exactly on it, the two outlines are tangent for a long run and `splice` has
 # no crossing to cut at -- it reports the arm as unattached. A hair inside, the
@@ -155,6 +168,36 @@ DE_DIVE = 0.55
 # and two near-parallel curves crossing at a shallow angle read as a flat with
 # a nick in it.
 DE_ARM = 1.02
+
+# The arm's SIZE, over the size the donor drew it -- one scale, about the root
+# it leaves the bowl at, so the donor's path is still the donor's path and only
+# its extent is this face's.
+#
+# `fit` puts the donor's o onto ours and lets the arm follow at the donor's own
+# proportion, and that was never checked against anything: height is not among
+# the readings this script prints, and the eye caught it before a probe did.
+# `tools/de_arm.py` over the eight ∂-form italics:
+#
+#   the arm's rise above the x-height, over o's height  0.33..0.50, median 0.40
+#   the arm's reach across the bowl, 0 at its left edge 0.26..0.39, median 0.32
+#
+# Left at the donor's own size the letter read 0.51 rise at Thin and 0.56 at
+# ExtraBold -- above every one of the eight -- while reaching to 0.22 and 0.15,
+# further left than any of them. Both readings say one thing, that the arm is
+# too big for this bowl, and both are affine in this one number: the donor is
+# Monaspace Xenon, the tallest-armed face in the panel, and its WideExtraLight
+# is wider again than the Xenon the panel reads. METHOD F19 -- the height was
+# emergent, so nobody could interpolate it and nobody was answerable for it.
+#
+# The heavy master always rises about a twentieth of o's height further than
+# the light one -- its wall is thicker, and half of that thickness sits on top
+# of the spine -- so one number cannot put both on the median and 0.82 is where
+# the pair straddles it. It is also one of the three sizes that keep the two
+# masters on the same node count, 1.00 and 0.90 being the others, and the only
+# one of those three that is in band: the sizes between break parity, which is
+# the seam knot's doing and not the arm's.
+DE_SIZE = 0.82          # rise 0.33..0.50   reach 0.26..0.39
+
 
 def ramp(t):
     """An ease that is flat to SECOND order at both ends.
@@ -311,6 +354,8 @@ def arm(sg, runs, pr):
     root = spine[-1]
     mid, _w = wall(pr, root[1])
     spine = [(x + (mid[0] - root[0]), y + (mid[1] - root[1]))
+             for x, y in spine]
+    spine = [(mid[0] + (x - mid[0]) * DE_SIZE, mid[1] + (y - mid[1]) * DE_SIZE)
              for x, y in spine]
 
     # THE BOWL'S RIGHT SHOULDER IS NOT o's. IT IS DRAWN TO RECEIVE THE ARM.
@@ -491,6 +536,39 @@ def shape(donor, o, runs, pr):
     at_root = 1.0 - seen
     ks = [at_root + (1.0 - at_root) * k for k in KNOTS]
     ks = [0.0] + (list(ks) if DE_ROOT_KNOT else ks[1:])
+
+    # THE SEAM KNOT IS PLACED BY HEIGHT, NOT BY FRACTION OF THE RUN.
+    #
+    # Every other knot here is a fraction of the arm, which is right for them:
+    # a fraction means the same place on the drawing at both masters. It is
+    # wrong for the last one, because what happens near it is not a fraction of
+    # anything -- it is `splice` cutting where the arm's underside enters the
+    # bowl, and that height is set by how THICK the stroke is. The heavy master
+    # meets its bowl a sixth of the x-height higher than the thin one, so a cut
+    # that fell inside the last segment at Thin fell one segment earlier at
+    # ExtraBold and the two kept a different number of nodes. Nine sweeps over
+    # knot layout, burial, arm weight and the shoulder moved that by nothing,
+    # because none of them was the quantity.
+    #
+    # A knot at a fixed HEIGHT fixes it by construction: put it clear above
+    # both crossings and the only knot left below is the buried end, so both
+    # masters cut inside the same single segment whatever their weight does.
+    if DE_SEAM is not None:
+        oy = bbox(pr.paths("o"))
+        want = oy[1] + DE_SEAM * (oy[3] - oy[1])
+        acc = [0.0]
+        for i in range(1, len(spine)):
+            acc.append(acc[-1] + math.hypot(spine[i][0] - spine[i - 1][0],
+                                            spine[i][1] - spine[i - 1][1]))
+        tot = acc[-1] or 1.0
+        for i in range(1, len(spine)):
+            lo, hi = spine[i - 1][1], spine[i][1]
+            if (lo - want) * (hi - want) <= 0.0 and lo != hi:
+                f = (want - lo) / (hi - lo)
+                seam = (acc[i - 1] + (acc[i] - acc[i - 1]) * f) / tot
+                ks = sorted({0.0, round(seam, 6)}
+                            | {round(k, 6) for k in ks if k > seam + 1e-3})
+                break
     st = stroke(spine, half, ks)
     st = trim(st, len(ks) - 1, pr.italic)
     ps = sorted(pr.paths("o"), key=lambda q: -abs(area(q)))
@@ -505,7 +583,7 @@ def shape(donor, o, runs, pr):
 
 
 def readings(sh, pr):
-    """What the arm came out measuring: its weight, its free end, its taper.
+    """What the arm came out measuring: how far it goes, and how heavy.
 
     Set the width and measure the rest -- these are the readings `DE_TIP` and
     `DE_ROOT` are answerable for, taken the same way `tools/de_arm.py` takes
@@ -538,10 +616,16 @@ def readings(sh, pr):
     # in the few columns at the very end, not a median over a sixth of the arm,
     # which asks about the run behind the terminal and not about the terminal
     lo_c, hi_c = max(2, int(0.08 * len(cols))), max(4, int(0.20 * len(cols)))
+    # how far the arm goes -- up, and across. Taken off the same raster and the
+    # same x-height split, the way `tools/de_arm.py` takes them off the built
+    # font, so `DE_SIZE` can be aimed before anything is built.
+    bcols = np.where(m[split:].any(axis=0))[0]
+    rise = (split - int(np.argmax(above.any(axis=1)))) / ((oy[3] - oy[1]) * scale)
+    reach = (cols[0] - bcols[0]) / float(bcols[-1] + 1 - bcols[0])
     return (st.median(thick[k:-k]) / wl,
             2.0 * e[:split, cols[0] + lo_c:cols[0] + hi_c].max() / wl,
             st.median(thick[:k]) / st.median(thick[-k:]),
-            W.width(W.edt(m)) / wl)
+            W.width(W.edt(m)) / wl, rise, reach)
 
 
 def build():
@@ -569,15 +653,16 @@ def build():
     for mi in range(len(font.masters)):
         pr = Lower(Params(font, mi))
         sh = shape(a, o, runs, pr)
-        armwt, tip, taper, jn = readings(sh, pr)
+        armwt, tip, taper, jn, rise, reach = readings(sh, pr)
         # the width is measured, not aimed at -- see `fit`
         wide = leaning(pts_of(sh), pr.italic, pr.pivot) / leaning(
             [q for q in _flatten(max(pr.paths("o"), key=lambda q: abs(area(q))),
                                  16)], pr.italic, pr.pivot)
         print("  master %d  arm %.2f (0.87..0.97)  free end %.2f (0.79..1.09)"
               "  taper %.2f (0.81..0.91)  junction %.2f (1.13..1.34)"
-              "  width %.2f (1.00..1.15)"
-              % (mi, armwt, tip, taper, jn, wide))
+              "  width %.2f (1.00..1.15)  rise %.2f (0.33..0.50)"
+              "  reach %.2f (0.26..0.39)"
+              % (mi, armwt, tip, taper, jn, wide, rise, reach))
         out.append((0.0, [to_nodes(sh)]))
     n = {tuple(len(p) for p in ps) for _t, ps in out}
     if len(n) != 1:
