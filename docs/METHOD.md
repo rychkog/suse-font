@@ -1573,6 +1573,7 @@ draw something is evidence about the path, not about the fitter.
 | `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
 | `de_vs_d.py` | **is the cursive д a `d` with a different ascender, or an `o` with a hook?** Both descriptions fit the picture and they are different letters to build. Reads below the x-height, over the same face's own `d`: how straight the right-hand side is (worst departure from a fitted line, over the run), how much of `d`'s ink д also covers, and where its bowl sits in `d`'s widths. The answer is `o`: the panel's д reads 0.082–0.137 there against its own d's 0.002–0.149-but-median-0.009 and its own o's 0.110–0.210. Draws the two over each other in the frame they share | no |
 | `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Its `rise` and `reach` are the readings that caught the HEIGHT: the arm followed the donor's own proportion and nothing checked it, so `scripts/de_from_lilex.py` prints both against this probe's band now and `DE_SIZE` aims them. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
+| `cell.py` | **how much of its cell each letter's ink takes**, in the x-height band, over the advance — the reading that answers a complaint about RHYTHM rather than about a letter. Asked three ways: ours against the panel's italics, ours at the heavy end where a bold italic still has the same cell, and each family's italic against its own upright. Written after the eye reported the italic as uneven and nothing here could see it, because every other probe reads one letter against one letter | no |
 | `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
 | `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
@@ -2491,6 +2492,32 @@ a parameter sweep. The user saw it in one glance: *the V does not start from
 the top of the vertical bars.*
 
 ---
+
+**The italic's uneven rhythm is the genre, not a fault (2026-08-18).** Reported
+by eye — *"lots of letters in italic are much wider than the others, which makes
+it weird"* — and it is a true observation about a DISTRIBUTION, which is why no
+probe here had ever seen it: everything reads one letter against one letter.
+`tools/cell.py` reads each letter's ink over the advance inside the x-height
+band, and asks it three ways.
+
+Ours is dead centre of the genre at every weight. Our italic lowercase Cyrillic
+takes 0.73–1.10 of the cell at Regular, median 0.86, against 31 monospace
+italics running 0.63–1.34 with medians 0.73–0.95. **ж is over the cell in almost
+every face, at every weight** — it is the letter with four branches — and at the
+heavy end every face on the machine puts five to twelve letters over it. Ours
+puts nine there at ExtraBold, against a panel that ranges from two to seventeen.
+The unevenness is what Cyrillic does in a monospace: ж ш щ м ы carry three and
+four branches in the same cell as о с е, and no amount of drawing removes that.
+
+**Do not "fix" it by moving widths.** Both available levers contradict findings
+already settled. Widening the upright is settled in §8 and in the **Д д**
+approval row — the letter is narrow because this face is narrow, and it has been
+drawn wider twice and rejected by eye both times. Narrowing the italic would
+move it OUT of a band it currently sits in the middle of. The one reading at an
+edge is the italic's growth over our own upright, +0.12 against a panel median
+of +0.08 and a ceiling of +0.11 — and that is explained by the narrow upright,
+not by a wide italic, since the italic itself lands mid-panel in absolute terms.
+
 
 ## 9 · Open threads
 
