@@ -52693,7 +52693,7 @@ layers = (
 anchors = (
 {
 name = top;
-pos = (300,700);
+pos = (318,700);
 },
 {
 name = bottom;
@@ -52726,7 +52726,7 @@ width = 600;
 anchors = (
 {
 name = top;
-pos = (300,700);
+pos = (327,700);
 },
 {
 name = bottom;
@@ -55506,6 +55506,7 @@ shapes = (
 ref = "Ge-cy";
 },
 {
+pos = (18,0);
 ref = acutecomb.case;
 }
 );
@@ -55518,6 +55519,7 @@ shapes = (
 ref = "Ge-cy";
 },
 {
+pos = (27,0);
 ref = acutecomb.case;
 }
 );
