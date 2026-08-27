@@ -666,6 +666,41 @@ A newer one, and it produced two wrong findings before it was caught:
   drawing moves — a bowl top, a waist, a junction — it has to be found, not
   written down.
 
+- **The gate's own stroke reading, 2026-08-27, and it had been failing four
+  letters for weeks.** `check.py` cut a scanline across a letter, sorted the
+  crossings and took them in PAIRS: first stroke is `xs[1] - xs[0]`. Over a
+  clean outline that is right. Over a **variable** font it is not, and the
+  four failures were all and only in the variable italic: Б Ь Ы Ъ read 1.03,
+  0.12, 0.12 and 0.12 units against Latin B's 29.16, a −96% to −100% error,
+  while the same letters in the sixteen static instances, built from the same
+  source, read 29 to 30 and passed.
+
+  The cause is that **a static instance has had its overlaps removed and a
+  variable font cannot**: `varLib` has to keep the contours it interpolates,
+  so where our Б's stem and its bowl overlap, the scanline meets two edges
+  about a unit apart bounding no white at all. Four crossings in the static,
+  six in the variable, the same letter. Paired off, that sliver IS the first
+  stroke. **The font was correct the whole time and the reader would never
+  have seen it.**
+
+  The fix is winding, not an epsilon: each crossing carries the direction its
+  edge runs, ink is a run where the winding number is not zero, and two
+  contours that overlap wind the SAME way and merge into the one stroke they
+  draw. A counter still splits the runs, its inner contour winding the other
+  way. **Proved by exhaustion rather than by argument** — every reading the
+  gate takes, over all sixteen statics and both variables, before and after:
+  eight lines moved and nothing else did. Four were the failures; the other
+  four were the upright variable reading a flat 0.00, which the caller's
+  `if v and ref` had been swallowing as falsy, so the same fault was there
+  twice and only half of it was visible.
+
+  **Two general things.** A probe that reads a BUILT font is reading whatever
+  the build left behind, and statics and variables are not the same artefact.
+  And a gate that reports one artefact failing while its siblings pass is
+  making a claim about the build, not about the drawing — check which before
+  touching a glyph, because all four of these were approved and frozen.
+
+
 ### F6b · A reference set that cannot express the answer
 
 A subtler relative of F6: the probe reads correctly, the reference is honestly
@@ -1383,6 +1418,35 @@ where a Latin letter's ink really stands; `Params.ink_right` says where to draw
 an edge so the shear lands it there. The same mistake in the stance: `Lower`
 was taking `capL/capR` from n's un-sheared node box rather than deriving them,
 which is the и-too-wide report and seventeen glyphs' worth of drift behind it.
+
+**A third, 2026-08-27, and it is the same shear paid TWICE.** Ф's bowl is
+this face's own O refitted to a box. Under the italic `paths` hands back that
+O **un-sheared**, so it leans the other way; the recipe fits it to a box
+whose width is the target, and then the glyph is sheared on write. The fit
+and the shear pull opposite ways and the letter arrives narrow — not wider,
+which is what a shear does to something actually drawn upright. Ф is meant to
+be the widest letter in the set, the panel draws it at 0.99 to 1.36 of its own
+O, and ours stood at **0.920 at Thin Italic and 0.889 at ExtraBold Italic**,
+under the floor, where the upright holds 1.131 and 1.050. ф was the same
+letter's mistake: 1.005 and 0.996 of its own o against the upright's 1.205 and
+1.040. **The tell is a target that is met in the drawing and missed in the
+font**, and no reading inside the recipe can see it, because inside the recipe
+the box is exactly the width it was asked for. `ef_edge` bisects — F17's own
+instruction, since under a shear the extremes change hands as the box scales.
+
+**And in the same letter, a fitted line that does not cross sources.** Ф's
+bowl wall comes from `EF_FIT`, lines fitted in the STEM. The italic master's
+stem has barely moved from the upright's — 161.5 against 161.0 — while it
+draws its own O twelve per cent heavier for it, 184.2 against 164.0. Fed the
+same stem the line returns the same wall, so the bowl landed at 0.765 of its
+own O where the upright stands at 0.857, and the gate read it as −21% against
+the Latin at three weights. **The SHARE is the design decision and it crosses
+between the two sources; the line is an upright measurement and does not.**
+`EF_BOWL_SHARE` carries the share the upright's own approved construction
+arrives at, and reproduces both its masters exactly, so it is not a new fit.
+This is F1 inside one file: a
+constant fitted under one condition, read under another that looks identical
+because the number it keys on has not moved.
 
 ---
 
