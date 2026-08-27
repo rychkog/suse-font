@@ -104,6 +104,14 @@ ANCHOR_FROM = {
     # the pair was knowingly out of step; the ledger says so. К is drawn now
     # and it is symmetric about nothing K is symmetric about, so it takes the
     # middle of the cell, which is where Ѓ ѓ ќ already sit.
+    # Г IS E's spine and upper arm -- `Ghe` takes nodes 6..15 of E -- so the
+    # ink a mark sits over is not merely similar to E's, it is the SAME ink.
+    # Measured in the top fifth of the letter it lands at 313.0 against E's
+    # 313.0 at Thin, 304.5 against 304.5 at ExtraBold, and identically in the
+    # italic at 414.5 and 402.5. Left on the cell's middle, Ѓ's acute sat 18
+    # units left of É's at Thin and 27 at ExtraBold -- a sixth of a stem at the
+    # heavy end, on a letter whose top ink is the Latin's own.
+    "Ge-cy": "E",
     "U-cy": "Y",        # drawn from Y's fork, and a mark sits over the fork
     "Ii-cy": "N",
     "ie-cy": "e",       # tier 1: it IS e
@@ -131,9 +139,26 @@ def top_anchor(glyphs, name, mi, which="top"):
 
 
 def anchors(pr, name):
+    """The anchors to write, in UPRIGHT space -- the caller shears them.
+
+    Which is why a donor's anchor cannot be handed over as it is read. Under an
+    italic master the donor's own anchor is already leaning: E carries 431 at
+    Thin Italic where it carries 318 upright, because the anchor travels with
+    the letter. Written straight and then sheared with our glyph, it pays the
+    slant twice, and the mark lands about a fifth of a cell to the right --
+    Й, Ў and Ѝ stood 112 to 119 units right of the Latin carrying the same
+    mark, and Ѓ joined them the moment Г was given E's anchor to read.
+
+    So the donor's reading is un-sheared at the height the mark will sit at,
+    which is the height the donor's own anchor sits at too -- `ANCHOR_FROM`
+    pairs capital with capital and lowercase with lowercase for this reason.
+    Upright the correction is zero and nothing moves. METHOD F17.
+    """
     top = pr.cap if name[0].isupper() else pr.xh
     donor = ANCHOR_FROM.get(name)
     x = top_anchor(pr.G, donor, pr.mi) if donor else 300
+    if donor and pr.italic:
+        x -= (top - pr.pivot) * math.tan(math.radians(pr.italic))
     return [("top", x, top), ("bottom", 300, 0)]
 
 

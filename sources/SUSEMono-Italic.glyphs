@@ -55638,7 +55638,7 @@ layers = (
 anchors = (
 {
 name = top;
-pos = (415.688,700);
+pos = (431,700);
 },
 {
 name = bottom;
@@ -55671,7 +55671,7 @@ width = 600;
 anchors = (
 {
 name = top;
-pos = (413.07,700);
+pos = (440,700);
 },
 {
 name = bottom;
@@ -56378,7 +56378,7 @@ layers = (
 anchors = (
 {
 name = top;
-pos = (530.688,700);
+pos = (415,700);
 },
 {
 name = bottom;
@@ -56437,7 +56437,7 @@ width = 600;
 anchors = (
 {
 name = top;
-pos = (526.07,700);
+pos = (413,700);
 },
 {
 name = bottom;
@@ -56561,7 +56561,7 @@ shapes = (
 ref = "Ii-cy";
 },
 {
-pos = (114.688,0);
+pos = (-1,0);
 ref = brevecomb.case;
 }
 );
@@ -56574,7 +56574,7 @@ shapes = (
 ref = "Ii-cy";
 },
 {
-pos = (112.07,0);
+pos = (-1,0);
 ref = brevecomb.case;
 }
 );
@@ -56982,7 +56982,7 @@ layers = (
 anchors = (
 {
 name = top;
-pos = (531.688,700);
+pos = (416,700);
 },
 {
 name = bottom;
@@ -57017,7 +57017,7 @@ width = 600;
 anchors = (
 {
 name = top;
-pos = (527.07,700);
+pos = (414,700);
 },
 {
 name = bottom;
@@ -57061,7 +57061,6 @@ shapes = (
 ref = "U-cy";
 },
 {
-pos = (115.688,0);
 ref = brevecomb.case;
 }
 );
@@ -57074,7 +57073,6 @@ shapes = (
 ref = "U-cy";
 },
 {
-pos = (113.07,0);
 ref = brevecomb.case;
 }
 );
@@ -58429,7 +58427,7 @@ shapes = (
 ref = "Ge-cy";
 },
 {
-pos = (-0.312,0);
+pos = (15,0);
 ref = acutecomb.case;
 }
 );
@@ -58442,7 +58440,7 @@ shapes = (
 ref = "Ge-cy";
 },
 {
-pos = (-5.93,0);
+pos = (21,0);
 ref = acutecomb.case;
 }
 );
@@ -58679,7 +58677,7 @@ shapes = (
 ref = "Ii-cy";
 },
 {
-pos = (114.688,0);
+pos = (-1,0);
 ref = gravecomb.case;
 }
 );
@@ -58692,7 +58690,7 @@ shapes = (
 ref = "Ii-cy";
 },
 {
-pos = (108.07,0);
+pos = (-5,0);
 ref = gravecomb.case;
 }
 );
