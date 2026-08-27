@@ -2827,6 +2827,31 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
   top anchor, and under a slant that anchor moves with the letter, so
   `ANCHOR_FROM` is right while the numbers behind it are not transferable.
   Re-run `marks.py` against the italic's own accented Latin.
+
+  **DONE 2026-08-27, and the prediction was exactly right.** The numbers were
+  not transferable, and the reason is that they were being transferred TWICE.
+  `anchors` writes in upright space and the caller shears what it writes; the
+  donor's anchor, read from the italic master, is **already leaning** -- E
+  carries 431 at Thin Italic where it carries 318 upright, because an anchor
+  travels with its letter. Written straight and sheared again, the mark landed
+  about a fifth of a cell to the right: **Й +118, Ў +119, Ѝ +100 at Thin
+  Italic** against the Latin carrying the same mark, and 112, 113 and 86 at
+  ExtraBold Italic. The lowercase was out the other way, ѝ by -47 and -51,
+  because its correction is the smaller one and the sign of what was missing
+  differs.
+
+  The fix is to un-shear the donor's reading at the height the mark will sit
+  at -- which is the height the donor's own anchor sits at, since `ANCHOR_FROM`
+  pairs capital with capital and lowercase with lowercase. Upright the
+  correction is zero and nothing moves. **`marks.py` did not need re-running
+  and no figure in it was wrong**; the reading was right and the spending of it
+  was not, which is F17's whole subject.
+
+  **It was invisible because nothing marked was italic-checked.** Ё ё Ї ї come
+  out right in the italic and always did, and they are the ones anybody would
+  look at -- but they are TIER 1, they carry their host's anchor as a component
+  and never go through `anchors` at all. Every glyph that does go through it
+  was wrong, and the two groups look the same on a sheet.
 - **`shoulder_spine` (`recipes.py:1304`)** still carries the F2 subtraction.
 - **Three broken probes**: `HARD_SHOULDER`, `ZHE_STEM`, `YU_GAP` (the last two
   return too few faces to judge — Ж's diagonals and ю's join give variable run
