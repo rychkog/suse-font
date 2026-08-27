@@ -39,6 +39,8 @@ Use it. Do not invent one. `python` is not on PATH; use `./venv/bin/python`.
 rm -f build.stamp && make build
 bash tools/verify.sh          # all seven gates, in order
 bash tools/review.sh          # regenerate EVERY review image from this build
+./venv/bin/python tools/specimen.py --letters Зз   # one letter, in company
+./venv/bin/python tools/specimen.py --against OLD   # this build vs a stash
 ```
 
 Render into `tools/out/`. Never review an image made before the last fix.
@@ -91,8 +93,9 @@ output — findings have been hidden that way, including a broken interpolation.
    branches — its leg leaves the arm out in the counter — and Cyrillic К does
    not, and the sentence that hid it was a true one, "к's width is 1.000 of
    k's". What sees it is a **count, not a size**: how many runs of ink lie
-   beside the stem, what touches what, how many strokes cross. `tools/ka.py`,
-   `docs/METHOD.md` F13. A tier-1 donation is where this hides, because a
+   beside the stem, what touches what, how many strokes cross. `docs/METHOD.md` F13,
+   which is the entry that reading produced; `ka.py` itself was retired once
+   К was settled. A tier-1 donation is where this hides, because a
    donation is never slightly wrong.
 10. **A change to a counter is a change to a stroke — run `tools/wrap.py`
    before showing it.** Every reading this project takes of a counter
@@ -105,17 +108,29 @@ output — findings have been hidden that way, including a broken interpolation.
 
 ## Reporting
 
-- **Always show rendered PNGs.** Text-only progress is useless. Write them to
-  `tools/out/` (gitignored, but the user can open them) — not to a scratch
-  directory under `/tmp`, which they cannot reach.
-- **They must be high quality.** Supersample ×4 and downsample with Lanczos;
-  XOR each contour so counters punch through; flatten curves to ≥24 steps;
-  real TrueType labels; check nothing collides. A 1-bit fill produces hard
-  aliased edges and has been rejected as unreadable.
+- **Always show a rendered sheet, and always as SVG.** Text-only progress is
+  useless. Write to `tools/out/` and copy the file to
+  `/mnt/c/Users/Admin/Downloads/` — a path under the WSL filesystem is one the
+  user cannot open.
+- **`tools/svgsheet.py` is how they are drawn.** An SVG carries the font's own
+  path data, so one file answers a join question at 12px and at 1200 and the
+  reader does the zooming — which is what let ten per-letter PNG sheets become
+  one `specimen.py`. Counters punch through with `fill-rule="evenodd"`, not by
+  XOR-ing contours; the reading-size rows need no magnification trick, because
+  a line that says 12px is rasterised by the viewer the way a screen will.
+  Supersampling and Lanczos no longer apply — there is nothing to resolve.
+- **Every letter on the sheet is the face's own, labels included.** Live
+  `<text>` falls back to whatever the viewer has installed, and a heading set
+  in Cascadia put a tailed `l` and a two-storey `g` on a specimen where every
+  Latin letter reads as ours. Headings and row labels go in as outlines too.
+- **I cannot see an SVG directly.** Rasterise a throwaway copy with headless
+  Edge (`--headless --screenshot=`, Windows paths both sides) into the
+  scratchpad — never into Downloads, which is the delivery folder.
 - **Never show a glyph alone.** In context and in comparison: beside its own
   case pair, beside the Latin it shares a line with, in words, at 12px and
   14px as well as display size. Comparing two candidates means side by side
-  and adjacent, per weight — never one block above another.
+  and adjacent, per weight — never one block above another, which is what
+  `specimen.py --against OLD_DIR` draws against a stashed build.
 - **Never show coordinates, node counts or point data.**
 - Own the objective quality: every gate passes *before* anything is shown.
 - No `Co-Authored-By` trailer in commits.
@@ -219,8 +234,9 @@ things that hung this machine outright:
 The same applies to probes. A numpy crop `a[y0:y1, x0:x1]` is a **view** that
 keeps the entire canvas alive, so a probe holding a dozen cropped glyphs was
 holding a dozen full rasters — `.copy()` at the crop. And rasterise no larger
-than the question needs: canvas cost is quadratic in the pixel size, and every
-figure `tools/ka.py` takes is a ratio that resolves fine at 160px.
+than the question needs: canvas cost is quadratic in the pixel size, and
+`ka.py`, retired now, took every figure as a ratio that resolved fine at
+160px.
 
 **Any script you write is written to be run again, so write it efficiently.**
 Open a file once, loop the expensive thing on the outside, hoist out of the

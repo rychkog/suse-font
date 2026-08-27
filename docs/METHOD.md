@@ -1359,6 +1359,31 @@ measured on faces that were already leaning, so the comparison has to be made
 leaning too. Bisect it rather than solve it — under a shear the extremes change
 hands as the scale changes, and a closed form has to know which points win.
 
+**Two more of it, both found on 2026-08-27, both in the same place: a reading
+taken in un-sheared space and spent as if it described the letter.**
+
+**A node box is not ink, and an un-sheared box is not a footprint.** `paths`
+un-shears so recipes can be written standing up, and un-shearing a drawn italic
+swings its control points out past its own curve. `bbox` reads nodes, so it
+reported o's box about fifteen per cent wider than any ink in it at Thin, and з
+was built to that box. Upright the extremes ARE nodes and the two readings
+agree to the unit — which is exactly why the upright had always been right here
+and could not be allowed to move to accommodate the fix. The remedy is
+`recipes.round_w`: flatten the curve, take the ink. **Where the number will
+become a width, measure ink; `bbox` is for nodes.**
+
+**The widest ROW decides, and it is not the donor's row.** A sidebearing is a
+property of the letter the reader sees, so it has to be paid after the shear —
+and ink drawn at height y travels `(y − pivot) · tan` on its way over. A recipe
+written upright has its widest row wherever its own construction puts it: ь's
+is the straight run up its bowl, в's is its upper lobe, б's is its arm at the
+ascender, and b's is b's. **Two heights and one slant come out as a sidebearing
+that nothing in the upright can see.** `Params.ink` shears the box back to say
+where a Latin letter's ink really stands; `Params.ink_right` says where to draw
+an edge so the shear lands it there. The same mistake in the stance: `Lower`
+was taking `capL/capR` from n's un-sheared node box rather than deriving them,
+which is the и-too-wide report and seventeen glyphs' worth of drift behind it.
+
 ---
 
 ### F18 · A donated outline fitted in x and y separately
@@ -1562,31 +1587,55 @@ draw something is evidence about the path, not about the fitter.
 | `seam.py` | б's junction at **all four** weights without a build, by blending the two masters; `--check` proves the blend against the built fonts | no |
 | `relations.py` | §2's four relations — width/adv, counter aspect, counter/stem, solid band — over every drawn glyph at all four weights, each as a multiple of the face's own Latin. `--selftest` against shapes of known answer; `--calibrate` prints the host's own departures, which ARE the bar | no |
 | `blob.py` | the same disc, drawn on the glyph with the two edges it touches marked, ours beside the panel at one scale | — |
-| `be_sheet.py` | б in company, in words, and at 12px and 14px, from the built fonts | — |
-| `em_sheet.py` | two builds compared, drawn **adjacent** on one line per weight rather than as two blocks — a tenth of a stem is invisible between two pictures a screen apart and obvious between two letters that touch. Takes a stashed build's directory; the second defaults to the live `fonts/ttf`. The sample is overridable (`--company --words --line --left --right --title --out`), so it is the comparison tool and not one letter's sheet | — |
 | `marks.py` | **where a mark sits over its letter**, off the built fonts at every weight: its middle less the base's, and the gap under it, against the face's own Ë Ï Ü ë ï ü Ă ă Ŭ ŭ É é È è carrying the same mark. The only reading that sees a composite's placement — no gate does | no |
-| `ka.py` | **how a K-shaped letter is put together**, off the ink, over the whole panel. `fork` is the height of the band where two runs of ink lie beside the stem — zero is one junction, anything else is a branch and the number IS the branch. `apex` is the **neck**: how far out from the stem the arm and the leg part company. `spike` is the angle the flat cut makes with its own stroke, which the audit can only bound against a Latin that has no letter leaning this far. The one reading that tells a letter from a differently fitted letter — see F13 | no |
 | `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
 | `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
-| `cursive.py` | the reference letters with their stroke weight divided out — how many strokes, which way they turn, what joins what. A **judge**, never a constructor: see F15 | no |
-| `de_vs_d.py` | **is the cursive д a `d` with a different ascender, or an `o` with a hook?** Both descriptions fit the picture and they are different letters to build. Reads below the x-height, over the same face's own `d`: how straight the right-hand side is (worst departure from a fitted line, over the run), how much of `d`'s ink д also covers, and where its bowl sits in `d`'s widths. The answer is `o`: the panel's д reads 0.082–0.137 there against its own d's 0.002–0.149-but-median-0.009 and its own o's 0.110–0.210. Draws the two over each other in the frame they share | no |
-| `de_arm.py` | **where д's arm goes and how it ENDS**, above the x-height, over the face's own o: how far left the tip reaches across the bowl, how high it rises, the ink just behind the terminal, the arm's own weight, how much of its top edge is FLAT (a written stroke has one highest point and falls away from it; a flat run is an awning) and its TAPER, the free end's thickness over the root's -- which is the reading that caught F19. Its `rise` and `reach` are the readings that caught the HEIGHT: the arm followed the donor's own proportion and nothing checked it, so `scripts/de_from_lilex.py` prints both against this probe's band now and `DE_SIZE` aims them. Every other reading of this letter is a size, and it sat inside three of the four in `gd_band.py` while being rejected on sight. Counts only the ∂-form -- Inconsolata LGC, Sudo and Victor Mono draw д with a descender, which is a different letter, and they were in the band on the first run and dragged the tip figure down | no |
 | `cell.py` | **how much of its cell each letter's ink takes**, in the x-height band, over the advance — the reading that answers a complaint about RHYTHM rather than about a letter. Asked three ways: ours against the panel's italics, ours at the heavy end where a bold italic still has the same cell, and each family's italic against its own upright. Written after the eye reported the italic as uneven and nothing here could see it, because every other probe reads one letter against one letter | no |
 | `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
-| `cursive_sheet.py` | г and д in words, beside o, at every weight and at 12px and 14px, from the built fonts | — |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
 | `diagonals.py` | Ж and ж's centre stem against an arm; the face's own X V W K Y measured **perpendicular** to the stroke; and М and м's uprights and diagonals, each over its own case's stem, with the ratio the pair takes across the case. The upright half of that last reading is the probe's own check — it has to land on the 1.000 (0.979–1.035) м's approval already records from a different method | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
-| `preview.py` | rasterise from recipes without a build | — |
-| `checkpoint.py` | the review sheet | — |
+| `preview.py` | rasterise from recipes without a build; `wrap.py` and `weights.py` import it | — |
+| `specimen.py` | **the review sheet** — the alphabet, the case pairs and the `vs Latin` row, the prose, the code, the mixed lines and the reading sizes, in one SVG. Merges `checkpoint`, `be_sheet`, `cursive_sheet`, `italic_sheet`, `ka_company` and `ka_sheet`, which were six copies of the same four rows split by letter because a PNG could not hold them at once. `--letters Зз` is that per-letter sheet, with the letter between a round and a straight. **`--against OLD_DIR`** sets a stashed build beside this one, the columns touching, one line per weight — `em_sheet.py` folded in. | — |
+| `svgsheet.py` | the SVG algebra the sheets are written in — a glyph defined once and placed with `<use>`, counters by `fill-rule`, every word on the page including the labels drawn as outlines so nothing falls back | — |
 | `classify.py` | the tier table — what is derived, and from what | — |
 | `geom.py` | outline algebra over Glyphs paths (22 primitives) | — |
 | `build_cyrillic.py` | writes recipes into the Glyphs source; `--rebuild` drops and redraws | — |
+
+### Retired — the question is settled and the script came out
+
+**Twelve went on 2026-08-27**, on the user's word. Each was written to settle
+one letter, each settled it, and each then sat in the tree redrawing a decided
+answer. **A probe that measures a frozen glyph is a stale picture with a cron
+job**: it costs a build, it invites a re-litigation of an approval, and three
+of them were still wired into `review.sh` regenerating evidence for letters
+nobody was arguing about any more.
+
+They are cited by name in comments across `scripts/de_from_lilex.py`,
+`scripts/donor.py`, `tools/gd_band.py` and `tools/classify.py`, and those
+citations were deliberately left alone — they cite a FINDING, and the finding
+is here. The code is in git history.
+
+| retired | what it established | where the finding lives now |
+| --- | --- | --- |
+| `cursive.py` | the reference cursive letters with their stroke weight divided out — how many strokes, which way they run | the closed italic-house thread, §9 |
+| `de.py` | д's construction, tried every way before the donated route won | APPROVALS, the д rows; F16, F20 |
+| `de_paths.py` | every candidate donor's own stroke laid over this face's o | APPROVALS, the д rows; `scripts/de_from_lilex.py` |
+| `de_seam.py` | what each candidate does where the arm enters the bowl | F20, and `DE_SEAM` in `recipes.py` |
+| `de_arm.py` | where д's arm goes and how it ENDS, over the face's own o | APPROVALS, д 2026-08-18; F16 |
+| `de_vs_d.py` | that the cursive д is an `o` with a hook, not a `d` with a different ascender | F13, and the д rows |
+| `gd_target.py` | what a cursive г and д should measure | `gd_band.py`, which is NOT retired and still takes the reading |
+| `gd_donors.py` | which faces could donate a г and a д, and what each would cost | APPROVALS, г and д; the donor is recorded in `recipes.py` |
+| `ka.py` | how a K-shaped letter is put together, off the ink, over the panel — the count that saw К was branching | **F13**, which is the entry it produced |
+| `ka_roboto.py` | Roboto Mono's К read as the counter-example | F13 |
+| `italic_forms.py` | the two houses: 10 of 29 monospace italics take и→u, п→n, т→m; 19 slope the upright | §9's closed house thread, with the two rosters written out |
+| `em_sheet.py` | two builds drawn ADJACENT, one line per weight | **folded into `specimen.py --against OLD_DIR`**, not lost |
+
 
 `verify.sh` runs all seven gates in order and exits non-zero on any failure.
 `review.sh` regenerates **every** review image from the current build — use it
@@ -2669,6 +2718,46 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
   names the choice and cannot make it.** The decision belongs to the user's
   eye, and it decides roughly forty letters of work; the capitals are unaffected
   either way and can be built first.
+
+  **DECIDED 2026-08-27 — the upright house, with three named exceptions. This
+  thread is closed; do not reopen it as a measurement.** The user was shown
+  both houses and chose *"Upright house — shear т п и"*. Then, having seen it
+  built, refined it twice: *"I have another idea. can we have тпи borrowed from
+  lating, but redesigned to fit cyrillic?"* and *"let's keep и as direct
+  borrowing but rework т and п"*. The ledger the italic actually ships, and
+  which a future session must not "correct" into consistency, is:
+
+  | letter | italic |
+  | --- | --- |
+  | **т** | `Te_comb` — П's own comb with three stems. The ONLY letter whose structure differs between the two sources. |
+  | **п** | the upright `Pe` sheared. Deliberately absent from `classify.ITALIC` so it falls through. |
+  | **и** | the borrowed cursive `u`, a donation. |
+  | **г д** | donated cursive, approved 2026-08-18. |
+  | everything else | the upright, sheared. |
+
+  **The mixture is the decision, not an unfinished state.** и is a borrowing
+  where т and п are not, because its bowl lands on the right stem exactly where
+  that stem's exit tail begins: cut the tail and the bowl has nothing to meet,
+  which is д's fault class (F20) and was rejected five times over a concavity at
+  that same handover. `flat_foot` in `recipes.py` is the graft that cuts those
+  tails; it is kept on disk and **wired to nothing**, because и is the one
+  letter that needed it and и does not take it. The user's instruction on the
+  upright и that was fixed along the way: *"Don't dropped fixed upright и, we
+  might add variants."* It is still in `Ii` and still correct.
+
+  **т is not a mirrored ш, and the never-mirror rule is not touched.** `comb`
+  draws n stems standing on a bar; `Pe` is literally that comb flipped about
+  its own mid-height. So a three-stem т is Pe's recipe at n=3 — a comb flipped
+  on the axis it is symmetric about, which is a different act from И-from-a-
+  flipped-N, where cuts drawn to face one way end up facing the other.
+
+  **What settled it was not the panel.** The face's italic Latin ends *every*
+  lowercase stem with a rightward exit tail — `l i n m u h k d`, the approved
+  cursive г carrying the largest. Our Cyrillic is built upright and sheared, so
+  it is cut flat throughout, and **a sheared upright cannot invent an exit.**
+  That is the real asymmetry between the two houses in this face, and it is why
+  the borrowed letters read as borrowed. Recorded here so the next round does
+  not rediscover it from a crop.
 
   **Still true and still to do at the italic:** F12's fix reads each base's own
   top anchor, and under a slant that anchor moves with the letter, so
