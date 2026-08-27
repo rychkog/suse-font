@@ -58,11 +58,14 @@ def plan(font, italic=False):
     A glyph is buildable when every part it needs is present -- so composites
     wait for their base, and the set grows as tiers land.
 
-    Under an italic source, seven letters answer differently. `classify.ITALIC`
-    says which and why: и п т ARE the italic's own u n m, and г д are the
-    cursive forms, which have no counterpart in either script and are drawn.
-    Everything else runs the same table and the same recipe, and comes out as
-    a true italic anyway because the recipe reads the italic's own donors.
+    Under an italic source, four letters answer differently. `classify.ITALIC`
+    says which and why: г and д are the cursive forms, which have no
+    counterpart in either script and are drawn; и is the italic's own u,
+    borrowed whole; and т takes П's comb with three stems rather than the
+    upright т's single stem, so it is the one letter whose STRUCTURE differs
+    between the two sources. Everything else -- п included -- runs the same
+    table and the same recipe, and comes out as a true italic anyway because
+    the recipe reads the italic's own donors.
     """
     over = ITALIC if italic else {}
     have = {g.name for g in font.glyphs}

@@ -7,6 +7,8 @@ that look right at one end of the axis and wrong at the other.
 """
 
 
+import math                                                  # noqa: E402
+
 from geom import slant                                       # noqa: E402
 
 
@@ -152,6 +154,38 @@ class Params:
                 return lo
         return self.xh - self.bar
 
+    def ink(self, name):
+        """A Latin letter's box AS DRAWN, which under an italic master is not
+        the box `paths` hands back.
+
+        `paths` un-shears, so every recipe can be written in upright space.
+        That is right for a stem's weight and for a corner's radius, and wrong
+        for a SIDEBEARING, because a sidebearing is a property of the letter
+        the reader sees. This shears the un-sheared box back and reports where
+        the ink really stands in the cell.
+        """
+        t = math.tan(math.radians(self.italic))
+        xs = [x + (y - self.pivot) * t
+              for p in self.paths(name) for x, y in _flatten(p, 24)]
+        return min(xs), max(xs)
+
+    def ink_right(self, name, y):
+        """Where an edge must be DRAWN so the shear lands it on `name`'s own.
+
+        `ink` says where a Latin letter's right edge stands. This says where to
+        put a mark that will be sheared: ink drawn at height `y` travels
+        `(y - pivot) * tan` to the right on its way back, so it has to start
+        that much short of the target.
+
+        The height is the whole of it. A recipe is written upright and its
+        widest row is wherever its own construction puts it -- ь's is the
+        straight run up its bowl, в's is its upper lobe, б's is its arm at the
+        ascender -- and b's is b's. Two heights, one slant, and the difference
+        comes out as a sidebearing that nothing in the upright can see.
+        """
+        return max(self.ink(name)) - (y - self.pivot) * math.tan(
+            math.radians(self.italic))
+
     def _bar_span(self, name, at):
         """How far that same stroke reaches left and right."""
         xs = []
@@ -202,8 +236,32 @@ class Lower:
         self.cap = pr.xh
         self.stem = pr.lcStem
         self.bar = pr.lcBar
-        self.capL = pr.lcL
-        self.capR = pr.lcR
+        # THE LOWERCASE STANCE IS NOT n's BOX.
+        #
+        # Every recipe here draws upright and the italic shears the result, so
+        # a letter whose widest ink is at the x-height pays the whole slant in
+        # its footprint -- about a fifth of the cell. **This face's own italic
+        # lowercase does not pay it**, because it is a true italic and not a
+        # sloped upright: n's widest ink is at the baseline, o's at a fifth of
+        # the x-height, b's at a quarter. Its capitals ARE sloped uprights --
+        # H stands 34..623 with its extremes at the baseline and the cap -- so
+        # the capitals were never wrong and are not touched here.
+        #
+        # Handed n's own box and then sheared, н came out 0.98 of the cell
+        # against the face's own italic n at 0.80, where the UPRIGHT н is n to
+        # the unit. It showed as л н я reading wide beside и and п, which are
+        # the italic u and n as components and so could not be wrong. Every
+        # reference monospace holds н and и at one width; ours ran a quarter
+        # apart.
+        #
+        # So the stance is derived from the FOOTPRINT n really occupies, less
+        # the slant an upright-built letter will pick up over the x-height.
+        # Under an upright master the slant is nothing and this is n's box
+        # again, which is why there is one path and not two.
+        l, r = pr.ink("n")
+        half = 0.5 * (r - l - pr.xh * math.tan(math.radians(pr.italic)))
+        self.capL = 0.5 * (l + r) - half
+        self.capR = 0.5 * (l + r) + half
         self.barOverlap = pr.barInset * pr.lcStem
 
     def __getattr__(self, k):

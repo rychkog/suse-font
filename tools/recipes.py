@@ -1366,6 +1366,44 @@ def bowl_of(pr):
     return m.bowlLeft, m.bowlRight, m.bowlStroke
 
 
+def shear_fit(pr, right, rows):
+    """Pull a drawn right edge in until the ITALIC's shear lands it on b's.
+
+    Every recipe here is written upright and the italic shears the result, so
+    a letter's rightmost ink ends up wherever its own widest ROW sits, plus
+    the slant that row has climbed. `bowl_of` hands back b's box UN-SHEARED --
+    which is not a footprint -- and the heights do not match: b is widest two
+    thirds of the way up its bowl, ь three tenths of the way up its own, в at
+    its upper lobe and б at its arm, right up at the ascender. The upright
+    cannot see any of this, and there ь, ъ and в land on b's right edge to the
+    unit. In the italic they stood 22, 23 and 41 units past it and б 119.
+
+    `rows` maps a candidate edge to the (x, y) of every row that could be the
+    widest -- в has two lobes and only the shear decides which of them is in
+    front. Twice round, because a row need not move with the edge unit for
+    unit: в draws its upper lobe at 0.945 of it, and once round leaves that
+    fraction of the error behind.
+
+    Only ever narrows, and only in the italic lowercase. The capitals are
+    sloped uprights in this face -- H's extremes are its baseline and its cap,
+    the same two rows B is widest between -- so the shear costs them nothing
+    and they are left alone.
+    """
+    if not pr.italic or not getattr(pr, "lower", False):
+        return right
+    k = math.tan(math.radians(pr.italic))
+    goal = max(pr.ink("b"))
+    for _ in range(2):
+        out = max(x + (y - pr.pivot) * k for x, y in rows(right))
+        right -= max(out - goal, 0.0)
+    return right
+
+
+def _rows(paths):
+    """Every point of a drawn shape, for shear_fit to pick the widest from."""
+    return [q for p in paths for q in _flatten(p, 24)]
+
+
 # в's upper lobe, as a fraction of the lower's width. The face's own B puts it
 # at 0.949 at Thin and 0.941 at ExtraBold; the panel's median for в is 0.946
 # across 51 faces. Host and panel agreeing to three decimals is as settled as
@@ -1413,7 +1451,6 @@ def Ve(pr, top=None):
     th = (base.cap - bi[1].position.y) / float(base.bar) * pr.bar
     wb = ((bi[9].position.y - bi[10].position.y) / float(base.bar)) * pr.bar
     waist, step = m.bWaist * top, m.bLobeStep
-    upper = x0 + VE_UPPER * (right - x0)
     ri = inner_radius(pr)
 
     # The outer is ONE contour, and the join is B's own: the lower arc arrives
@@ -1495,13 +1532,21 @@ def Ve(pr, top=None):
     # A lobe half the letter tall is very nearly semicircular in this face --
     # ь's own bowl is -- and the flat run that leaves, 0.11 of the edge, is
     # exactly what b and о hold.
-    rx = min(m.bowlWaist * (right - x0), (right - x0) * 0.5)
     ry1 = wl / 2.0 * 0.97
+    ry2 = (top - wu) / 2.0 * 0.97
+    # WHICH LOBE STANDS FURTHEST RIGHT is not the same question upright and
+    # sheared. The upper is drawn five per cent narrower, so upright the lower
+    # wins; sheared, the upper sits a quarter of the x-height higher and the
+    # slant is worth more than the five per cent. Both rows are the top of a
+    # lobe's straight run, and shear_fit takes whichever is in front.
+    right = shear_fit(pr, right, lambda r: [
+        (r, wl - ry1), (x0 + VE_UPPER * (r - x0), top - ry2)])
+    upper = x0 + VE_UPPER * (right - x0)
+    rx = min(m.bowlWaist * (right - x0), (right - x0) * 0.5)
     xs = right - rx
     # The upper lobe's arc starts at the same x as the lower's, which is what
     # keeps B's square join.
     rx2 = max(upper - xs, 4.0)
-    ry2 = (top - wu) / 2.0 * 0.97
 
     ns = [node(x0, 0.0), node(xs, 0.0)]
     ns += arc_to(xs, 0.0, right, ry1, right, 0.0)
@@ -1585,11 +1630,14 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     top = pr.cap if top is None else top
     bl, br, _ = bowl_of(pr)
     x0 = bl if x0 is None else x0
+    # Ы hands its own edge in, worked out from where its detached stem starts,
+    # and Ъ lets this find Ь's. Only an edge taken from b needs the shear
+    # correction -- see shear_fit.
+    fit = right is None
     right = br if right is None else right
     s = pr.stem if stem is None else stem
     t0, bt = soft_bowl(pr, top)
     tt = t0 if t is None else t
-    rx, ry = bowl_arc(pr, x0, right, 0.0, bt)
     spine = (rect(x0, 0.0, x0 + s, top) if shoulder is None
              else shoulder_spine(pr, shoulder, x0, s, top))
     # The counter's corner is read off b for the LOWERCASE only. `r - t`, which
@@ -1612,9 +1660,15 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
     # own shaved stem rather than the face's because that IS its spine. See
     # bowl_pair's `tl`.
-    bowl = bowl_pair(x0, 0.0, right, bt, tt,
-                     th=tt * pr.bar / pr.stem, r=rx, ry=ry,
-                     rmin=inner_radius(pr), tl=s, csweep=csweep, cut=cut)
+    def bowl_at(r):
+        rx, ry = bowl_arc(pr, x0, r, 0.0, bt)
+        return bowl_pair(x0, 0.0, r, bt, tt,
+                         th=tt * pr.bar / pr.stem, r=rx, ry=ry,
+                         rmin=inner_radius(pr), tl=s, csweep=csweep, cut=cut)
+
+    if fit:
+        right = shear_fit(pr, right, lambda r: _rows(bowl_at(r)))
+    bowl = bowl_at(right)
     if not cut:
         return [spine] + bowl
     return [_spine_bowl(bowl[0], spine, x0, s, bt), bowl[1]]
@@ -1652,8 +1706,11 @@ def Hard(pr, top=None):
     # HARD_LEFT.
     a, b = HARD_LEFT["lc" if getattr(pr, "lower", False) else "cap"]
     left = max(a + b * (pr.stem / 1000.0), 0.0) * 600.0
-    return Soft(pr, top, x0=left + HARD_SHOULDER * 600.0,
-                right=bowl_of(pr)[1], shoulder=left)
+    # The edge is left to Soft rather than passed in, which finds the same
+    # `bowl_of` number -- and in the italic fits it to ъ's own bowl, which
+    # stands further right than Ь's because the shoulder has pushed the stem
+    # across. See shear_fit.
+    return Soft(pr, top, x0=left + HARD_SHOULDER * 600.0, shoulder=left)
 
 
 def Yeru(pr, top=None):
@@ -1773,6 +1830,25 @@ def E_rev(pr, top=None):
 ZE_ROUND = {"cap": 0.9814, "lc": 0.9829}
 
 
+def round_w(pr, name):
+    """How wide O/o's INK is -- which `bbox` does not say in the italic.
+
+    `bbox` reads nodes, and a drawn italic un-sheared has its extremes BETWEEN
+    them: un-shearing swings the control points out past the curve, and the box
+    then overstates o by 62 units at Thin. Upright the extremes are nodes and
+    the two readings agree exactly, which is why the upright has always been
+    right here and cannot move.
+
+    З and з take their width from a round letter and their own box from the
+    flattened three, so the two sides of that comparison were being read in
+    different units -- and only in the italic. It put З 148 units past О and з
+    103 past о where the upright sits just inside both. The other face of the
+    fault `shear_fit` answers: a reading that is not ink is not a width.
+    """
+    xs = [x for p in pr.paths(name) for x, _ in _flatten(p, 24)]
+    return max(xs) - min(xs)
+
+
 def _ze_wall(polys, x0, x1, y0, y1):
     """The three's wall at the lobes' widest, where a horizontal cut crosses it
     square. This is the one stroke a horizontal squash would thin, so it is the
@@ -1820,8 +1896,7 @@ def Ze(pr, top=None):
     xs = [q[0] for p in src for q in p]
     ys = [q[1] for p in src for q in p]
     x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-    want = bbox(pr.paths("O"))
-    want = (want[2] - want[0]) * ZE_ROUND["cap"]
+    want = round_w(pr, "O") * ZE_ROUND["cap"]
     wall = _ze_wall(src, x0, x1, y0, y1)
     out = squash_x(clone_all(pr.paths("three")), [(x1 - wall, x1)],
                    x1, x0 + want, x0)
@@ -1901,8 +1976,7 @@ def Ze_lc(pr):
     ax0 = 300.0 + (x0 - 300.0) * pr.stem / float(base.stem)
     ax1 = 300.0 + (x1 - 300.0) * pr.stem / float(base.stem)
     out = scale_x(out, pr.stem / float(base.stem))
-    ob2 = bbox(base.paths("o"))
-    want = (ob2[2] - ob2[0]) * ZE_ROUND["lc"]
+    want = round_w(base, "o") * ZE_ROUND["lc"]
     aw = wall * pr.stem / float(base.stem)
     out = squash_x(out, [(ax1 - aw, ax1)], ax1, ax0 + want, ax0)
     return translate(out, dx=300.0 - (ax0 + want / 2.0))
@@ -1965,8 +2039,24 @@ def Ii(pr, top=None, bottom=0.0, donor="N"):
     # width and the stem weight as well. Sized as three stems in a row instead,
     # И came out lighter in the stem and wider in the cell than any of the
     # sixty faces on the panel, and fell below every one of them for weight.
-    nb = bbox(pr.paths(donor))
-    x0, x1 = nb[0], nb[2]
+    # WHERE THE STEMS STAND is the stance, not the donor's box, and in the
+    # italic those are different numbers. `bbox` reads nodes, and un-shearing a
+    # drawn italic swings its control points out past the curve; worse, an
+    # un-sheared box is not a footprint, so drawing to it and then shearing
+    # pays the slant twice. и came out 107 units wider than н at Regular from
+    # exactly that, and overran its cell at ExtraBold, while the upright had
+    # all three letters identical to the unit.
+    #
+    # `Lower` already answers this -- capL/capR is where a lowercase stem has
+    # to be DRAWN so the shear lands it on n's own footprint, and н п ш ц all
+    # take it. In the upright the stance is n's box to the unit, so this
+    # changes nothing there. The capital keeps the donor's box: И is a sloped
+    # upright in this face, as H and N are, and pays no slant to correct.
+    if getattr(pr, "lower", False):
+        x0, x1 = pr.capL, pr.capR
+    else:
+        nb = bbox(pr.paths(donor))
+        x0, x1 = nb[0], nb[2]
     s = pr.stem_of(donor, (top - bottom) * 0.25)
     # The diagonal still takes the crowding reduction: three strokes cross the
     # cell at mid height, and at full weight it closes the counters.
@@ -2817,5 +2907,112 @@ def De_cursive(pr):
     return out + [counter if area(counter) < 0 else reverse(counter)]
 
 
+def flat_foot(pr, donor):
+    """The face's own italic letter with its EXIT TAIL replaced by a flat foot.
+
+    т and п are the italic's own m and n -- the cursive forms, which 10 of the
+    29 monospace italics on this machine take and every one of them takes by
+    mapping the codepoint straight to the Latin glyph. The forms are right and
+    the panel backs them. What was wrong is the company: this face tails every
+    italic lowercase stem, and our Cyrillic is built upright and sheared, so it
+    is cut flat throughout. Three letters wearing the Latin's exit among a set
+    that has none is two hands on one line, and it reads in a word before it
+    reads on a sheet.
+
+    Nothing here is drawn. In both letters only the LAST stem tails; every
+    earlier one already ends flat -- n's left stem holds one stem's width at
+    every height down to the baseline while its right swells by half as much
+    again. So the foot being grafted on is the letter's own, at its own weight
+    and its own slant, and the graft is mechanical: the last stem's two edges
+    are long straight runs that stop early to make room for the tail, so each
+    is continued down its own slope to the baseline and closed flat.
+
+    и is NOT here. Its bowl arrives at the right stem exactly where the tail
+    begins, so removing the tail leaves the bowl nothing to land on and the
+    junction has to be re-fitted -- д's fault class, rejected five times over a
+    concavity at that same handover. It stays the borrowed u, tail and all.
+    """
+    src = clone_all(pr.paths(donor))
+    xh = pr.xh
+    out = []
+    for p in src:
+        ns = list(p.nodes)
+        low = [i for i, n in enumerate(ns) if n.position.y < 0.30 * xh]
+        if not low:
+            out.append(p)
+            continue
+        tip = max(low, key=lambda i: ns[i].position.x)
+
+        xy = lambda i: (ns[i].position.x, ns[i].position.y)
+
+        def edge(step):
+            """Back out of the tail to the stem edge that runs into it.
+
+            Found by the segment's RISE, not by a height: at ExtraBold the
+            terminal's flat cut sits at the same height as the tail's tip, so
+            anything keyed on height grabs the cut and reads a slope of zero.
+            A stem edge climbs most of the x-height; a terminal cut climbs
+            nothing.
+            """
+            i = tip
+            for _ in range(len(ns)):
+                i = (i + step) % len(ns)
+                if str(ns[i].type) != "line":
+                    continue
+                x1, y1 = xy((i - 1) % len(ns))
+                x2, y2 = xy(i)
+                if abs(y2 - y1) > 0.20 * xh:
+                    return i
+            return None
+
+        a, b = edge(-1), edge(1)
+        if a is None or b is None:
+            out.append(p)
+            continue
+
+        def to_base(i):
+            """Where the edge arriving at node `i` reaches the baseline."""
+            x1, y1 = xy((i - 1) % len(ns))
+            x2, y2 = xy(i)
+            return x2 + (0.0 - y2) * (x1 - x2) / (y1 - y2)
+
+        x_in, x_out = to_base(a), to_base(b)
+        keep = ns[:a + 1] + [node(x_in, 0.0), node(x_out, 0.0)] + ns[b:]
+        out.append(path([node(n.position.x, n.position.y, n.type, n.smooth)
+                         for n in keep]))
+    return out
+
+
+def Te_comb(pr, top=None):
+    """т in the italic -- П's own construction with three stems.
+
+    "ш turned over" is what it looks like, but nothing is turned over: `comb`
+    draws n stems standing on a bar and П is already that comb flipped about
+    its mid-height, so this is П's recipe with three stems instead of two. The
+    face's own corner radius, bar weight and stem fit come with it, and every
+    terminal is cut the way `comb` cuts one -- which is why this is not the
+    mirroring CLAUDE.md forbids. И from a flipped N reverses cuts that were
+    drawn to face one way; a comb is symmetric about the axis it is flipped
+    on, and П has been approved built exactly like this.
+
+    Chosen over the cursive form on 2026-08-25. The graft that preceded it --
+    the italic m with its exit tail replaced, `flat_foot` below -- fixed the
+    foot and left the shoulder: т and п closed over into an arch at the
+    x-height where н, ш and ц are cut flat, most visibly at ExtraBold, where
+    п's shoulder had closed by four fifths of the way up. The arch IS the
+    cursive form, so there was nothing to repair without leaving it.
+    """
+    top = pr.cap if top is None else top
+    x0, x1, s = fit_stems(pr, 3)
+    return mirror_y(comb(pr, x0, x1, 3, s, top, pr.bar,
+                         corner_radius(pr) * RADIUS), top / 2.0)
+
+
 ITALIC["ge-cy"] = Ge_cursive
 ITALIC["de-cy"] = De_cursive
+ITALIC["te-cy"] = lc(Te_comb)
+# п is left OUT: with no italic override it falls through to the upright
+# recipe, which is П's two-stem comb, and the shear does the rest.
+#
+# `flat_foot` above is kept and wired to nothing. It is the cursive graft this
+# replaced, and putting either letter back is one line here.
