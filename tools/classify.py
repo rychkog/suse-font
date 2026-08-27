@@ -195,7 +195,7 @@ ITALIC = {
     # П's own two-stem comb, and the shear does the rest.
     "te-cy": (3, "П's comb with three stems -- ш turned over"),
     # г and д stay cursive, approved 2026-08-18.
-    "ge-cy": (3, "the cursive г, Sudo's outline fitted to this face"),
+    "ge-cy": (3, "the cursive г, Lilex's outline fitted to this face"),
     "de-cy": (3, "the cursive д, our own o + Lilex's hook"),
 }
 
