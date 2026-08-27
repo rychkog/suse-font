@@ -32,7 +32,9 @@ Fonts are built automatically by GitHub Actions - take a look in the "Actions" t
 
 If you want to build fonts manually on your own computer:
 
-* `make build` will produce font files.
+* `make build` will produce font files. It removes `fonts/` first and
+  rebuilds every family; on a memory-tight machine prefer `make mono`,
+  which builds only SUSE Mono and caps parallelism at `JOBS`.
 * `make test` will run [FontBakery](https://github.com/googlefonts/fontbakery)'s quality assurance tests.
 * `make proof` will generate HTML proof files.
 
