@@ -22,7 +22,7 @@ from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   area, LINE, OFFCURVE, CURVE,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
-                  squash_x, piecewise_y, scale_x, fit)
+                  squash_x, piecewise_y, scale_x, fit, slant)
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
@@ -178,8 +178,59 @@ def ef_fit(pr, key):
     return min(v, 1.0) if key in ("wall", "mid") else v
 
 
+def ef_edge(pr, draw):
+    """The sidebearing to DRAW so Ф stands at its target width once sheared.
+
+    Upright the two are the same number and this returns it unchanged. Under
+    the italic they are not, and not in the direction the shear suggests: a
+    box drawn upright and leaned over comes out WIDER, but this bowl is not
+    drawn upright. It is this face's own italic O un-sheared -- which leans
+    the other way -- fitted to the box and leaned back, so the fit is paid for
+    twice and the letter arrives narrow. Ф is meant to be the widest letter in
+    the set and the panel draws it at 0.99 to 1.36 of its own O; ours stood at
+    0.920 of it at Thin Italic and 0.889 at ExtraBold Italic, under the floor,
+    where the upright holds 1.131 and 1.050. ф was the same, 1.005 and 0.996
+    against its own o where the upright holds 1.205 and 1.040.
+
+    `draw` is the letter itself as a function of the sidebearing, because the
+    two cases build different letters and it is the finished INK that has to
+    measure right -- the stem crosses the bowl and can reach past it.
+
+    Bisected rather than solved, which is F17's own instruction: under a shear
+    the extremes change hands as the box scales, so a closed form would have
+    to know which points win at which width.
+    """
+    want = ef_fit(pr, "width") * 600.0
+    edge = (600.0 - want) / 2.0
+    if not pr.italic:
+        return edge
+
+    def ink(e):
+        xs = [x for q in slant(draw(e), pr.italic, pr.pivot)
+              for x, _ in _flatten(q, 24)]
+        return max(xs) - min(xs)
+
+    lo, hi = edge - 260.0, edge
+    for _ in range(22):
+        mid = (lo + hi) / 2.0
+        if ink(mid) < want:
+            hi = mid
+        else:
+            lo = mid
+    return (lo + hi) / 2.0
+
+
 def ef_crowd(pr):
-    """The bowl's wall as a share of what the round letter draws it at."""
+    """The bowl's wall as a share of what the round letter draws it at.
+
+    Upright, the share is derived from the stem. Under the italic it is taken
+    from `EF_BOWL_SHARE` instead, which is the share the upright's own
+    construction arrives at -- see that constant for why the derivation cannot
+    cross to a master whose O is heavier for the same stem.
+    """
+    if pr.italic:
+        a, b = EF_BOWL_SHARE
+        return a + b * (pr.stem / 1000.0)
     return ef_fit(pr, "wall") * pr.stem / bowl_stroke(pr)[0]
 # ...and its total height over the x-height, the panel's median across the same
 # 51 faces.
@@ -200,6 +251,20 @@ YU_GAP = 0.129
 # Too much stem showing and not enough bowl. At 0.07 the bowl grows 7.5%, the
 # aspect lands at 0.995 and the projection still measures inside the panel.
 EF_OVERHANG = 0.07
+# Ф's bowl wall as a share of what the round letter draws its own wall at.
+# The upright's approved construction comes out at 1.000 at Thin and 0.8575 at
+# ExtraBold, and this line reproduces both exactly; it is not a new fit.
+#
+# It exists because `ef_crowd` derives that share from the STEM, through lines
+# fitted standing up, and the italic master defeats them: its stem has barely
+# moved (161.0 against the upright's 161.0, 29.5 against 29.0) while it draws
+# its own O twelve per cent heavier for it -- 184.2 against 164.0 at
+# ExtraBold, 32.5 against 29.0 at Thin. Fed the same stem the line returns the
+# same wall, and the letter lands at 0.765 of its own O where the upright
+# stands at 0.857. F17 again: the SHARE is the design decision and it
+# transfers between the two sources; the line is an upright measurement and
+# does not.
+EF_BOWL_SHARE = (1.0313, -1.0795)
 
 _METRICS = {}
 
@@ -931,7 +996,6 @@ def Ef(pr):
     m = L(pr)
     # Both cases take the panel's width relation now. capWidest is what let
     # the capital grow past its own cell.
-    edge = (600.0 - ef_fit(pr, "width") * 600.0) / 2.0
     # The lowercase ф is a TALL letter: its stem runs from the descender to
     # the ascender with the bowl at x-height, which is what classify has said
     # all along -- "bowl + ascender-to-descender stem". Drawn to the x-height
@@ -970,7 +1034,6 @@ def Ef(pr):
         oc = (ob[1] + ob[3]) / 2.0
         orad = (ob[3] - ob[1]) / 2.0 * EF_BOWL_TALLER
         ob = (ob[0], oc - orad, ob[2], oc + orad)
-        half = ef_fit(pr, "width") * 600.0 / 2.0
         # The stem runs the panel's own height for ф, centred on the bowl,
         # rather than all the way from the descender to the ascender. Taken
         # to both extremes it stood 1.89 of the x-height at ExtraBold and
@@ -991,10 +1054,16 @@ def Ef(pr):
         # wall at 0.78 of the stem where the panel wants 0.82-0.93, which is
         # what made the counters read airy once the bowl had been widened.
         st = ef_fit(pr, "mid") * pr.stem
-        return (bowl(pr, 300.0 - half, 300.0 + half, ob[1], ob[3],
-                     crowd=ef_crowd(pr))
-                + [rect(300.0 - st / 2.0, foot,
-                        300.0 + st / 2.0, foot + EF_HEIGHT * pr.cap)])
+        crowd = ef_crowd(pr)
+
+        def draw(e):
+            # `half` and the sidebearing are the same number read from the two
+            # ends of the cell, so the bisection has one thing to solve for in
+            # both cases.
+            return (bowl(pr, e, 600.0 - e, ob[1], ob[3], crowd=crowd)
+                    + [rect(300.0 - st / 2.0, foot,
+                            300.0 + st / 2.0, foot + EF_HEIGHT * pr.cap)])
+        return draw(ef_edge(pr, draw))
     mid = 300.0
     # How far the stem projects past the bowl. Borrowed, and marked as such:
     # no Latin letter here has a stroke crossing a bowl, and this face ships
@@ -1003,8 +1072,12 @@ def Ef(pr):
     # JetBrains 0.100, Consolas 0.100, Monotional 0.083, DejaVu 0.083.
     oh = EF_OVERHANG * pr.cap
     st = ef_fit(pr, "mid") * pr.stem
-    return (bowl(pr, edge, 600.0 - edge, oh, pr.cap - oh, crowd=ef_crowd(pr))
-            + [rect(mid - st / 2.0, 0.0, mid + st / 2.0, pr.cap)])
+    crowd = ef_crowd(pr)
+
+    def draw(e):
+        return (bowl(pr, e, 600.0 - e, oh, pr.cap - oh, crowd=crowd)
+                + [rect(mid - st / 2.0, 0.0, mid + st / 2.0, pr.cap)])
+    return draw(ef_edge(pr, draw))
 
 
 def Yu(pr):
