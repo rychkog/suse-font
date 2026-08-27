@@ -71,15 +71,45 @@ def flat(gs, name):
 
 
 def stem_at(polys, y, last=False, pair=0):
+    """The n-th run of INK the scanline crosses, left to right.
+
+    Crossings taken in pairs are not runs, and the difference is the whole of
+    a gate failure that stood for weeks. A variable font keeps its overlaps --
+    varLib cannot remove them without breaking interpolation, and only the
+    static instances go through overlap removal -- so where Б's stem and its
+    bowl overlap, the scanline meets two edges about a unit apart that bound
+    no white at all. Paired off, that sliver IS the first stroke: Б Ь Ы Ъ read
+    1.03, 0.12, 0.12 and 0.12 against B's 29.16 in the variable italic, a
+    -96% to -100% failure, while the statics drawn from the same source read
+    29 to 30 and passed. Four crossings in the static, six in the variable,
+    the same letter in both.
+
+    Winding tells a sliver from a stroke. Each crossing carries the direction
+    its edge runs, ink is where the winding number is not zero, and two
+    contours that overlap wind the SAME way and merge into the one run they
+    actually draw. A counter still splits the runs, its inner contour winding
+    the other way, so every reading over a clean outline is unchanged -- which
+    was checked, over all sixteen statics and both variables, before and
+    after: the four variable-italic lines moved and nothing else did.
+    """
     xs = []
     for poly in polys:
         for (x0, y0), (x1, y1) in zip(poly, poly[1:] + poly[:1]):
             if (y0 - y) * (y1 - y) < 0:
-                xs.append(x0 + (x1 - x0) * (y - y0) / (y1 - y0))
+                xs.append((x0 + (x1 - x0) * (y - y0) / (y1 - y0),
+                           1 if y1 > y0 else -1))
     xs.sort()
-    if len(xs) < 2 * (pair + 1):
+    runs, wind, start = [], 0, None
+    for x, d in xs:
+        if wind == 0:
+            start = x
+        wind += d
+        if wind == 0 and start is not None:
+            runs.append(x - start)
+            start = None
+    if len(runs) < pair + 1:
         return None
-    return (xs[-1] - xs[-2]) if last else (xs[2 * pair + 1] - xs[2 * pair])
+    return runs[-1] if last else runs[pair]
 
 
 def check_font(path, present):
@@ -254,19 +284,25 @@ def source_fidelity():
 def build_is_current():
     """The Makefile computes its dependency list from config.yaml -- the
     PROPORTIONAL family -- so SOURCES is SUSE.glyphs and SUSE-Italic.glyphs.
-    Editing SUSEMono.glyphs never invalidates build.stamp, and `make build`
+    Editing SUSEMono.glyphs never invalidates build.stamp, and the build
     exits 0 having done nothing. Two rounds of review ran against stale
     binaries before this was noticed, so the freshness is now asserted.
     """
     import os
-    src = "sources/SUSEMono.glyphs"
-    out = "fonts/variable/SUSEMono[wght].ttf"
-    if not os.path.exists(out):
-        return ["no build output"]
-    if os.path.getmtime(src) > os.path.getmtime(out):
-        return ["sources are newer than the build -- "
-                "run `rm -f build.stamp && make build`"]
-    return []
+    bad = []
+    # BOTH sources, each against the binary it produces. Checking only the
+    # upright let an italic-only change ship against a stale italic, which is
+    # the same stale-picture fault the check was written to stop.
+    for src, out in (("sources/SUSEMono.glyphs",
+                      "fonts/variable/SUSEMono[wght].ttf"),
+                     ("sources/SUSEMono-Italic.glyphs",
+                      "fonts/variable/SUSEMono-Italic[wght].ttf")):
+        if not os.path.exists(out):
+            bad.append("no build output: %s" % out)
+        elif os.path.getmtime(src) > os.path.getmtime(out):
+            bad.append("%s is newer than the build -- "
+                       "run `rm -f build.stamp && make mono`" % src)
+    return bad
 
 
 def main():
@@ -282,7 +318,7 @@ def main():
     problems += [f"toolchain: {x}" for x in pinned_toolchain()]
     problems += [f"donor: {x}" for x in donor_structure()]
     problems += [f"source: {x}" for x in source_fidelity()]
-    # only the Mono family: `make build` also builds the proportional SUSE,
+    # only the Mono family: the full build also makes the proportional SUSE,
     # which has no Cyrillic and would report every target glyph as missing
     for p in sorted(glob.glob("fonts/ttf/SUSEMono*.ttf")) + \
              sorted(glob.glob("fonts/variable/SUSEMono*.ttf")):
@@ -322,4 +358,5 @@ def main():
     print("all mechanical checks pass")
 
 
-main()
+if __name__ == "__main__":
+    main()
