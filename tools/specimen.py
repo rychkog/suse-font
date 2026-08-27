@@ -323,6 +323,18 @@ if __name__ == "__main__":
     width = WIDTH
     if against:
         width = against_width(up("Regular"), against_frame(letters))
+    elif letters:
+        # The per-letter sheet frames EVERY named letter on one line, so eight
+        # letters is eight frames and the row runs off a fixed page. The page
+        # gives way, the same as in against mode: an SVG has no fixed paper,
+        # and a row cut off at the right edge is a picture that lies.
+        f, frame = up("Regular"), against_frame(letters)
+        k = 64 / float(f.upem)
+        # `glyphs` adds a tenth of the size after EVERY character, so the row
+        # is its advances plus that, once per character and not once per
+        # letter -- counted per letter it fell short and cut the last frame.
+        row = sum(f.advance(c) for c in frame) * k + 64 * 0.10 * len(frame)
+        width = int(max(WIDTH, PADX + row + 80))
 
     sh = Sheet(width, "SUSE Mono Cyrillic — %s%s"
                % ("against %s: " % against if against else "",
