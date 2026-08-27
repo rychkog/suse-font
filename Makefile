@@ -21,8 +21,18 @@ build: build.stamp
 # whole proportional family as well -- and the rm is why an OOM kill mid-build
 # leaves no fonts at all. This target builds the one config the Cyrillic work
 # touches and leaves the rest of fonts/ alone.
+# JOBS caps how many fontmake processes run at once. gftools runs ninja with
+# no arguments, ninja then defaults to one job per core plus two -- twenty on
+# this eighteen-core machine -- and twenty concurrent fontmake processes took
+# the whole 12GB VM down, taking `fonts/` with it. Two is comfortable; raise it
+# only on a machine with the memory to pay for it.
+JOBS ?= 2
+
 mono: venv
-	. venv/bin/activate; gftools builder sources/config-mono.yaml
+	. venv/bin/activate; gftools builder --no-ninja sources/config-mono.yaml
+	. venv/bin/activate; cd sources && nice -n 10 ninja -j$(JOBS) -l 12
+	rm -f sources/build.ninja sources/.ninja_log
+	rm -rf sources/instance_ufos
 	. venv/bin/activate; ./scripts/fix_statics.sh
 	touch build.stamp
 
