@@ -42,7 +42,10 @@ import recipes as R                                            # noqa: E402
 
 SRC = "sources/SUSEMono-Italic.glyphs"
 FACE = "fonts/ttf/SUSEMono-Regular.ttf"
-NAMES = {"г": "ge-cy", "д": "de-cy"}
+# т and п joined the list on 2026-08-24: they are no longer the Latin m and
+# n borrowed whole but those outlines with the exit tail cut off and a flat
+# foot grafted on, and a cut is exactly what this probe exists to check.
+NAMES = {"г": "ge-cy", "д": "de-cy", "т": "te-cy", "п": "pe-cy"}
 EM = 1000.0
 
 
@@ -92,7 +95,12 @@ def built(path, ch, cp=None):
 def contours(pr, ch):
     """The letter as it is written, leaning, as lists of (x, y, kind)."""
     if ch in NAMES:
-        ps = R.ITALIC[NAMES[ch]](pr)
+        # A letter can be listed here and have no ITALIC override -- п runs the
+        # plain recipe and lets the shear do the work -- so fall through to the
+        # normal table rather than raising.
+        name = NAMES[ch]
+        fn = R.ITALIC.get(name) or R.RECIPES.get(name)
+        ps = fn(pr) if fn else pr.paths(ch)
     else:
         ps = pr.paths(ch)
     out = []
@@ -319,7 +327,10 @@ def report(ch, mname, cs, ref, cells, tag=""):
 
 
 def main():
-    want = [a for a in sys.argv[1:] if not a.startswith("-")] or ["г", "д"]
+    # Default to everything NAMES knows about, so adding a letter there is
+    # enough. It was a second hardcoded list, and т and п were added to NAMES
+    # and silently not checked.
+    want = [a for a in sys.argv[1:] if not a.startswith("-")] or list(NAMES)
     font = glyphsLib.load(open(SRC))
     cells = []
     print()

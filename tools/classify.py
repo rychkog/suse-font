@@ -149,27 +149,52 @@ TIERS = [
 # true italic, cursive or not, because a sheared bowl is an ellipse leaning the
 # wrong way. Those are already right and are not listed.
 #
-# и п т ARE the italic's own u n m, and that is not a resemblance being trusted
-# the way К was: every face on this machine that takes the cursive forms maps
-# the codepoint straight to the Latin glyph, and this face's own italic u n m
-# are the shapes to the eye. So they are honest tier 1 here while being drawn
-# in the upright, which is the whole point of a per-source table.
+# и п т WERE the italic's own u n m -- tier 1, the codepoint mapped straight to
+# the Latin glyph, which is how all ten cursive faces on this machine do it.
+# The dict below is where they landed on 2026-08-25 and the three went
+# separate ways, so read it rather than this note if the two ever disagree.
 #
-# г and д have no counterpart in either script. г is not drawn: it was, twice,
-# from a spine read off the references and stroked at a constant width, and it
-# was rejected twice -- ink laid along a centreline has no modulation and no
-# terminals, so it reads as bent wire whatever path it follows. It is Sudo's
-# outline now, fitted to this face's height, width, cell, terminal cut and
-# weight. `scripts/ge_from_sudo.py`, and METHOD F15 for the fault class.
+# `italic_forms.py` recorded the choice as OPEN on 2026-08-13: 10 of 29
+# monospace italics take the cursive forms and 19 slope their upright, two
+# coherent houses rather than a median with outliers, so the panel names the
+# choice and cannot make it.
+#
+# What made it decidable was reading the TERMINALS. This face's italic Latin
+# ends every lowercase stem with a rightward exit tail -- l i n m u h k d all
+# do it, the plain l and i most of all -- while our Cyrillic is built upright
+# and sheared, and a sheared upright cannot invent an exit. Three letters
+# wearing the Latin's exit among a set cut flat is two hands on one line.
+#
+# Cutting the tail off and grafting the letter's own flat foot on fixed the
+# FOOT and left the SHOULDER: т and п still closed over into an arch at the
+# x-height where н, ш and ц stop dead, most visibly at ExtraBold where п's
+# shoulder had closed by four fifths of the way up. The arch IS the cursive
+# form. There was nothing left to repair without leaving the form, so т and п
+# left it -- т takes П's comb with three stems and п takes П's own two, and
+# both stop flat at the x-height like every letter they stand beside.
+#
+# и did NOT leave it, on the user's call. Its bowl lands on the right stem
+# exactly where the exit begins, so cutting the tail leaves the bowl nothing
+# to meet and the junction has to be re-fitted -- д's fault class, rejected
+# five times over a concavity at that same handover. It stays the borrowed u,
+# tail and all, which makes it the one lowercase Cyrillic that still exits.
+# й and ѝ ride on it as components and are unaffected (METHOD F12).
 #
 # м is deliberately NOT here. Only 8 of the 29 redraw it, and what changes is
 # an entry stroke on the first stem rather than the letter's structure, so it
 # keeps the construction the upright approves and this is recorded rather than
 # actioned.
 ITALIC = {
-    "ii-cy": (1, "u"),          # и IS the italic u
-    "pe-cy": (1, "n"),          # п IS the italic n
-    "te-cy": (1, "m"),          # т IS the italic m
+    # и stays the italic's own u, borrowed whole, tail and all: its bowl lands
+    # on the right stem exactly where the exit begins, so cutting the tail off
+    # leaves the bowl nothing to meet and the junction has to be re-fitted --
+    # д's fault class. т and п have no such junction; see `recipes.flat_foot`.
+    "ii-cy": (1, "u"),
+    # т takes П's comb with three stems -- see `recipes.Te_comb`. п is not
+    # listed at all: with no override it runs the upright recipe, which is
+    # П's own two-stem comb, and the shear does the rest.
+    "te-cy": (3, "П's comb with three stems -- ш turned over"),
+    # г and д stay cursive, approved 2026-08-18.
     "ge-cy": (3, "the cursive г, Sudo's outline fitted to this face"),
     "de-cy": (3, "the cursive д, our own o + Lilex's hook"),
 }
