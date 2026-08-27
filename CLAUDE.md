@@ -36,12 +36,22 @@ Use it. Do not invent one. `python` is not on PATH; use `./venv/bin/python`.
 
 ```
 ./venv/bin/python tools/build_cyrillic.py sources/SUSEMono.glyphs --rebuild
-rm -f build.stamp && make build
+./venv/bin/python tools/build_cyrillic.py sources/SUSEMono-Italic.glyphs --rebuild
+rm -f build.stamp && make mono   # NOT `make build` -- see below
 bash tools/verify.sh          # all seven gates, in order
 bash tools/review.sh          # regenerate EVERY review image from this build
 ./venv/bin/python tools/specimen.py --letters Зз   # one letter, in company
 ./venv/bin/python tools/specimen.py --against OLD   # this build vs a stash
 ```
+
+**`make build` is the wrong target and it has cost this machine twice.** It
+does `rm -rf fonts` and then rebuilds every family in `sources/config*.yaml`,
+so a one-glyph Cyrillic change pays for the whole proportional family — and
+the `rm` is why an OOM kill mid-build leaves no fonts at all, which is exactly
+what happened. `make mono` builds the one config this work touches, leaves the
+rest of `fonts/` alone, and caps ninja at `JOBS` (2) — gftools otherwise runs
+ninja with no arguments, ninja defaults to one job per core plus two, and
+twenty concurrent fontmake processes is what took the VM down.
 
 Render into `tools/out/`. Never review an image made before the last fix.
 
@@ -204,9 +214,16 @@ a substitute for measuring or a shortcut around routine work.
 ## Machine
 
 Treat memory as scarce: one heavy job at a time, stream rather than slurp, no
-background pollers. A `make build` has been OOM-killed mid-run before now,
-which deletes `fonts/` — check for a half-removed output directory before
-assuming the tree is intact.
+background pollers. **Write the code frugally too** — least RAM, fastest run —
+and install a better library or tool when that is what it takes.
+
+**Cap the parallelism of anything you did not write.** `make build` has now
+OOM-killed this machine twice, and the second time took the whole VM down: it
+hands the work to ninja with no arguments, ninja defaults to one job per core
+plus two, and eighteen cores means twenty concurrent fontmake processes. Use
+`make mono`, which caps it at `JOBS` — see *Pipeline*. Because the full target
+does `rm -rf fonts` first, an OOM mid-run leaves **no fonts at all**; check for
+a half-removed output directory before assuming the tree is intact.
 
 **One heavy job per command, and read a gate's output from a file.** The two
 things that hung this machine outright:
