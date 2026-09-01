@@ -22,7 +22,8 @@ from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   area, LINE, OFFCURVE, CURVE,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
-                  squash_x, piecewise_y, scale_x, fit, slant)
+                  squash_x, piecewise_y, scale_x, fit, slant,
+                  cut_at_y, meets_line, _segments, _split_seg)
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
@@ -2785,9 +2786,37 @@ def Ka(pr, donor="K", top=None, neck=KA_NECK):
     leg = [p for p in rest if p is not arm][0]
 
     def borrow(p, line):
-        """(perpendicular weight, the extreme it reaches) at its flat end."""
-        far = [n.position for n in p.nodes if abs(n.position.y - line) < 1.0]
-        near = [n.position for n in p.nodes if abs(n.position.y - line) >= 1.0]
+        """(perpendicular weight, the extreme it reaches) where its own two
+        edges arrive at the line.
+
+        Read off the STROKE, never off whatever the donor put at the end of it.
+        The upright's k ends both diagonals in a flat cut and the two readings
+        are the same one; the italic's k ends its leg in the face's own foot --
+        a slab 27 units tall and twice the stroke wide -- and taking the width
+        across the nodes at the baseline returned a leg of 59.8 units against a
+        stem of 30. The letter was built with it: к's italic leg came out at
+        twice the weight of its own stem at Thin, and the user saw it on a
+        screen before any reading here did, because nothing measures a
+        diagonal ACROSS itself. METHOD F22.
+        """
+        ns = [n.position for n in p.nodes]
+        if len(ns) > 4:
+            # not a plain diagonal any more: the donor has drawn something onto
+            # the end of it, and the stroke's own end is where its two long
+            # edges arrive at the line
+            sides = sorted((e for e in ((ns[i - 1], ns[i])
+                                        for i in range(len(ns)))
+                            if abs(e[1].y - e[0].y) > 1.0),
+                           key=lambda e: math.hypot(e[1].x - e[0].x,
+                                                    e[1].y - e[0].y))[-2:]
+            edge = [((b.x - a.x) / (b.y - a.y), a.x, a.y) for a, b in sides]
+            at = lambda e, y: e[1] + (y - e[2]) * e[0]
+            other = max((q.y for e in sides for q in e),
+                        key=lambda y: abs(y - line))
+            ns = [Point(at(e, line), line) for e in edge] \
+                + [Point(at(e, other), other) for e in edge]
+        far = [n for n in ns if abs(n.y - line) < 1.0]
+        near = [n for n in ns if abs(n.y - line) >= 1.0]
         fc = sum(n.x for n in far) / len(far)
         nc = sum(n.x for n in near) / len(near)
         ny = sum(n.y for n in near) / len(near)
@@ -2945,6 +2974,137 @@ def Ge_cursive(pr):
     return out
 
 
+GHE_TICK = 0.28         # ґ in the italic: the forelock's rise, in x-heights
+GHE_LEAN = (0.25, 0.25)  # and how far it leans past upright, per master
+
+
+def Ghe_upturn_cursive(pr):
+    """ґ in the italic -- the cursive г whose opening stroke turns up.
+
+    Asked for on 2026-08-27: *"ґ italic should be the same as г but with
+    forelock"*. Until then it was the upright ґ sheared, a corner with a tick,
+    standing next to a г that is the cursive form -- one letter and its mark
+    drawn in two hands.
+
+    **The forelock goes where the stroke BEGINS.** Built first at the bar's
+    right shoulder, which is where the upright's tick sits, and rejected: the
+    cursive г's bar does not END there, it turns down into the body, so a tick
+    standing on it reads as an ascender and the letter comes out a d. The
+    user's sketch puts it on the left, which is how the letter is written by
+    hand -- the tick is the first stroke, before the г.
+
+    **And it is ONE stroke.** Built next as its own contour standing on the bar
+    and overlapping it, which is this face's vocabulary for H and T, and
+    rejected too: where the bar's terminal is cut at an angle, a straight-sided
+    tick laid over it leaves its own corner sticking out past the ink. The
+    user circled it. A turn has to REPLACE the terminal rather than sit on it,
+    which is what the capital Ґ does with E's nodes and for the same reason.
+
+    **And the terminal is not its base either.** Built next as a tick standing
+    on that terminal -- its two edges rising from the cut's two ends -- and
+    rejected by the heavy master: *"It becomes completely broken on extra
+    bold, but overall shape looks right"*. The cut runs at about 63 degrees
+    from horizontal and every forelock worth drawing runs between 55 and 76,
+    so it is nearly parallel to the stroke standing on it and the span between
+    its ends, taken across the tick, is three units at Thin and twelve at
+    ExtraBold. A tick of any usable width has to reach far past that cut to
+    find its second edge, and the ink between fills in as a wedge across the
+    whole top left. At Thin every figure involved is under 24 units, which is
+    why three rounds of correction went past it. METHOD F23.
+
+    So what is drawn is the turn itself: the outer edge stands on the cut's
+    lower end, the inner edge is that line offset by the tick's width, and
+    where the INNER edge crosses the bar's own top edge is the elbow's notch,
+    found on the outline by `meets_line`. The donor's cut is deleted; the tick
+    is capped flat, which is the upright ґ's and Ґ's own vocabulary for it.
+    One segment is split and two nodes are added at each master, so the count
+    matches by construction.
+
+    It rises 0.28 of the x-height, the upright ґ's own figure and the panel's
+    median for the letter. **The lean is per master and the numbers forced
+    it**: the bar climbs away from the mouth at about 40 degrees, so a
+    forelock at 55 runs alongside it rather than turning off it, and at
+    ExtraBold, where both strokes are 85 units thick, the two seal -- the
+    notch lands four units under the letter's crest. Standing the tick up at
+    the heavy end puts the notch 36 units down and the turn reads again. The
+    light master keeps the 0.45 that was approved -- *"forelock inclination
+    should be bigger"*; the heavy master cannot have it. Shown as a ladder at
+    both masters.
+
+    **The panel does not do any of this and was asked.** Of the ten italic
+    monos here whose г is the cursive form -- Consolas, Inconsolata, Ioskeley,
+    JetBrains, Lilex, Lyth, Monaspace Radon and Xenon, Sudo, Victor -- every
+    one keeps ґ as the sheared upright corner. The user's call outranks it; the
+    reading is recorded so the next round knows it was taken.
+    """
+    ps = Ge_cursive(pr)
+    p = ps[0]
+    ns = list(p.nodes)
+    # the bar's own terminal: the one straight cut up at the top left
+    i = min((j for j, n in enumerate(ns)
+             if str(n.type) == LINE and n.position.y > pr.xh * 0.6),
+            key=lambda j: ns[j].position.x)
+    segs, on = _segments(p)
+    k = (on.index(i - 1) - 1) % len(segs)   # the bar's top edge, arriving at a
+    start = on[k]
+    a, b = ns[i - 1].position, ns[i].position
+
+    # The mouth's cut CANNOT be the forelock's base. It runs at about 63
+    # degrees from horizontal at both masters and every upward tick runs
+    # between 55 and 76, so the cut is very nearly parallel to the stroke
+    # standing on it: the span between its two ends, measured across the
+    # tick, is three units at Thin and twelve at ExtraBold. Building the tick
+    # as a parallelogram off that cut is what the first version did, and it
+    # is why the letter came apart at the heavy end -- the left edge's base
+    # had to reach 76 units down to the cut's lower end, and the ink between
+    # filled in as a wedge across the whole top left. METHOD F22 again: a
+    # width whose definition stopped matching what it was measuring.
+    #
+    # So the forelock is built as the turn it is. Its outer edge stands on
+    # the cut's lower end and rises; its inner edge is that line offset by
+    # the tick's width; and where the INNER edge crosses the bar's own top
+    # edge is the elbow's notch, found on the outline rather than assumed at
+    # a node. The cut itself goes: the mouth is now at the tick's tip.
+    lean = GHE_LEAN[getattr(pr, "_pr", pr).mi]
+    t = math.tan(math.radians(pr.italic))
+    # A leaning stroke is never as wide as the gap between its edges, so the
+    # gap is set to measure the target ACROSS the stroke. The target is the
+    # mouth's own span: the tick is as wide as the stroke it grows out of,
+    # which at this donor is a TAPER and so is not the face's stem -- 0.68 of
+    # it at Thin and 0.52 at ExtraBold. Built at the stem's width the tick
+    # stands wider than the letter it grows from: *"the forelock is thicker
+    # than the rest of the glyph especially it looks ugly on hight weights"*.
+    w = a.y - b.y
+    h = w * math.hypot(1.0, lean + t)
+    x_at = lambda y: b.x + h + (y - b.y) * lean
+    ts = meets_line(segs[k], x_at)
+    if not ts or start >= i:
+        # No crossing means no elbow, and returning `ps` here would ship a
+        # bare г at ґ's codepoint -- a homoglyph in a Ukrainian font that no
+        # gate reads. Loud, not silent.
+        raise ValueError("ghe-upturn: the forelock misses the bar's top edge")
+    head = _split_seg(segs[k], max(ts))[0]
+
+    # The lean stays ONE number across the axis, on the user's call, against
+    # the measurement. What the numbers say: the forelock rises where the bar
+    # already climbs away from the mouth at about 40 degrees, so at Thin the
+    # two part company at any lean on the ladder and at ExtraBold, where both
+    # strokes are 85 units thick, they close up. The elbow's notch, as a
+    # fraction of the tick's own width, runs 0.48 / 0.42 / 0.32 / 0.22 / 0.08
+    # at leans of 0.00 / 0.05 / 0.15 / 0.25 / 0.45 -- and 0.08 is the version
+    # that sealed. This one sits about halfway from open to sealed. It was
+    # chosen so the letter keeps one character across the weight axis rather
+    # than the deepest turn the heavy master can hold; the per-master pair
+    # (0.45, 0.05) is what the measurement asked for and was declined.
+    # Shown as a ladder at both masters before the call. APPROVALS has it.
+    ytip = pr.xh * (1.0 + GHE_TICK)
+    out = (ns[:start] + [head[0]] + head[1] + [head[2]]
+           + [node(x_at(ytip), ytip), node(x_at(ytip) - h, ytip)] + ns[i:])
+    q = path([node(n.position.x, n.position.y, n.type, n.smooth)
+              for n in out])
+    return [q if area(q) > 0 else reverse(q)] + ps[1:]
+
+
 def De_cursive(pr):
     """д -- this face's own o for the bowl, Lilex's hook laid over it.
 
@@ -3081,9 +3241,114 @@ def Te_comb(pr, top=None):
                          corner_radius(pr) * RADIUS), top / 2.0)
 
 
+I_CUT = 0.92            # і: where the stroke stops, across the bowl's upswing
+I_TILT = 2.0            # і: degrees of slant this letter carries over the face's
+
+
+def I_cursive(pr, mark="dotaccentcomb"):
+    """і -- one stroke: и's own, stopped where и turns up into its second stem.
+
+    The Latin і was donated whole and it is the Latin's own italic i: an entry
+    flag at the top left and a long flat foot, which is how this face ends
+    every straight-stemmed lowercase it draws -- i, l, t, d, a all carry it.
+    That is right for the Latin and wrong here. Our Cyrillic is built upright
+    and sheared, so it is cut flat throughout with no entry and no exit, and
+    one letter wearing the Latin's foot among a set that has none reads in a
+    word before it reads on a sheet -- `flat_foot`'s argument, which took т
+    and п off the cursive forms for the same reason.
+
+    и went the other way, on the user's call: it stays the italic's own u,
+    tail and all. і is cut from that same stroke, so the two letters are the
+    same ink, but і does NOT keep the tail -- the user cut it twice, first the
+    stub of the second stem and then the foot's flick: *"that little tale
+    shouldn't be there"*. What is left is the stroke down, round the bowl, and
+    up again far enough to read as a turn.
+
+    The cut runs from the bottom of the bowl's outer edge to where the bowl
+    leaves the stem -- both named, because the foot crosses any height three
+    times and "the first crossing" is not a thing this recipe can mean (F21).
+    Its height sits between the bowl's counter floor and where the bowl stops
+    rising, two heights и carries at each master, so the same two segments are
+    split at both and the node count matches by construction.
+
+    **The terminal is out of band at the heavy end and that is known**: it
+    measures about one and a half stems at Thin and about half a stem at
+    ExtraBold, because и's bowl closes up as it gets heavy and there is no
+    height where a cut across it is a stem wide at both masters. The letter
+    was chosen over the reading; the ledger says so.
+
+    The dot is the face's own combining mark, laid over the middle of the
+    stroke's top cut, which is where the face puts it on its own i. ї is this
+    letter under `dieresiscomb`; its base was `idotless` while і was the Latin
+    and has to follow і now, or the pair reads as two hands.
+    """
+    src = clone_all(pr.paths("u"))[0]
+    y = lambda i: src.nodes[i].position.y
+    on = [i for i, n in enumerate(src.nodes) if str(n.type) != OFFCURVE]
+    xh = max(y(i) for i in on)
+    # the right stem's top cut: the contour walks left along it, so the run to
+    # be dropped -- stem, foot and all -- starts here
+    stem = on.index(max((i for i in on if abs(y(i) - xh) < 1.0),
+                        key=lambda i: src.nodes[i].position.x))
+    fwd = on[(stem + 2) % len(on)]              # the bowl leaves the stem
+    floor = y(on[(stem + 3) % len(on)])         # the bowl's counter floor
+    back = min(on, key=y)                       # the bottom of the bowl
+    rise = y(on[(on.index(back) + 1) % len(on)])  # where the bowl stops rising
+    body = cut_at_y(src, floor + I_CUT * (rise - floor), back, fwd)
+
+    # Two degrees more slant than the rest of the face, on this letter alone,
+    # chosen off a sheet of five (-4/-2/0/+2/+4) on 2026-08-27. It is a
+    # departure and it is deliberate: the stroke already leans at the face's
+    # own 14.0 degrees at every band -- the identical reading н, м and l give
+    # -- so nothing was wrong with the angle as measured. What is short is the
+    # STRAIGHT run. The face's own i holds its stem straight for 79% of the
+    # x-height before it turns; this letter, cut out of и, turns at 57%,
+    # because и's bowl has to start reaching for a second stem. A letter with
+    # a short straight and a long curve does not declare an angle, and reads
+    # as leaning less than its neighbours whatever it measures. Two degrees is
+    # what it took to look level with them.
+    t = math.tan(math.radians(pr.italic))
+    if pr.italic:
+        body = slant([body], math.degrees(math.atan(
+            math.tan(math.radians(pr.italic + I_TILT)) - t)), pr.pivot)[0]
+
+    # и's left sidebearing is и's, and и keeps a second stem to the right of
+    # it. Cut that away and the letter hangs off the left of the cell: it
+    # measured 203 against 298 for the face's own i at Regular Italic, and 187
+    # against 295 at ExtraBold -- two thirds of a stem out of place, which is
+    # what "the inclination looks off" turns out to be. A slanted stroke sitting
+    # left of where its neighbours sit reads as tipped, not as displaced.
+    # So it takes the host's own fitting: the same ink centre as `idotless`,
+    # read at this master, in the space the letter is finally drawn in.
+    xs = [x + (y - pr.pivot) * t for x, y in _flatten(body)]
+    host = pr.ink("idotless")
+    body = translate([body], (min(host) + max(host)) / 2.0
+                     - (min(xs) + max(xs)) / 2.0)[0]
+
+    top = sorted(n.position.x for n in body.nodes
+                 if abs(n.position.y - xh) < 1.0)
+    an = [a for a in pr.layer(mark).anchors if a.name == "_top"][0]
+    ps = clone_all(pr.paths(mark))
+    up_x = an.position.x - (an.position.y - pr.pivot) * t
+    if pr.italic:
+        e = math.degrees(math.atan(
+            math.tan(math.radians(pr.italic + I_TILT)) - t))
+        ps = slant(ps, e, pr.pivot)
+        up_x += (an.position.y - pr.pivot) * math.tan(math.radians(e))
+    return [body] + translate(ps, (top[0] + top[-1]) / 2.0 - up_x)
+
+
+def Yi_cursive(pr):
+    """ї -- і under the face's own dieresis."""
+    return I_cursive(pr, "dieresiscomb")
+
+
 ITALIC["ge-cy"] = Ge_cursive
 ITALIC["de-cy"] = De_cursive
+ITALIC["gheupturn-cy"] = lc(Ghe_upturn_cursive)
 ITALIC["te-cy"] = lc(Te_comb)
+ITALIC["i-cy"] = I_cursive
+ITALIC["yi-cy"] = Yi_cursive
 # п is left OUT: with no italic override it falls through to the upright
 # recipe, which is П's two-stem comb, and the shear does the rest.
 #

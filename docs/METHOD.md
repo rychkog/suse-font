@@ -1635,6 +1635,169 @@ fallback was hiding a bad target path, not creating one. A fitter refusing to
 draw something is evidence about the path, not about the fitter.
 
 
+### F21 · Deleting a donor's nodes is not cutting its outline
+
+і had to become one stroke: и's own, stopped before it climbs into the second
+stem. The obvious move is to delete the stem's nodes, and it was made three
+times, in three lengths, and shown three times. What comes back is not a
+shortened letter. **The two nodes either side of the deleted run join by
+whatever edge is left between them**, and that edge was never drawn to be seen
+— in и it is buried inside the stem. The tell was on the sheet each time and
+was read as a drawing fault rather than as a method fault: a hairline where the
+bowl met the exit at Thin, a detached wedge at ExtraBold. The user's word for
+all three was *"broken badly"*.
+
+**A cut is an operation on the OUTLINE, at a height, not on the node list.**
+Find the two segments that reach the height on either side of the run, split
+each at the crossing, drop what is between and join the ends with a straight
+edge. That edge is the terminal, and it is the only new thing in the letter.
+`geom.cut_at_y`; `geom.cut_span` is the coarse sibling that cuts at node
+boundaries, which is only as fine as the donor happened to be drawn.
+
+**Name both edges. Do not search for them.** A stroke that doubles back
+crosses the same height several times — и's foot crosses it going out, coming
+back and going out again — so "the first crossing outward from here" is
+whichever fold of the letter happens to be nearest, and it changes with the
+height. The first version of this cut searched, and quietly cut the wrong fold:
+asked to drop the foot it dropped the second stem instead and left the foot
+where it was, which is what the user was looking at when they said *"that
+little tale shouldn't be there"* about a letter reported as having no tail.
+`cut_at_y` now takes the two nodes whose segments carry the cut.
+
+**Choose the height so that the same two segments are split at both masters.**
+Read it off the donor — here, between the bowl's counter floor and where the
+bowl stops rising, two node heights и carries at each weight. Then node parity
+holds by construction rather than by luck: a height set as a flat fraction of
+the x-height crossed a line at one master and a curve at the other and returned
+25 nodes against 28. F19's rule, applied to a cut.
+
+**A letter cut out of a donor is not fitted, and nothing says so.** и's left
+sidebearing is и's, and и keeps a second stem to the right of it; cut that away
+and what is left hangs off the left of the cell. Ours measured an ink centre of
+203 against 298 for the face's own i at Regular Italic, and 187 against 295 at
+ExtraBold — two thirds of a stem out of place. **It does not read as
+displacement, it reads as slant**: the user's report was *"inclination angle of
+і is wrong and it makes it to look off"*, and the stroke's own lean measured
+14.0° at every band, exactly the face's. A slanted stroke sitting left of where
+its neighbours sit reads as tipped. Every reading in the pipeline passed —
+there is no gate on where a letter sits in its cell, only on what it is made
+of. Take the host's own fitting explicitly: і now carries `idotless`'s ink
+centre, read live at each master.
+
+**A measured angle and a perceived angle are different readings.** і's stroke
+leans 14.0° at every band, which is the face's own and what н, м and l give;
+the user reported the inclination as wrong three rounds running. Both are
+right. What the eye reads an angle from is the STRAIGHT run, and this letter
+has little of it — the face's own i holds its stem straight for 79% of the
+x-height before it turns, і cut out of и turns at 57%, because и's bowl has to
+start reaching for a second stem. Below some length of straight, a letter stops
+declaring an angle and reads as leaning less than its neighbours. **Do not
+argue with the eye by quoting the measurement.** Draw the alternatives — і was
+shown at five slants and +2° was chosen — and record the departure with the
+reason, which is what `I_TILT` is.
+
+**And measure the terminal, because a cut can be sound and still be wrong.**
+The width of the cut against the face's own stem is the reading that separates
+a terminal from a taper. Where the donor closes up as it gets heavy there may
+be no height that satisfies both masters: і ends at about one and a half stems
+at Thin and about half a stem at ExtraBold, and was shipped anyway on the
+user's call. The point of the reading is not that it must pass — it is that it
+must be taken and recorded, because nothing else in the pipeline takes it.
+
+
+### F22 · A diagonal measured along the line, not across itself
+
+к's italic leg was built at twice the weight of its own stem at Thin — 59.8
+units against 30 — and every reading in this project passed it. The user saw it
+on a screen: *"it has different weight of parts and it looks bad, all its parts
+should be of same width"*.
+
+**The cause is a reading whose definition stopped matching the donor.** `Ka`
+takes each diagonal's weight off the donor's own flat end and divides by the
+lean there, which is exact while the donor ends its diagonals in a cut — and
+the upright's k does. The italic's k does not: it ends its leg in the face's
+own foot, a slab 27 units tall and twice the stroke wide. Measured across that
+slab, the leg came back at twice its weight, and the letter was then built to
+it. **Read the stroke across itself**: where its own two long edges arrive at
+the line, not what sits at the end of it. A plain diagonal is a quadrilateral;
+more nodes than that means the donor has drawn something onto the end, and the
+stroke's end has to be extrapolated from its edges.
+
+**Guard the fix so the reading that was right stays byte-identical.** Both
+readings are the same one on a quadrilateral in exact arithmetic, and they are
+not in floating point: applied unconditionally, the new reading moved approved
+upright К and к by up to 0.29 units. That is invisible and it is still a change
+to a frozen glyph. The quadrilateral case keeps the old path, and the upright
+sources rebuild bit-identical — which is the check, not the intention.
+
+**Nothing here measures a diagonal.** The panel reads stroke weight over the
+face's own STEM; `signature.py` reads terminals and horizontals; the audit
+reads counts and extremes. A leg at twice its weight passes all of them, and
+did, at four weights. The measurement that finds it is one line — the run
+across the stroke, divided by its lean — and it is not yet a gate.
+
+
+### F23 · A terminal cut is not a base for a stroke leaving in its own direction
+
+ґ in the italic is the cursive г with a forelock, and the forelock was built
+three times as something standing on the bar's terminal — the single cut at the
+letter's top left. The third version replaced that cut with the two edges of a
+tick and a flat top, took its width from the cut's own length, and passed every
+gate at four weights. At Thin it was right. At ExtraBold the letter came apart:
+*"It becomes completely broken on extra bold, but overall shape looks right"*.
+
+**A cut is only a base if the stroke leaves it roughly square on.** This one
+runs at about 63° from horizontal at both masters, and every forelock worth
+drawing runs between 55° and 76°. Measured across the tick's own direction, the
+span between the cut's two ends is **three units at Thin and twelve at
+ExtraBold** — the cut is nearly parallel to the stroke that was supposed to
+stand on it. Any tick of a usable width therefore has to reach far past the cut
+to find its second edge: the outer edge's base had to drop 76 units to the
+cut's lower end, and everything between filled in as a wedge across the whole
+top left. That wedge is not a bug in the arithmetic. It is what the arithmetic
+asked for.
+
+Three things follow.
+
+**The degeneracy is a number you can take before you draw.** The perpendicular
+span between the two ends of a terminal, measured along the direction the new
+stroke will travel, says immediately whether that terminal can serve as its
+base. Three units out of a 29-unit stem is a no.
+
+**The turn is the construction, not the cut.** What replaces it: the outer edge
+stands on the terminal's outer end and rises; the inner edge is that line
+offset by the tick's width; and where the *inner* edge crosses the bar's own
+top edge is the elbow's notch — found on the outline, not assumed at a node.
+`geom.meets_line` is `_meets_y`'s sibling for this: same bisection, but the
+thing being crossed leans, and a flat cut is the only case where a crossing can
+be read off y alone. **The donor's cut does not survive.** It is deleted, and
+the tick is capped flat at its tip instead — the upright ґ's and Ґ's own
+vocabulary for this tick. Keeping the donor's cut and carrying it up to the tip
+was tried in thinking and is the same degeneracy in a mirror: a parallelogram
+whose two sides are 3 and 12 units apart is a sliver, wherever it is put.
+
+**Two strokes that leave a junction at similar angles seal as they get heavy,
+and only the heavy master shows it.** The bar climbs away from this mouth at
+about 40°; the approved forelock leans at 55°. Fifteen degrees of valley is
+open air between hairlines at Thin and a filled corner between 85-unit strokes
+at ExtraBold, where the notch landed four units under the letter's crest. The
+discriminating measurement is **the notch's depth below the crest**, per
+master, and it prunes candidates before they reach a sheet.
+
+**The measurement names the cost; it does not make the call.** Read per master,
+the notch asks for a per-master lean — 0.45 at Thin, 0.05 at ExtraBold — and
+that is what was built and shown as a ladder. The user chose one lean for both,
+0.25, having been given the argument against it. A letter that changes
+character across the weight axis is a price too, and it is not one a notch
+depth can price. What the measurement is for is making the trade legible before
+it is made: the ladder carried each option's notch depth, so the choice was
+between known numbers rather than between pictures.
+
+**Every figure at Thin is under 24 units.** That is why this survived three
+rounds of correction and four weights of gates — at the light master the fault
+is smaller than the ink. A construction that is only ever checked where the
+strokes are thin has not been checked.
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
@@ -2633,6 +2796,22 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
 
 
 ## 9 · Open threads
+
+- **No reading measures a diagonal across itself.** F22: к's italic leg stood
+  at twice its own stem for as long as the italic has existed, and the panel,
+  the signature readings and the audit all passed it, because every one of them
+  reads a stem, a terminal or a horizontal. The reading is one line and it
+  covers К к Ж ж Х х У у И и Я я Д д Л л — a third of the set. Not written.
+
+
+- **No gate reads і or ї.** Both are drawn glyphs in the italic now, and the
+  full run came back byte-identical to the previous one — the drawn-glyph and
+  panel letter lists were written when і was a donor and ї a composite, and
+  neither has been extended. The letters are fine; the hole is that nothing
+  would say so. Any letter that changes tier needs its lists looked at, and
+  this is the second time a change has been invisible to the pipeline (F12 was
+  the first).
+
 
 - **б's counter does not hold its relation to o across the weight axis**, and
   the panel says it should. The eight ∂-form italics draw д's counter at a

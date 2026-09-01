@@ -74,7 +74,11 @@ def plan(font, italic=False):
         if name in have:
             continue
         tier, note = over.get(name, (tier, note))
-        if name in COMPOSITES:
+        # an italic recipe outranks the composite table: ї is base + dieresis
+        # while і is the Latin, and is drawn once і is not
+        if italic and name in recipes.ITALIC:
+            out.append((cp, name, "draw", recipes.ITALIC[name]))
+        elif name in COMPOSITES:
             base, mark = COMPOSITES[name]
             if base in have or base in {n for _, n, _, _ in out}:
                 out.append((cp, name, "comp", (base, mark)))

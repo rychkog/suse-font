@@ -177,7 +177,8 @@ TIERS = [
 # exactly where the exit begins, so cutting the tail leaves the bowl nothing
 # to meet and the junction has to be re-fitted -- д's fault class, rejected
 # five times over a concavity at that same handover. It stays the borrowed u,
-# tail and all, which makes it the one lowercase Cyrillic that still exits.
+# tail and all, and і is now cut from that same stroke, so the two of them are
+# the lowercase Cyrillic that exits, in one another's ink.
 # й and ѝ ride on it as components and are unaffected (METHOD F12).
 #
 # м is deliberately NOT here. Only 8 of the 29 redraw it, and what changes is
@@ -197,6 +198,20 @@ ITALIC = {
     # г and д stay cursive, approved 2026-08-18.
     "ge-cy": (3, "the cursive г, Lilex's outline fitted to this face"),
     "de-cy": (3, "the cursive д, our own o + Lilex's hook"),
+    # ґ follows г: it was the upright's corner-and-tick sheared, standing next
+    # to a cursive г, which is one letter and its mark drawn in two hands.
+    # `recipes.Ghe_upturn_cursive`. The panel does NOT do this -- all ten
+    # italics here with a cursive г keep ґ upright -- and the user's call
+    # outranks it.
+    "gheupturn-cy": (3, "the cursive г whose opening stroke turns up"),
+    # і was the Latin i donated whole, and the Latin's italic i carries an
+    # entry flag and a long flat foot -- the exit this set does not have. It
+    # is now и's own stroke with the exit cut off, so the two letters that do
+    # exit exit in the same ink. `recipes.I_cursive`.
+    "i-cy": (3, "the cursive і -- и's stroke, exit cut off"),
+    # ї's base was `idotless`, which was the right answer only while і was the
+    # Latin. It follows і.
+    "yi-cy": (3, "the cursive і under the face's own dieresis"),
 }
 
 

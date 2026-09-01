@@ -105,6 +105,19 @@ SHELL = [
 ]
 
 
+# Running text, for the reading a letter is finally judged by. Ukrainian,
+# because і and ї are the letters this face has least of elsewhere: a specimen
+# built out of words that avoid them proves nothing about them.
+PROSE = (
+    "Кирилиця в цьому шрифті не є перекладом латиниці. Її літери мають "
+    "власну історію, свій ритм і свої правила: там, де латинська i стоїть "
+    "рівно, українська і нахиляється разом з усім рядком. Їхні форми різні, "
+    "але вага, ширина і нахил спільні, інакше текст читається як дві різні "
+    "руки на одному аркуші. Дрібний кегль вирішує все: те, що на великому "
+    "виглядає вдалим, у рядку коду може зникнути або, навпаки, кричати."
+)
+
+
 def jetbrains():
     """JetBrains Mono's path pattern, found rather than hardcoded."""
     for d in font_dirs():
@@ -239,6 +252,53 @@ def against_sheet(sh, old_up, old_it, up, it, letters, left, right):
                       label="%s %dpx" % (w, px))
 
 
+def wrap(text, cols):
+    """Break the text at spaces to `cols` monospaced columns."""
+    out, line = [], ""
+    for word in text.split(" "):
+        if line and len(line) + 1 + len(word) > cols:
+            out.append(line)
+            line = word
+        else:
+            line = (line + " " + word) if line else word
+    return out + ([line] if line else [])
+
+
+def prose_sheet(sh, up, it, width):
+    """Running text at the sizes it is read at, upright beside italic.
+
+    The letter sheets answer "is this the right shape"; only prose answers
+    "does it disappear into a paragraph", which is the whole job of a text
+    face. A letter can be right in a frame and wrong in a line -- and where it
+    sits in its cell shows here and nowhere else.
+    """
+    for px in (17, 14, 12):
+        for label, face in (("Regular Italic", it("Regular")),
+                            ("Regular", up("Regular"))):
+            sh.heading("%s, %d px" % (label, px), 15)
+            cols = int((width - PADX - 40) / (face.advance("i") * px / 1000.0))
+            for row in wrap(guard(up("Regular"), PROSE), cols):
+                sh.line([(face, row, INK)], px, lx=PADX)
+            sh.gap(6)
+        sh.rule()
+
+    sh.heading("Bold Italic and ExtraBold Italic, 14 px")
+    for w in ("Bold", "ExtraBold"):
+        face = it(w)
+        cols = int((width - PADX - 40) / (face.advance("i") * 14 / 1000.0))
+        for row in wrap(PROSE, cols)[:3]:
+            sh.line([(face, row, INK)], 14, lx=PADX)
+        sh.gap(6)
+    sh.rule()
+
+    sh.heading("Large, where the drawing is judged")
+    for w, f in (("Regular Italic", it("Regular")),
+                 ("ExtraBold Italic", it("ExtraBold"))):
+        sh.line([(f, "мій київ — інші ідеї", INK)], 44, label=w, lx=PADX)
+    sh.gap(6)
+    sh.rule()
+
+
 def full_sheet(sh, up, it, jb):
     reg, bold = up("Regular"), up("Bold")
 
@@ -312,6 +372,7 @@ def flag(name, default=None):
 if __name__ == "__main__":
     letters = flag("--letters")
     against = flag("--against")
+    prose = "--prose" in sys.argv
 
     up = Faces("fonts/ttf/SUSEMono-%s.ttf")
     it = Faces("fonts/ttf/SUSEMono-%sItalic.ttf")
@@ -338,7 +399,7 @@ if __name__ == "__main__":
 
     sh = Sheet(width, "SUSE Mono Cyrillic — %s%s"
                % ("against %s: " % against if against else "",
-                  letters if letters else "specimen"),
+                  letters if letters else "prose" if prose else "specimen"),
                label=up("Regular"), label_bold=up("SemiBold"))
     sh.note("SUSE Mono Cyrillic   ·   generated from the current build")
     sh.gap(6)
@@ -349,13 +410,16 @@ if __name__ == "__main__":
         against_sheet(sh, old_up, old_it, up, it, letters,
                       flag("--left", against.rstrip("/").rsplit("/", 1)[-1]),
                       flag("--right", "this build"))
+    elif prose:
+        prose_sheet(sh, up, it, width)
     elif letters:
         letter_sheet(sh, up, it, letters)
     else:
         full_sheet(sh, up, it, jb)
 
-    out = "tools/out/specimen%s%s.svg" % (
-        "-against" if against else "", "-" + letters if letters else "")
+    out = "tools/out/specimen%s%s%s.svg" % (
+        "-against" if against else "", "-prose" if prose else "",
+        "-" + letters if letters else "")
     path, size = sh.save(out)
     up.close(); it.close()
     for f in (old_up, old_it, jb):

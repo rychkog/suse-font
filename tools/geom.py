@@ -174,6 +174,141 @@ def cut_span(p, start, end):
     return path(kept, True)
 
 
+def _segments(p):
+    """(start node, offcurves, end node) per segment, and each start's index."""
+    ns = list(p.nodes)
+    on = [i for i, n in enumerate(ns) if str(n.type) != OFFCURVE]
+    segs = []
+    for k, i in enumerate(on):
+        j = on[(k + 1) % len(on)]
+        off = ns[i + 1:j] if j > i else ns[i + 1:] + ns[:j]
+        segs.append((ns[i], list(off), ns[j]))
+    return segs, on
+
+
+def _meets_y(seg, y, steps=24):
+    """Parameters at which this segment crosses height y."""
+    p0, off, p1 = seg
+    if off:
+        a, b = off[0].position.y, off[1].position.y
+        y0, y1 = p0.position.y, p1.position.y
+        at = lambda t: (y0 * (1 - t) ** 3 + 3 * a * t * (1 - t) ** 2
+                        + 3 * b * t * t * (1 - t) + y1 * t ** 3)
+    else:
+        y0, y1 = p0.position.y, p1.position.y
+        at = lambda t: y0 + (y1 - y0) * t
+    out = []
+    for i in range(steps):
+        lo, hi = i / steps, (i + 1) / steps
+        if (at(lo) - y) * (at(hi) - y) >= 0:
+            continue
+        for _ in range(40):
+            mid = (lo + hi) / 2.0
+            if (at(lo) - y) * (at(mid) - y) <= 0:
+                hi = mid
+            else:
+                lo = mid
+        out.append((lo + hi) / 2.0)
+    return out
+
+
+def meets_line(seg, x_at, steps=48):
+    """Parameters at which this segment crosses the line x = x_at(y).
+
+    `_meets_y`'s sibling, and the same bisection. What differs is that the
+    thing being crossed leans: a flat cut can be found from y alone, a
+    stroke's own edge cannot, and a turn grafted onto a stroke has to land on
+    one.
+    """
+    p0, off, p1 = seg
+    pts = [(n.position.x, n.position.y) for n in [p0] + off + [p1]]
+    if len(pts) == 4:
+        (x0, y0), (x1, y1), (x2, y2), (x3, y3) = pts
+        at = lambda t: (
+            (1 - t) ** 3 * x0 + 3 * (1 - t) ** 2 * t * x1
+            + 3 * (1 - t) * t * t * x2 + t ** 3 * x3,
+            (1 - t) ** 3 * y0 + 3 * (1 - t) ** 2 * t * y1
+            + 3 * (1 - t) * t * t * y2 + t ** 3 * y3)
+    else:
+        (x0, y0), (x1, y1) = pts[0], pts[-1]
+        at = lambda t: (x0 + (x1 - x0) * t, y0 + (y1 - y0) * t)
+    f = lambda t: (lambda q: q[0] - x_at(q[1]))(at(t))
+    out = []
+    for i in range(steps):
+        lo, hi = i / steps, (i + 1) / steps
+        if (f(lo)) * (f(hi)) >= 0:
+            continue
+        for _ in range(40):
+            mid = (lo + hi) / 2.0
+            if f(lo) * f(mid) <= 0:
+                hi = mid
+            else:
+                lo = mid
+        out.append((lo + hi) / 2.0)
+    return out
+
+
+def _split_seg(seg, t):
+    """de Casteljau: the piece of this segment before t, and the piece after."""
+    p0, off, p1 = seg
+    if not off:
+        x = p0.position.x + (p1.position.x - p0.position.x) * t
+        y = p0.position.y + (p1.position.y - p0.position.y) * t
+        return (p0, [], node(x, y)), (node(x, y), [], p1)
+    pts = [(n.position.x, n.position.y) for n in [p0] + off + [p1]]
+    lerp = lambda u, v: (u[0] + (v[0] - u[0]) * t, u[1] + (v[1] - u[1]) * t)
+    q = [lerp(pts[i], pts[i + 1]) for i in range(3)]
+    r = [lerp(q[0], q[1]), lerp(q[1], q[2])]
+    s = lerp(r[0], r[1])
+    mid = node(s[0], s[1], CURVE)
+    return ((p0, [node(*q[0], OFFCURVE), node(*r[0], OFFCURVE)], mid),
+            (node(s[0], s[1], CURVE),
+             [node(*r[1], OFFCURVE), node(*q[2], OFFCURVE)], p1))
+
+
+def cut_at_y(p, y, back, fwd):
+    """Cut a contour off flat at height y, dropping the run between two edges.
+
+    `cut_span` cuts at node boundaries, which is only as fine as the donor was
+    drawn. This cuts where the ink actually reaches the height: the segment
+    leaving node `back` and the segment leaving node `fwd` are split where each
+    crosses y, everything between them in contour order goes, and the two ends
+    are joined by a straight edge -- the terminal.
+
+    Both edges are named, not searched for. A stroke that doubles back crosses
+    the same height several times -- и's foot crosses it going out, coming back
+    and going out again -- so "the first crossing" is whichever fold of the
+    letter happens to be nearest, which is not a thing a recipe can mean.
+    """
+    segs, on = _segments(p)
+    ib, ia = on.index(back), on.index(fwd)
+    n = len(segs)
+    tb, ta = _meets_y(segs[ib], y), _meets_y(segs[ia], y)
+    if not tb or not ta or ib == ia:
+        return clone(p)
+    kept = [_split_seg(segs[ia], min(ta))[1]]
+    i = (ia + 1) % n
+    while i != ib:
+        kept.append(segs[i])
+        i = (i + 1) % n
+    kept.append(_split_seg(segs[ib], max(tb))[0])
+
+    out = []
+    for p0, off, _ in kept:
+        out.append(node(p0.position.x, p0.position.y, p0.type, p0.smooth))
+        out.extend(node(q.position.x, q.position.y, OFFCURVE) for q in off)
+    # the last segment has no successor to supply its end node, and that node
+    # is one END of the terminal -- left out, the contour closes from a donor
+    # node instead and the cut is a slope pinned to the donor rather than the
+    # flat edge asked for
+    end = kept[-1][2]
+    out.append(node(end.position.x, end.position.y, end.type, end.smooth))
+    # the edge closing the contour is the terminal, and it is straight
+    out[0].type = LINE
+    out[0].smooth = False
+    return path(out, True)
+
+
 def fit(paths, x0, y0, x1, y1):
     """Map a group of contours so their common bounding box becomes the target.
 
