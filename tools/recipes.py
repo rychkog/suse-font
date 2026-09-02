@@ -23,7 +23,8 @@ from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   area, LINE, OFFCURVE, CURVE,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
                   squash_x, piecewise_y, scale_x, fit, slant,
-                  cut_at_y, meets_line, _segments, _split_seg)
+                  cut_at_y, cut_along, meets_line, seg_at,
+                  _segments, _split_seg)
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
@@ -2971,6 +2972,26 @@ def Ge_cursive(pr):
     for c in GE_DONOR[base.mi]:
         q = path([node(x, y, ty, sm) for x, y, ty, sm in c])
         out.append(q if area(q) > 0 else reverse(q))
+
+    # The foot is Lilex's and Lilex cuts it level, which on a stroke running
+    # out at 28 degrees is very nearly along the stroke rather than across it:
+    # it met its own edge at 34 degrees where this face's own stems meet their
+    # cuts at 76. That is the point the user saw. `square_off` turns the cut
+    # square to the stroke and leaves it where it was.
+    p0 = out[0]
+    ns = list(p0.nodes)
+    segs, on = _segments(p0)
+    low = [k for k, i in enumerate(on)
+           if str(segs[k][2].type) == LINE
+           and max(segs[k][0].position.y, segs[k][2].position.y) < 0.35 * pr.xh]
+    if not low:
+        raise ValueError("ge: the foot's terminal is not where it was")
+    k = max(low, key=lambda k: (segs[k][0].position.x
+                                + segs[k][2].position.x))
+    a, b = segs[k][0].position, segs[k][2].position
+    out[0] = square_off(p0, on[(k - 1) % len(on)], on[(k + 1) % len(on)],
+                        ((a.x, a.y), (b.x, b.y)),
+                        math.tan(math.radians(pr.italic)))
     return out
 
 
@@ -3140,6 +3161,84 @@ def De_cursive(pr):
     return out + [counter if area(counter) < 0 else reverse(counter)]
 
 
+def square_off(p, back, fwd, ends, t=0.0, turns=4, pull=0.15):
+    """Recut a free terminal ACROSS the stroke instead of across the page.
+
+    Every terminal this face draws is a horizontal cut, and on the upright
+    stems it is drawn on that is the same cut as one taken square across the
+    stroke -- the two readings coincide and neither has to be chosen. They
+    come apart on a stroke running any other way, and cutting level then
+    leaves a point. Measured in the shipped italic, н, п, т, ц, ш and щ meet
+    their cuts at 76 degrees and the face's own curved terminals -- с, e --
+    at 77 to 87, while the cursive г's foot met its own at 34 and і's at 40.
+    That is the whole of what reads as a sharp leg.
+
+    **Square is taken in the SHIPPED drawing, not in the upright one.** The
+    shear is not a rotation and does not preserve angles: a cut drawn square
+    to a slanted stroke before the shear is not square after it, and after is
+    where the reader is. So the stroke's direction is sheared by `t`, squared
+    there, and the perpendicular brought back -- which for an upright stem
+    reduces to the level cut this face already draws, and to the 76 degrees
+    that go with it.
+
+    **The cut is anchored at the REAR end of the terminal it replaces**, not
+    at its middle. A very oblique terminal is longer than the stroke is wide,
+    so a square cut through its middle runs out past the tip on one side and
+    crosses nothing there -- which is what the cursive г does, its foot cut
+    lying at 45 degrees to its own stroke. Anchored at the rear end and
+    pulled a little further back, the cut always fits inside the ink, and the
+    letter can only get shorter. It gets shorter by a fraction of a terminal.
+
+    It iterates because turning the cut moves where it crosses the two edges,
+    which moves the direction it should be turned to -- but it is seeded from
+    the edges' own ends, so the first guess needs no crossing to exist and is
+    already close. Two passes settle it.
+
+    Both edges are named, never searched, for the reason `cut_at_y` gives.
+    """
+    segs, on = _segments(p)
+    ib, ia = on.index(back), on.index(fwd)
+
+    def axis(ub, ua):
+        """The stroke's own direction, pointing at the tip."""
+        n1 = math.hypot(*ub) or 1.0
+        n2 = math.hypot(*ua) or 1.0
+        # the edges run opposite ways round the contour, so the stroke's own
+        # axis is their difference and not their sum
+        return ub[0] / n1 - ua[0] / n2, ub[1] / n1 - ua[1] / n2
+
+    def square(u):
+        sx, sy = u[0] + t * u[1], u[1]            # as the reader sees it
+        cx, cy = -sy, sx                          # square, there
+        cx -= t * cy                              # and back to the drawing
+        if abs(cy) < 1e-9:
+            raise ValueError("square_off: the cut comes out level")
+        return cx / cy
+
+    _, ub = seg_at(segs[ib], 1.0)
+    _, ua = seg_at(segs[ia], 0.0)
+    u = axis(ub, ua)
+    n = math.hypot(*u) or 1.0
+    rear = min(ends, key=lambda q: q[0] * u[0] + q[1] * u[1])
+    step = pull * math.dist(ends[0], ends[1])
+    at = (rear[0] - step * u[0] / n, rear[1] - step * u[1] / n)
+
+    k = square(u)
+    for _ in range(turns):
+        x_at = lambda y, k=k: at[0] + (y - at[1]) * k
+        tb, ta = meets_line(segs[ib], x_at), meets_line(segs[ia], x_at)
+        if not tb or not ta:
+            break
+        _, ub = seg_at(segs[ib], max(tb))
+        _, ua = seg_at(segs[ia], min(ta))
+        kn = square(axis(ub, ua))
+        if abs(kn - k) < 1e-4:
+            k = kn
+            break
+        k = kn
+    return cut_along(p, lambda y: at[0] + (y - at[1]) * k, back, fwd)
+
+
 def flat_foot(pr, donor):
     """The face's own italic letter with its EXIT TAIL replaced by a flat foot.
 
@@ -3294,7 +3393,20 @@ def I_cursive(pr, mark="dotaccentcomb"):
     floor = y(on[(stem + 3) % len(on)])         # the bowl's counter floor
     back = min(on, key=y)                       # the bottom of the bowl
     rise = y(on[(on.index(back) + 1) % len(on)])  # where the bowl stops rising
-    body = cut_at_y(src, floor + I_CUT * (rise - floor), back, fwd)
+    # where the terminal sits is `I_CUT`'s question and is unchanged; HOW it
+    # is cut is not. Cut level, on a stroke leaving at 40 degrees, it met its
+    # own edge at 40 where this face's own terminals meet theirs at 76 -- a
+    # point, and the same fault as the cursive г's foot. So the level cut is
+    # taken only to find the place, and the cut that ships is square to the
+    # stroke through that same middle.
+    level = cut_at_y(src, floor + I_CUT * (rise - floor), back, fwd)
+    ends = (level.nodes[-1].position, level.nodes[0].position)
+    # і is slanted a further `I_TILT` below, so the drawing the reader sees
+    # is sheared by both and squaring against the face's own angle alone
+    # would leave the cut two degrees off
+    body = square_off(src, back, fwd,
+                      [(q.x, q.y) for q in ends],
+                      math.tan(math.radians(pr.italic + I_TILT)))
 
     # Two degrees more slant than the rest of the face, on this letter alone,
     # chosen off a sheet of five (-4/-2/0/+2/+4) on 2026-08-27. It is a

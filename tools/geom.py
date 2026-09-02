@@ -309,6 +309,69 @@ def cut_at_y(p, y, back, fwd):
     return path(out, True)
 
 
+def cut_along(p, x_at, back, fwd):
+    """`cut_at_y`'s sibling, for a terminal that leans.
+
+    Every terminal in this face is cut horizontally, and on an upright stem
+    that is the same thing as cutting ACROSS the stroke -- the two readings
+    coincide and neither one has to be chosen. On a stroke running any other
+    way they come apart, and cutting across the page then leaves a point: the
+    cursive г's foot runs out at 28 degrees and its horizontal cut met it at
+    34, where this face's own stems meet theirs at 76.
+
+    So the cut is a line rather than a height, and the caller says which line.
+    Otherwise this is `cut_at_y` exactly, including naming both edges rather
+    than searching for them (F21): the same doubling-back that makes "the
+    first crossing" meaningless at a height makes it meaningless at a line.
+    """
+    segs, on = _segments(p)
+    ib, ia = on.index(back), on.index(fwd)
+    n = len(segs)
+    tb, ta = meets_line(segs[ib], x_at), meets_line(segs[ia], x_at)
+    if not tb or not ta or ib == ia:
+        # `cut_at_y` hands back the uncut contour here, which is right for a
+        # height that a letter simply does not reach. A leaning cut that
+        # misses is a construction that did not happen, and shipping the
+        # donor's own terminal instead is the silent fallback ґ was nearly
+        # caught by. Loud.
+        raise ValueError("cut_along: the cut misses an edge it was named")
+    kept = [_split_seg(segs[ia], min(ta))[1]]
+    i = (ia + 1) % n
+    while i != ib:
+        kept.append(segs[i])
+        i = (i + 1) % n
+    kept.append(_split_seg(segs[ib], max(tb))[0])
+
+    out = []
+    for p0, off, _ in kept:
+        out.append(node(p0.position.x, p0.position.y, p0.type, p0.smooth))
+        out.extend(node(q.position.x, q.position.y, OFFCURVE) for q in off)
+    end = kept[-1][2]
+    out.append(node(end.position.x, end.position.y, end.type, end.smooth))
+    out[0].type = LINE
+    out[0].smooth = False
+    return path(out, True)
+
+
+def seg_at(seg, t):
+    """A point on a segment and the direction the outline runs there."""
+    p0, off, p1 = seg
+    pts = [(q.position.x, q.position.y) for q in [p0] + off + [p1]]
+    if len(pts) == 4:
+        (x0, y0), (x1, y1), (x2, y2), (x3, y3) = pts
+        at = lambda u: (
+            (1 - u) ** 3 * x0 + 3 * (1 - u) ** 2 * u * x1
+            + 3 * (1 - u) * u * u * x2 + u ** 3 * x3,
+            (1 - u) ** 3 * y0 + 3 * (1 - u) ** 2 * u * y1
+            + 3 * (1 - u) * u * u * y2 + u ** 3 * y3)
+    else:
+        (x0, y0), (x1, y1) = pts[0], pts[-1]
+        at = lambda u: (x0 + (x1 - x0) * u, y0 + (y1 - y0) * u)
+    e = 1e-4
+    a, b = at(max(0.0, t - e)), at(min(1.0, t + e))
+    return at(t), (b[0] - a[0], b[1] - a[1])
+
+
 def fit(paths, x0, y0, x1, y1):
     """Map a group of contours so their common bounding box becomes the target.
 
