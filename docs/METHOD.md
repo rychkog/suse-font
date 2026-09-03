@@ -1798,6 +1798,70 @@ rounds of correction and four weights of gates — at the light master the fault
 is smaller than the ink. A construction that is only ever checked where the
 strokes are thin has not been checked.
 
+**Half of this was the cut being wrong, not the base.** Squaring г's mouth
+(F24) took it from 63 degrees to 116, so it meets the tick at 52 to 57 rather
+than lying along it, and the span across the tick went from 3 and 12 units to
+10 and 58. The degeneracy above was a property of a level cut on a leaning
+stroke, not of terminals. What survives unchanged is the second half: the tick
+is still wider than that span, and **a stroke cannot stand on a base narrower
+than itself** whatever the angle.
+
+### F24 · Level and square are the same cut only on an upright stroke
+
+Every terminal this face draws is a horizontal cut. On the upright stems it
+draws them on, cutting level and cutting square across the stroke are the same
+cut, so the two rules have never had to be told apart — and the one that got
+written down was the wrong one. They come apart on any stroke running some
+other way, and cutting level then leaves a point.
+
+**The number that says so is the face's own.** In the shipped italic, н, п, т,
+ц, ш and щ meet their cuts at 76 degrees at both masters, and the curved
+terminals of с and e at 77 to 87. The cursive г's foot runs out at 28 degrees
+and met its own cut at 34; і's stroke leaves at 40 and met its own at 40; г's
+mouth climbs away at 40 and met its own at 40. **A terminal below the face's
+76 is the reading, and it took a user to see it** — *"All those 4 glyphs have
+sharp legs. None other glyphs have this"* — because no gate in this repo reads
+a corner and `audit.py`'s acute-corner floor is 30 degrees, under every one of
+them.
+
+**Square is taken in the SHIPPED drawing, not the upright one.** The shear is
+not a rotation and does not preserve angles: a cut drawn square to a slanted
+stroke before the shear is not square after it, and after is where the reader
+is. `recipes.square_off` shears the stroke's direction, squares it there, and
+brings the perpendicular back — which on an upright stem reduces to the level
+cut this face already draws, and to the 76 degrees that go with it.
+
+**Three corollaries, each of which cost a build:**
+
+- **A very oblique terminal is longer than its stroke is wide**, so a square
+  cut through its middle runs out past the tip and crosses nothing on one
+  side. The cut is anchored at the terminal's REAR end and pulled a little
+  further back, so it always fits inside the ink and the letter can only get
+  shorter — by a fraction of a terminal, not of a stroke.
+- **A bump let into a contour where it re-crosses that contour subtracts.**
+  ґ's tick was inserted into г's own outline; its inner edge crosses the bar's
+  top edge, because the two strokes leave the mouth together at 40 and 63
+  degrees, and the bump then runs against the letter's winding there. It came
+  out as a bite taken from the bar's upper left — the opposite of the intent,
+  and it measured worse than what it replaced. A part that overlaps its host
+  is a SEPARATE contour, which is how this family already builds El, Pe, Sha
+  and д.
+- **A stroke cannot stand on a base narrower than itself.** A terminal cut is
+  the stroke's whole cross-section there, so a tick wider than the mouth it
+  grows from has no base: extend it along the cut and it runs past the far
+  edge and hangs there as a spur. Where the ink actually is, is the host
+  stroke's own edge, and the meeting point is the elbow.
+
+**And the probe lied in the same direction twice.** A corner's angle here is
+measured with arms a fixed 25 units along the outline, and a terminal shorter
+than that has its arms run off the far end and double back: ґ's forelock cap
+read **4 degrees** — a spike — where node-to-node it is **63**, the same at
+both masters. Every short cut in this face reads as a spike that way,
+including every one this entry fixed. **A corner probe is only valid where the
+run it measures is longer than its own reach**, and that is a condition to
+assert, not to assume.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |

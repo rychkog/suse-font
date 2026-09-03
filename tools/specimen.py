@@ -69,17 +69,21 @@ LOWER = "абвгґдеєжзийклмнопрстуфхцчшщьюяэыъі�
 PAIRS = "Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя Зз Бб Кк Мм"
 VS_LATIN = "oф oю cє rґ vд nл oз ob кk мm"
 
-UA = "ґрунт, боротьба, єднати"
+UA = "ґанок, аґрус, дзиґа, ґречний"
 RU = "юность, борьба, тёщи"
 MIXED = "git commit -m 'юність' v2.1 build/ґрунт-єднати.log"
 SENTENCE = "ПОЛЕ ЦВІТЕ, ВІТЕР ДМЕ"
 RUSSIAN = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРИ, ЭХО".replace("ВЫБОРИ", "ВЫБОРЫ")
 
+# ґ is loaded on purpose. It is rare in Ukrainian, so a paragraph written
+# naturally carries it once or not at all -- and the one place it appeared
+# here was `ґ, є, і, ї`, a bare letter between commas, which is the only
+# setting in which it cannot be judged at all.
 PROSE = [
     "Монопростірний шрифт живе не в зразку, а в абзаці: очі йдуть по рядку",
-    "і спотикаються там, де одна літера темніша або ширша за сусідів. Саме",
-    "тому ґ, є, і, ї та апостроф перевіряються в тексті, а не поодинці —",
-    "у слові «п'ятдесят» апостроф несе стільки ж ваги, скільки й літера.",
+    "і спотикаються там, де одна літера темніша або ширша за сусідів. Ґанок,",
+    "ґрунт, аґрус, ґудзик, дзиґа: ґ трапляється рідко, і саме тому її",
+    "у зразку ставлять зумисне — поодинці вона не доводить нічого.",
 ]
 
 # Real code, written the way it is really written: Latin identifiers, Ukrainian
@@ -108,13 +112,16 @@ SHELL = [
 # Running text, for the reading a letter is finally judged by. Ukrainian,
 # because і and ї are the letters this face has least of elsewhere: a specimen
 # built out of words that avoid them proves nothing about them.
-PROSE = (
+PARAGRAPH = (
     "Кирилиця в цьому шрифті не є перекладом латиниці. Її літери мають "
     "власну історію, свій ритм і свої правила: там, де латинська i стоїть "
     "рівно, українська і нахиляється разом з усім рядком. Їхні форми різні, "
     "але вага, ширина і нахил спільні, інакше текст читається як дві різні "
-    "руки на одному аркуші. Дрібний кегль вирішує все: те, що на великому "
-    "виглядає вдалим, у рядку коду може зникнути або, навпаки, кричати."
+    "руки на одному аркуші. Ґанок, ґрунт, аґрус, ґудзик, дзиґа, ґречний, "
+    "ґелґотати, ремиґати: ґ трапляється рідко, тож у зразку її ставлять "
+    "зумисне, поряд з є, і та ї. Дрібний кегль вирішує все: те, що на "
+    "великому виглядає вдалим, у рядку коду може зникнути або, навпаки, "
+    "кричати."
 )
 
 
@@ -277,7 +284,7 @@ def prose_sheet(sh, up, it, width):
                             ("Regular", up("Regular"))):
             sh.heading("%s, %d px" % (label, px), 15)
             cols = int((width - PADX - 40) / (face.advance("i") * px / 1000.0))
-            for row in wrap(guard(up("Regular"), PROSE), cols):
+            for row in wrap(guard(up("Regular"), PARAGRAPH), cols):
                 sh.line([(face, row, INK)], px, lx=PADX)
             sh.gap(6)
         sh.rule()
@@ -286,7 +293,7 @@ def prose_sheet(sh, up, it, width):
     for w in ("Bold", "ExtraBold"):
         face = it(w)
         cols = int((width - PADX - 40) / (face.advance("i") * 14 / 1000.0))
-        for row in wrap(PROSE, cols)[:3]:
+        for row in wrap(PARAGRAPH, cols)[:3]:
             sh.line([(face, row, INK)], 14, lx=PADX)
         sh.gap(6)
     sh.rule()
@@ -322,7 +329,9 @@ def full_sheet(sh, up, it, jb):
     for t in PROSE:
         sh.line([(reg, guard(reg, t), INK)], 30, label=None, lx=PADX)
     sh.gap(6)
-    for t in PROSE[:2]:
+    # the whole paragraph, not the first two lines: the italic is the case
+    # under review and ґ lives in the third
+    for t in PROSE:
         sh.line([(it("Regular"), t, INK)], 30, lx=PADX)
     sh.rule()
 
@@ -345,6 +354,7 @@ def full_sheet(sh, up, it, jb):
 
     sh.heading("At the sizes it is read at")
     for lab, f, t in (("14px UA", reg, UA), ("14px RU", reg, RU),
+                      ("14px italic", it("Regular"), UA),
                       ("14px caps", reg, SENTENCE),
                       ("14px russian", reg, RUSSIAN)):
         sh.line([(f, guard(reg, t), INK)], 14, label=lab)

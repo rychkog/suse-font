@@ -2973,30 +2973,39 @@ def Ge_cursive(pr):
         q = path([node(x, y, ty, sm) for x, y, ty, sm in c])
         out.append(q if area(q) > 0 else reverse(q))
 
-    # The foot is Lilex's and Lilex cuts it level, which on a stroke running
-    # out at 28 degrees is very nearly along the stroke rather than across it:
-    # it met its own edge at 34 degrees where this face's own stems meet their
-    # cuts at 76. That is the point the user saw. `square_off` turns the cut
-    # square to the stroke and leaves it where it was.
-    p0 = out[0]
-    ns = list(p0.nodes)
-    segs, on = _segments(p0)
-    low = [k for k, i in enumerate(on)
-           if str(segs[k][2].type) == LINE
-           and max(segs[k][0].position.y, segs[k][2].position.y) < 0.35 * pr.xh]
-    if not low:
-        raise ValueError("ge: the foot's terminal is not where it was")
-    k = max(low, key=lambda k: (segs[k][0].position.x
-                                + segs[k][2].position.x))
-    a, b = segs[k][0].position, segs[k][2].position
-    out[0] = square_off(p0, on[(k - 1) % len(on)], on[(k + 1) % len(on)],
-                        ((a.x, a.y), (b.x, b.y)),
-                        math.tan(math.radians(pr.italic)))
+    # BOTH of Lilex's terminals are cut level, and neither of this letter's
+    # strokes is upright, so neither cut is across the stroke it ends. The
+    # foot runs out at 28 degrees and met its own cut at 34; the mouth climbs
+    # away at 40 and met its own at 40. This face's own stems meet theirs at
+    # 76 and its curved terminals at 77 to 87. `square_off` turns each cut
+    # square to the stroke it ends and leaves it where it was.
+    #
+    # They are taken one at a time, and each is found again after the one
+    # before it: a cut re-splices the contour, so an index read off the
+    # donor is stale the moment the first terminal is replaced.
+    for lo, hi, far in ((0.0, 0.35, max), (0.60, 1.00, min)):
+        p0 = out[0]
+        segs, on = _segments(p0)
+        ends = lambda k: (segs[k][0].position, segs[k][2].position)
+        want = [k for k in range(len(segs))
+                if str(segs[k][2].type) == LINE
+                and lo * pr.xh <= min(q.y for q in ends(k))
+                and max(q.y for q in ends(k)) <= hi * pr.xh]
+        if not want:
+            raise ValueError("ge: a terminal is not where the donor left it")
+        # the foot's is the rightmost of the low cuts, the mouth's the
+        # leftmost of the high ones -- named by the letter, not by an index
+        k = far(want, key=lambda k: sum(q.x for q in ends(k)))
+        a, b = ends(k)
+        out[0] = square_off(p0, on[(k - 1) % len(on)], on[(k + 1) % len(on)],
+                            ((a.x, a.y), (b.x, b.y)),
+                            math.tan(math.radians(pr.italic)))
     return out
 
 
 GHE_TICK = 0.28         # ґ in the italic: the forelock's rise, in x-heights
 GHE_LEAN = (0.25, 0.25)  # and how far it leans past upright, per master
+GHE_WIDE = 0.95         # and how wide, in stems: 319 italics say 0.85-1.00
 
 
 def Ghe_upturn_cursive(pr):
@@ -3033,24 +3042,41 @@ def Ghe_upturn_cursive(pr):
     whole top left. At Thin every figure involved is under 24 units, which is
     why three rounds of correction went past it. METHOD F23.
 
-    So what is drawn is the turn itself: the outer edge stands on the cut's
-    lower end, the inner edge is that line offset by the tick's width, and
-    where the INNER edge crosses the bar's own top edge is the elbow's notch,
-    found on the outline by `meets_line`. The donor's cut is deleted; the tick
-    is capped flat, which is the upright ґ's and Ґ's own vocabulary for it.
-    One segment is split and two nodes are added at each master, so the count
-    matches by construction.
+    **And then the terminal became its base after all.** Squaring г's own
+    two cuts -- *"Made square cut for lower leg but not the upper part"* --
+    took the mouth from 63 degrees to 116, and F23's obstruction went with
+    it: the cut now meets the tick at 52 to 57 degrees rather than lying
+    along it, and the span between its ends, taken across the tick, is 10
+    units at Thin and 58 at ExtraBold where it was 3 and 12. A base.
+
+    That matters because the construction it forced was eating the letter.
+    Drawn as a turn, the tick's inner edge crossed the bar's own top edge and
+    everything past the crossing was dropped, so **ґ's bar was cut back by up
+    to 68 units through its whole upper left at ExtraBold** -- nearly half a
+    stem -- against г's. Read height by height, г's ink starts at 205, 172
+    and 155 where ґ's starts at 249, 236 and 223. At Thin the two are within
+    a few units, which is why it only reads wrong at weight: *"the upper
+    elbow for ґ is shorter than г and it doesn't seem right, seems ґ is
+    essentially г just with forelock"*.
+
+    So it is now exactly that. г is taken whole, nothing of it is dropped or
+    re-fitted, and the mouth's cut -- one straight segment, and the contour's
+    closing one after squaring -- grows two edges and a cap. Two nodes are
+    added at each master and nothing else moves.
+
+    **The tick is therefore as wide as the mouth, and that is the price.**
+    Both edges stand on the cut, so the width is the cut's own span across
+    the tick: 0.36 of a stem at Thin and 0.39 at ExtraBold, against the 0.62
+    and 0.50 it was drawn at while the bar was paying for it. It is the same
+    width as the stroke it grows out of, which is what was asked for two
+    rounds ago and could not be built then. What makes it thin at Thin is the
+    donor's own taper, not this construction.
 
     It rises 0.28 of the x-height, the upright ґ's own figure and the panel's
-    median for the letter. **The lean is per master and the numbers forced
-    it**: the bar climbs away from the mouth at about 40 degrees, so a
-    forelock at 55 runs alongside it rather than turning off it, and at
-    ExtraBold, where both strokes are 85 units thick, the two seal -- the
-    notch lands four units under the letter's crest. Standing the tick up at
-    the heavy end puts the notch 36 units down and the turn reads again. The
-    light master keeps the 0.45 that was approved -- *"forelock inclination
-    should be bigger"*; the heavy master cannot have it. Shown as a ladder at
-    both masters.
+    median for the letter, and leans `GHE_LEAN` past the face's own slant --
+    *"forelock inclination should be bigger"* -- one number for both masters
+    on the user's call, over a per-master pair the notch depth asked for.
+    The cap is square to the tick, as the upright ґ's is at both masters.
 
     **The panel does not do any of this and was asked.** Of the ten italic
     monos here whose г is the cursive form -- Consolas, Inconsolata, Ioskeley,
@@ -3061,69 +3087,75 @@ def Ghe_upturn_cursive(pr):
     ps = Ge_cursive(pr)
     p = ps[0]
     ns = list(p.nodes)
-    # the bar's own terminal: the one straight cut up at the top left
-    i = min((j for j, n in enumerate(ns)
-             if str(n.type) == LINE and n.position.y > pr.xh * 0.6),
-            key=lambda j: ns[j].position.x)
-    segs, on = _segments(p)
-    k = (on.index(i - 1) - 1) % len(segs)   # the bar's top edge, arriving at a
-    start = on[k]
-    a, b = ns[i - 1].position, ns[i].position
+    # Squaring the mouth left it as the contour's CLOSING segment, so the two
+    # ends of the cut are the last node and the first, and the tick is two
+    # nodes on the end of the list. Nothing is searched for and nothing is
+    # dropped: this is г, with a detour inserted into one straight edge.
+    if str(ns[0].type) != LINE:
+        raise ValueError("ghe-upturn: г's mouth is not where it closes")
+    a, b = ns[-1].position, ns[0].position
 
-    # The mouth's cut CANNOT be the forelock's base. It runs at about 63
-    # degrees from horizontal at both masters and every upward tick runs
-    # between 55 and 76, so the cut is very nearly parallel to the stroke
-    # standing on it: the span between its two ends, measured across the
-    # tick, is three units at Thin and twelve at ExtraBold. Building the tick
-    # as a parallelogram off that cut is what the first version did, and it
-    # is why the letter came apart at the heavy end -- the left edge's base
-    # had to reach 76 units down to the cut's lower end, and the ink between
-    # filled in as a wedge across the whole top left. METHOD F22 again: a
-    # width whose definition stopped matching what it was measuring.
-    #
-    # So the forelock is built as the turn it is. Its outer edge stands on
-    # the cut's lower end and rises; its inner edge is that line offset by
-    # the tick's width; and where the INNER edge crosses the bar's own top
-    # edge is the elbow's notch, found on the outline rather than assumed at
-    # a node. The cut itself goes: the mouth is now at the tick's tip.
     lean = GHE_LEAN[getattr(pr, "_pr", pr).mi]
     t = math.tan(math.radians(pr.italic))
-    # A leaning stroke is never as wide as the gap between its edges, so the
-    # gap is set to measure the target ACROSS the stroke. The target is the
-    # mouth's own span: the tick is as wide as the stroke it grows out of,
-    # which at this donor is a TAPER and so is not the face's stem -- 0.68 of
-    # it at Thin and 0.52 at ExtraBold. Built at the stem's width the tick
-    # stands wider than the letter it grows from: *"the forelock is thicker
-    # than the rest of the glyph especially it looks ugly on hight weights"*.
-    w = a.y - b.y
-    h = w * math.hypot(1.0, lean + t)
-    x_at = lambda y: b.x + h + (y - b.y) * lean
-    ts = meets_line(segs[k], x_at)
-    if not ts or start >= i:
-        # No crossing means no elbow, and returning `ps` here would ship a
-        # bare г at ґ's codepoint -- a homoglyph in a Ukrainian font that no
-        # gate reads. Loud, not silent.
-        raise ValueError("ghe-upturn: the forelock misses the bar's top edge")
-    head = _split_seg(segs[k], max(ts))[0]
+    hyp = math.hypot(1.0, lean + t)
 
-    # The lean stays ONE number across the axis, on the user's call, against
-    # the measurement. What the numbers say: the forelock rises where the bar
-    # already climbs away from the mouth at about 40 degrees, so at Thin the
-    # two part company at any lean on the ladder and at ExtraBold, where both
-    # strokes are 85 units thick, they close up. The elbow's notch, as a
-    # fraction of the tick's own width, runs 0.48 / 0.42 / 0.32 / 0.22 / 0.08
-    # at leans of 0.00 / 0.05 / 0.15 / 0.25 / 0.45 -- and 0.08 is the version
-    # that sealed. This one sits about halfway from open to sealed. It was
-    # chosen so the letter keeps one character across the weight axis rather
-    # than the deepest turn the heavy master can hold; the per-master pair
-    # (0.45, 0.05) is what the measurement asked for and was declined.
-    # Shown as a ladder at both masters before the call. APPROVALS has it.
+    # **The tick is a stem wide, and that is the panel's number, not a taste.**
+    # Of the 319 italics on this machine that draw ґ, the upturn's width over
+    # the face's own stem runs 0.85 to 1.00 between the quartiles with a
+    # median of 0.96, and the thinnest reading in the whole set is 0.27.
+    # Standing it on the mouth's cut made it 0.36 of a stem at Thin and 0.39
+    # at ExtraBold -- outside the panel at the thin end, and the user saw it:
+    # *"the forelock now is too thin"*. The rise is not in question: the
+    # panel's median is 0.27 of the x-height against GHE_TICK's 0.28. Nor is
+    # the lean: the italics that draw a cursive г rather than a sloped
+    # upright -- Georgia, Cambria, Times, Monaspace Radon -- lean their tick
+    # at 0.58 to 0.61 where ours leans at 0.50.
+    w = GHE_WIDE * pr.stem
+
+    # A tick wider than the mouth cannot stand ON the mouth: the cut IS the
+    # bar's whole cross-section there, so a base longer than the cut runs out
+    # past the bar's underside and hangs there as a spur. Where the ink
+    # actually is, above the cut, is the bar's TOP edge -- so the tick's inner
+    # edge comes down to meet that edge, and the meeting point is the elbow's
+    # notch. That was always the right shape. What was wrong was splicing it
+    # into г's outline, which deleted the bar's top edge beyond the notch and
+    # took up to 68 units out of the letter's upper left. As its own contour
+    # the same geometry only ADDS: the notch is where the tick stops, not
+    # where the bar does.
+    segs, on = _segments(p)
+    x_in = lambda y: a.x + w * hyp / (1.0 + t * (lean + t)) + (y - a.y) * lean
+    k, ts = len(segs) - 2, []
+    for back in range(3):
+        k = (len(segs) - 2 - back) % len(segs)
+        ts = meets_line(segs[k], x_in)
+        if ts:
+            break
+    if not ts:
+        raise ValueError("ghe-upturn: the tick's inner edge misses the bar")
+    notch = _split_seg(segs[k], max(ts))[0][2].position
+
+    # the cap is square to the tick -- the upright ґ caps this same tick at 90
+    # degrees at both masters -- and its MIDDLE keeps the rise GHE_TICK asks
+    # for, so squaring it does not make the letter taller on one side
     ytip = pr.xh * (1.0 + GHE_TICK)
-    out = (ns[:start] + [head[0]] + head[1] + [head[2]]
-           + [node(x_at(ytip), ytip), node(x_at(ytip) - h, ytip)] + ns[i:])
-    q = path([node(n.position.x, n.position.y, n.type, n.smooth)
-              for n in out])
-    return [q if area(q) > 0 else reverse(q)] + ps[1:]
+    dy = w * (lean + t) / hyp
+    ya = ytip + dy / 2.0
+    xa = a.x + (ya - a.y) * lean
+    xb = xa + w * (1.0 + t * (lean + t)) / hyp
+    # The tick is its OWN contour, overlapping the letter, which is how this
+    # family already builds El, Pe, Sha and д. Let into г's contour instead it
+    # SUBTRACTS: its inner edge re-crosses the outline it was let into -- the
+    # two strokes leave the mouth together, one at 40 degrees and one at 63 --
+    # and the bump then runs against the letter's own winding there. It came
+    # out as a bite taken from the upper left.
+    #
+    # It closes from the notch straight back to the cut's outer end rather
+    # than following the bar's top edge, which is a chord under a rising
+    # convex edge and so lies inside the ink: the union does not care, and
+    # four nodes interpolate where a traced edge would not.
+    tick = path([node(a.x, a.y, LINE), node(xa, ya, LINE),
+                 node(xb, ya - dy, LINE), node(notch.x, notch.y, LINE)], True)
+    return ps + [tick if area(tick) > 0 else reverse(tick)]
 
 
 def De_cursive(pr):
