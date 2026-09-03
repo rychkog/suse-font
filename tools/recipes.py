@@ -3372,7 +3372,7 @@ def Te_comb(pr, top=None):
                          corner_radius(pr) * RADIUS), top / 2.0)
 
 
-I_CUT = 0.92            # і: where the stroke stops, across the bowl's upswing
+I_CUT = 0.30            # і: where the stroke stops, across the bowl's upswing
 I_TILT = 2.0            # і: degrees of slant this letter carries over the face's
 
 

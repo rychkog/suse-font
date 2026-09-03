@@ -1862,6 +1862,49 @@ run it measures is longer than its own reach**, and that is a condition to
 assert, not to assume.
 
 
+### F25 · An offset edge is not a dial, and four ways it is not
+
+і's exit thins because и's bowl closes up as it gets heavy and і is cut out of
+that bowl. Redrawing the inner edge as the outer edge offset by one width is
+the obvious fix and it was built four times. **None of them shipped**, and
+each failed for a reason that will come back on the next stroke anyone tries
+to widen.
+
+**1 · A short rejoin is a cusp.** Offsetting only the last stretch and
+rejoining the donor's edge at a named node a moment later forces the new edge
+to swing out and come straight back. What that leaves is not a tighter counter
+but a needle of white in a cusp — and it is invisible at Thin, where the
+offset is a few units. Only the bold weights showed it. **If an offset has to
+return, give it the whole stroke to return over.**
+
+**2 · Two curves cannot be blended point by point unless they share a
+parameterisation.** Sampling the outer edge and the donor's inner edge at the
+same parameter values and averaging them gives a path that is neither: equal
+indices are not opposite points, and the result wobbles.
+
+**3 · The nearest point is not the width.** Wherever two edges are not
+parallel, the distance to the closest point on the far edge is less than the
+distance across the stroke, and an offset built on it overshoots. At the heavy
+master it overshot far enough to drive the new edge into the stem. **Cast the
+normal as a ray and take the first crossing.** `geom` has `meets_line` for the
+same reason.
+
+**4 · The width that folds is not monotone, so it cannot be bisected.** A
+large offset swings past the edge it rejoins; a tiny one lies on top of that
+edge and crosses it. **Both ends of the range fail**, so a halving search
+converges on the thinner failure — which drew the bowl as a hairline sliver
+and passed every gate on the way, because no gate reads a self-intersection.
+Walk down from the target instead.
+
+**What actually decided it was none of the above.** At ExtraBold и's bowl has
+no room for a full-width exit and an open counter at the same time: и itself
+holds 0.18 of a stem of aperture there. Every construction above was trying to
+spend room the letter does not have. **When four constructions fail at one
+master and none at the other, the constraint is the donor, not the drawing** —
+and the honest fix was to stop the stroke before the pinch (`I_CUT` 0.92 to
+0.30), which buys 0.33 to 0.45 of a stem at the cost of a shorter turn.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
