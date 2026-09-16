@@ -157,6 +157,36 @@ def slant(paths, angle_deg, pivot_y=0.0):
     return _map_points(paths, lambda x, y: (x + (y - pivot_y) * t, y))
 
 
+def taper(paths, x_pivot, y0, y1, k0, k1=1.0):
+    """`slant`'s sibling: squeeze horizontally by a factor that runs with height.
+
+    `slant` displaces x by height; this scales it. About the vertical line
+    `x_pivot`, every point is pulled toward that line by `k0` at `y0` easing
+    to `k1` at `y1`, and held at the end values beyond both.
+
+    It exists because an ellipse and a written loop end differently. Refitting
+    the round letter to a tall box gives a shape that is rounded at BOTH ends,
+    and the italic в's loop is not: it is full width where the pen turns at
+    the top and comes to a point where it crosses itself at the bottom. Three
+    constructions failed on that one difference -- the loop's wide bottom sat
+    on the bowl and read as a figure 8, then dipped inside it and cut its
+    counter in two. Tapered, the bottom is narrow enough to run down the
+    bowl's own wall, which is where the reference puts it.
+
+    The walls thin with the rest, which is what a pen does and what keeping
+    them parallel would not.
+    """
+    span = (y1 - y0) or 1.0
+
+    def fn(x, y):
+        t = (y - y0) / span
+        t = 0.0 if t < 0.0 else (1.0 if t > 1.0 else t)
+        k = k0 + (k1 - k0) * t
+        return x_pivot + (x - x_pivot) * k, y
+
+    return _map_points(paths, fn)
+
+
 def cut_span(p, start, end):
     """Keep nodes [start:end] of a contour and close the gap with a straight edge.
 

@@ -22,7 +22,7 @@ from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   area, LINE, OFFCURVE, CURVE,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
-                  squash_x, piecewise_y, scale_x, fit, slant,
+                  squash_x, piecewise_y, scale_x, fit, slant, taper,
                   cut_at_y, cut_along, meets_line, seg_at,
                   _segments, _split_seg)
 from latin_metrics import Latin
@@ -3158,6 +3158,134 @@ def Ghe_upturn_cursive(pr):
     return ps + [tick if area(tick) > 0 else reverse(tick)]
 
 
+VE_WIDE = (1.33, 1.17)   # в in the italic: the letter's width, in o's widths
+VE_BOWL = 0.74           # how much of that the bowl takes, measured from the left
+VE_LOOP = 1.00           # and the loop -- the whole of it, corner to corner
+VE_CROSS = (0.50, 0.55)  # where the loop's stroke meets the bowl, up the letter
+VE_DIP = 0.10            # how far BELOW the crossing the loop's point is buried
+VE_PINCH = 0.18          # and how narrow it is down there, in its own width
+VE_LEAN = 0.45           # how far it leans past the face's own slant
+VE_EYE = (0.46, 0.24)    # the eye, as a share of the loop's own box, per master
+
+
+def Ve_cursive(pr):
+    """в in the italic -- the bowl with a leaning loop stacked on it.
+
+    Asked for on 2026-09-03 with a drawing: *"One of the canonical one looks
+    like this"*. Until now the italic в was the upright в sheared -- a stem
+    with two lobes hung off it -- standing in a set where г, д, і, ї, т and п
+    are all the cursive forms. This is the letter as it is written by hand: a
+    closed bowl, and above it a loop that leaves the bowl's left shoulder,
+    rises to the right and comes back to the same place.
+
+    **Two faces on this machine draw it and one of them is the sketch.**
+    Monaspace Radon puts the join at 0.45 of the letter's height and takes the
+    letter to 1.42 of its own x-height; Victor Mono draws the other reading, a
+    small eye at 0.77 over a large oval. The user's drawing splits bowl from
+    loop at 0.45, which is Radon's to a hundredth. Of the 321 italics here
+    that carry в, those two are the only ones that leave the upright behind.
+
+    **The height is this face's own, not Radon's.** b, l and б all top out at
+    1.51 of the x-height at Thin and 1.45 at ExtraBold, and б is the sibling
+    that matters -- a Cyrillic lowercase with a bowl and something rising off
+    it. So в tops out on б's line. It makes в an ASCENDING letter, which is a
+    change to the texture of every line rather than to one glyph, в being what
+    it is in both languages; both reference faces do it and the sketch does
+    it.
+
+    **Both parts are `bowl`, which refits o's curve to a box at o's own
+    stroke weight.** Scaling o down instead would thin its wall, and this face
+    redraws stems at the target weight rather than shrinking a donor. They
+    overlap and the union comes out on the way to the font, which is how El,
+    Pe, Sha, д and ґ are already built.
+
+    **Corrected 2026-09-11 -- the placement, not a dial.** *"current в looks
+    like a 6-year old would write it... compare with Radon"*. It did, and the
+    reason was that both boxes started at o's left edge with the loop the
+    narrower of the two, so the letter was a small ring balanced on a large
+    one. Radon does not nest them, it OFFSETS them: measured on the real
+    outline, its bowl runs from the letter's left edge to 0.73 of its width
+    and its loop from 0.20 across to the right edge, each about as wide as the
+    other. What reads as one swept ribbon is two o-sized parts displaced along
+    the diagonal, and what reads as a child's в is two parts sharing a left
+    edge. `VE_BOWL` and `VE_LOOP` are that displacement; they sum past 1.0
+    because the parts overlap in the middle, which is where the letter crosses
+    itself.
+
+    **The earlier figures in this recipe were read off the wrong file.**
+    Windows splits Monaspace into subsets and the plain `MonaspaceRadon-*.otf`
+    installed here carries no Cyrillic at all -- its в lives in the `_1`
+    files. Read properly, Radon takes the letter to 1.48-1.58 of its own
+    x-height, not the 1.42 recorded here, and puts the crossing at 0.54 of the
+    letter's height at its light master rising to 0.61 at its heavy one, not a
+    flat 0.45. The height was right anyway, being this face's own; the
+    crossing was not, and `VE_CROSS` now carries the pair.
+
+    **The letter is centred in its cell and allowed to spill.** At 1.33 of o
+    it no longer fits between o's sidebearings. This face's italic already
+    lets a lowercase out of its cell where the letter needs it -- f by 178
+    units at ExtraBold, ж by 115, б by 66 -- so the idiom is there; centring
+    rather than left-aligning splits the overhang between the two sides.
+    """
+    base = getattr(pr, "_pr", pr)
+    ow = bbox(pr.paths("o"))
+    top = bbox(pr.paths("b"))[3]
+    w = VE_WIDE[base.mi] * (ow[2] - ow[0])
+    x0 = (ow[0] + ow[2]) / 2.0 - w / 2.0
+    cross = ow[1] + VE_CROSS[base.mi] * (top - ow[1])
+    cup = bowl(pr, x0, x0 + VE_BOWL * w, ow[1], cross)
+
+    # The loop runs DOWN INTO the bowl rather than sitting on it. Built to
+    # start at the crossing it kept its own rounded bottom and the letter read
+    # as a figure 8 -- two ovals stacked, which is what б already is. Dipped
+    # below, the union swallows that bottom and what shows above the bowl is
+    # the eye the reference draws.
+    #
+    # **The loop is anchored at BOTH corners, and that is the whole letter.**
+    # Anchored only at its top right it came out a narrow leaf leaning off a
+    # circle, because its descending stroke then landed in the MIDDLE of the
+    # bowl's counter and cut it in two -- the letter had three whites, and the
+    # third was the tell. Radon lands that stroke ON the bowl's left wall:
+    # read band by band, at the bowl's widest the letter has one stroke there
+    # doing both jobs, at 0.10 to 0.21 of the letter. So the loop runs corner
+    # to corner, bottom left to top right, and its lean is what carries it
+    # there; the box it is drawn in is narrower than the letter by exactly
+    # what the lean adds back.
+    # The point is buried just BELOW the crossing, not down at the baseline.
+    # Taken as a share of the letter's height it reached the bowl's floor, and
+    # the loop's whole lower half then lay across the bowl's counter -- the
+    # taper made the crossing stroke a hairline instead of removing it. Where
+    # the reference buries it is a tenth of the letter under the crossing, and
+    # the two whites meet at that point rather than overlapping.
+    dip = cross - VE_DIP * (top - ow[1])
+    lw = VE_LOOP * w - (top - dip) * VE_LEAN
+
+    # **The eye governs the wall, not the other way round.** Two walls at o's
+    # own weight fit inside this box at Thin and eat all of it at ExtraBold,
+    # where o draws its wall five times heavier for a letter barely wider --
+    # the loop went solid black. `crowd` is the parameter `bowl` already has
+    # for a letter carrying one stroke more than the round letter does, which
+    # is what this loop does to the bowl it crosses. Capped at 1.0, so the
+    # light master keeps o's wall untouched and only the heavy one gives way.
+    tx = bowl_stroke(pr)[0]
+    crowd = min(1.0, (1.0 - VE_EYE[base.mi]) * lw / (2.0 * tx))
+    if crowd < 0.5:
+        raise ValueError("ve: the loop's wall is thinner than half the bowl's")
+    # **And it is pinched at the bottom, because an ellipse is not.** Refitted
+    # to a tall box the round letter is rounded at BOTH ends, so the loop's
+    # bottom arrived at the bowl a full box wide and cut the bowl's counter in
+    # two -- three whites where the letter has two, at both masters. The pen
+    # does not do that: it turns at the top, full width, and comes to a point
+    # where it crosses itself. `taper` about the loop's own left edge, so the
+    # descending stroke stays where the lean put it and only the right edge
+    # closes on it.
+    lx0 = x0 + (cross - dip) * VE_LEAN
+    loop = bowl(pr, lx0, lx0 + lw, dip, top, crowd=crowd)
+    loop = taper(loop, lx0, dip, top, VE_PINCH)
+    loop = slant(loop, math.degrees(math.atan(VE_LEAN)), cross)
+    return cup + loop
+
+
 def De_cursive(pr):
     """д -- this face's own o for the bowl, Lilex's hook laid over it.
 
@@ -3489,6 +3617,7 @@ def Yi_cursive(pr):
 
 ITALIC["ge-cy"] = Ge_cursive
 ITALIC["de-cy"] = De_cursive
+ITALIC["ve-cy"] = lc(Ve_cursive)
 ITALIC["gheupturn-cy"] = lc(Ghe_upturn_cursive)
 ITALIC["te-cy"] = lc(Te_comb)
 ITALIC["i-cy"] = I_cursive
