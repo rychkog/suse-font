@@ -1644,6 +1644,48 @@ def Ve(pr, top=None):
     return [outer] + [reverse(c) if area(c) > 0 else c for c in (lo, up)]
 
 
+# ь ы ъ я: how the lowercase bowl is PROPORTIONED. Built from the capital's
+# construction at x-height across a full lowercase cell, ь's bowl stood 0.60
+# to 0.68 as tall as it was wide and я's 0.71, where every bowl this face
+# draws stands at 0.87 or more -- and the user saw it before any reading did:
+# "their bowls don't fit the fontface aesthetic". Two moves, in this order:
+#
+# SOFT_RAISE lifts the bowl at the light end only -- 18 % at the Thin stem,
+# nothing at the ExtraBold one, as `a + b * stem / 1000`. At ExtraBold the
+# bowl already stands higher, because it grows with its stroke, and lifting
+# it too left a stub of stem above it (the user: "a short leg at the top").
+# The stem left above it then shortens 0.42 -> 0.34 of the x-height across
+# the axis, which is P's own 0.47 -> 0.38 at the same rate.
+#
+# SOFT_SHAPE then narrows the bowl until it stands at this share of b's own
+# proportion: 0.88 at Thin, 0.77 at ExtraBold. One share, because the face's
+# bowls widen for their height as they get bolder, and a single target for
+# every weight made ExtraBold ь "just prominently narrower". A bowl already
+# at the target -- ы and ъ at ExtraBold -- is left alone, and a narrowed
+# letter is recentred in its cell.
+SOFT_RAISE = (1.2231, -1.4876)
+SOFT_SHAPE = 0.74
+
+
+def sloped(pr):
+    """What a sloped-roman lowercase reads its donor figures from.
+
+    Under the italic the roman master -- see `Params.roman`. ь ы ъ я are drawn
+    upright and sheared, so the letter they slope is the ROMAN b and R; this
+    face's italic b is a true italic whose figures overweighted their bowls
+    and cut the Thin counter into the stem. Everywhere else, `pr` itself.
+    """
+    if not (pr.italic and getattr(pr, "lower", False)):
+        return pr
+    return Lower(pr.roman())
+
+
+def soft_raise(pr):
+    """SOFT_RAISE at this master's stem; never below no lift at all."""
+    a, b = SOFT_RAISE
+    return max(a + b * pr.stem / 1000.0, 1.0)
+
+
 def soft_bowl(pr, top=None):
     """The lower bowl shared by Ь Ъ Ы Б, and its stem left edge.
 
@@ -1661,7 +1703,7 @@ def soft_bowl(pr, top=None):
     # Ы does have three strokes and does shave, but it shaves its own stem
     # first and then scaled THIS by the result, so its bowl was reduced twice
     # over. With the double reduction gone it lands on the panel's median.
-    t = bowl_of(pr)[2]
+    t = bowl_of(sloped(pr))[2]
     # The bowl's TOP is not a fixed height -- its COUNTER's top is. Every face
     # measured holds Ь's and Ы's counter top between 0.45 and 0.53 of the cap
     # and barely moves it across the weight axis; the bowl's outer top then
@@ -1702,6 +1744,13 @@ def shoulder_spine(pr, sx, xs, s, top):
 
 def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     """Ь -- stem the full height, bowl on the lower half."""
+    out, lost = _soft(pr, top, x0, right, stem, t, shoulder)
+    return translate(out, lost / 2.0) if lost else out
+
+
+def _soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
+    """Soft's drawing, and how much narrower SOFT_SHAPE made it -- which the
+    caller recentres by half, and Ы also takes off its detached stem."""
     top = pr.cap if top is None else top
     bl, br, _ = bowl_of(pr)
     x0 = bl if x0 is None else x0
@@ -1713,6 +1762,9 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     s = pr.stem if stem is None else stem
     t0, bt = soft_bowl(pr, top)
     tt = t0 if t is None else t
+    lower = getattr(pr, "lower", False)
+    if lower:
+        bt *= soft_raise(pr)
     spine = (rect(x0, 0.0, x0 + s, top) if shoulder is None
              else shoulder_spine(pr, shoulder, x0, s, top))
     # The counter's corner is read off b for the LOWERCASE only. `r - t`, which
@@ -1722,15 +1774,14 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     # wide enough that its sweep still outruns the stroke. The lowercase bowl
     # is half that height and it does not: ь's fell to 0.24 at ExtraBold, ъ's
     # to 0.17 and ы's to 0.19, against b's own 0.44. See bowl_pair, and F2.
-    lower = getattr(pr, "lower", False)
-    csweep = L(pr).lcCounterSweep if lower else None
+    csweep = L(sloped(pr)).lcCounterSweep if lower else None
     # ...and how far the counter runs past the spine's edge, also b's and also
     # the lowercase only. Taken as a SHARE of the spine rather than in units,
     # because Ы's spine is its own shaved stem and not the face's -- the same
     # reason `tl` is passed the spine below. `lcBowlInsetStem` is read per
     # master, so the cut widens with the weight the way b's does: ten units at
     # ExtraBold, one at Thin.
-    cut = s * (1.0 - L(pr).lcBowlInsetStem) if lower else 0.0
+    cut = s * (1.0 - L(sloped(pr)).lcBowlInsetStem) if lower else 0.0
     # `tl=s` -- the counter's left edge is the spine's own, not the bowl's
     # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
     # own shaved stem rather than the face's because that IS its spine. See
@@ -1743,10 +1794,14 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
 
     if fit:
         right = shear_fit(pr, right, lambda r: _rows(bowl_at(r)))
+    lost = 0.0
+    if lower:
+        lost = max(right - (x0 + bt / (SOFT_SHAPE * L(sloped(pr)).lcBowlShape)), 0.0)
+        right -= lost
     bowl = bowl_at(right)
     if not cut:
-        return [spine] + bowl
-    return [_spine_bowl(bowl[0], spine, x0, s, bt), bowl[1]]
+        return [spine] + bowl, lost
+    return [_spine_bowl(bowl[0], spine, x0, s, bt), bowl[1]], lost
 
 
 def Hard(pr, top=None):
@@ -1822,9 +1877,12 @@ def Yeru(pr, top=None):
     # all but touched the stem, and at ExtraBold the bowl swallowed the width
     # and its own counter closed to a slit.
     gap = (x1 - x0 - 2.0 * s - t) / (1.0 + YERU_SPLIT)
-    return (Soft(pr, top, x0=x0, right=x0 + s + YERU_SPLIT * gap + t,
-                 stem=s, t=t)
-            + [rect(x1 - s, 0.0, x1, top)])
+    out, lost = _soft(pr, top, x0=x0, right=x0 + s + YERU_SPLIT * gap + t,
+                      stem=s, t=t)
+    # a narrowed bowl takes its detached stem in with it, so the gap between
+    # them stays the one the reference splits by
+    out = out + [rect(x1 - s - lost, 0.0, x1 - lost, top)]
+    return translate(out, lost / 2.0) if lost else out
 
 
 def c_shape(pr, x0, x1, y0, y1, t, open_left):
@@ -2315,8 +2373,8 @@ def Ya(pr, top=None, bottom=0.0):
     # Ъ were fixed for; Я was never in the family check to catch it, and the
     # check could not have seen it anyway -- it reads the rightmost run, and
     # Я's bowl bulges LEFT.
-    t = bowl_of(pr)[2]
-    mid = (x0 + x1) / 2.0
+    sp = sloped(pr)
+    t = bowl_of(sp)[2]
 
     # R is the letter this face already built with a leg under a bowl, so R
     # says how one is done, per master: where the bowl stops, how far across
@@ -2325,8 +2383,8 @@ def Ya(pr, top=None, bottom=0.0):
     # cap -- lighter than the bowl above it and starting well below where the
     # bowl ends, so it read as a stroke laid against the letter rather than
     # growing out of it.
-    rout = pr.paths("R")[0]
-    rleg = pr.paths("R")[1]
+    rout = sp.paths("R")[0]
+    rleg = sp.paths("R")[1]
     # R's bowl stops in one place and R's leg springs in another, and this
     # recipe took the second for the first. The leg's top edge is BURIED
     # inside the bowl's floor -- 13 units above it at Thin, 69 at ExtraBold --
@@ -2352,7 +2410,7 @@ def Ya(pr, top=None, bottom=0.0):
     # re-size because the recipe is run at x-height. And they live in two
     # spaces at once -- r_floor and r_legtop read R's own outline and stay in
     # R's units, while waist draws THIS letter and must be in its own.
-    base = getattr(pr, "_pr", pr)
+    base = getattr(sp, "_pr", sp)
     r_floor = rout.nodes[11].position.y
     waist = r_floor / float(base.cap) * top
     r_legtop = max(n.position.y for n in rleg.nodes)
@@ -2364,7 +2422,7 @@ def Ya(pr, top=None, bottom=0.0):
     # left Я's leg 29 units nearer its own stem than R's is to its. The white
     # wedge under the bowl closed to 0.26 of a stem at ExtraBold where this
     # face's own R holds 0.63 and the panel's Я 0.61.
-    r_bbox = bbox(pr.paths("R"))
+    r_bbox = bbox(sp.paths("R"))
     r_inner = min(n.position.x for n in rleg.nodes
                   if n.position.y == r_legtop)
     standoff = ((r_inner - (r_bbox[0] + base.stem))
@@ -2382,7 +2440,20 @@ def Ya(pr, top=None, bottom=0.0):
     # this one evenly took another 62 units out of the same counter, on top of
     # the 69 the waist had cost it, and made Я's roof read heavier than the
     # arm of the Г beside it.
-    rx, ry = bowl_arc(pr, x0, x1, waist, top)
+    leg_top = r_legtop / float(base.cap) * top
+    # The lowercase bowl takes the soft sign's proportion -- see SOFT_RAISE.
+    # The leg is R's, so it keeps springing from the same depth inside the
+    # bowl's floor and simply starts lower with it.
+    if getattr(pr, "lower", False):
+        bh = min((top - waist) * soft_raise(pr),
+                 SOFT_SHAPE * L(sp).lcBowlShape * (x1 - x0))
+        leg_top -= waist - (top - bh)
+        waist = top - bh
+        c = (x0 + x1) / 2.0
+        w = min(x1 - x0, bh / (SOFT_SHAPE * L(sp).lcBowlShape))
+        x0, x1 = c - w / 2.0, c + w / 2.0
+    mid = (x0 + x1) / 2.0
+    rx, ry = bowl_arc(sp, x0, x1, waist, top)
     bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, th=pr.bar, r=rx, ry=ry,
                               rmin=inner_radius(pr)), mid)
 
@@ -2403,13 +2474,23 @@ def Ya(pr, top=None, bottom=0.0):
     # ends where R's ends, which is inside the bowl at both masters -- 13
     # units at Thin, 69 at ExtraBold -- so the two outlines never share an
     # edge exactly, and cannot drift into one between the masters.
-    leg_top = r_legtop / float(base.cap) * top
+    #
+    # Sheared, a stroke leaning down to the left comes out thinner than the
+    # stem does -- 0.92 of it at Thin, 0.94 at ExtraBold, where the upright
+    # leg is the stem to the unit. The shear keeps area, so a stroke along
+    # (m, 1) keeps hypot(1, m) / hypot(1, m + k) of its width and the stem
+    # keeps 1 / hypot(1, k); the lowercase leg is drawn wider by the ratio.
     leg_in = (x1 - s) - standoff * (x1 - x0)
+    k = math.tan(math.radians(pr.italic)) if getattr(pr, "lower", False) else 0.0
+
+    def leg_w(m):
+        return pr.stem * math.hypot(1.0, m + k) / math.hypot(1.0, k)
+
     slope = 0.6
     for _ in range(8):
-        hw = pr.stem * math.hypot(1.0, slope)
+        hw = leg_w(slope)
         slope = ((leg_in - hw / 2.0) - (x0 + hw / 2.0)) / (leg_top - bottom)
-    hw = pr.stem * math.hypot(1.0, slope)
+    hw = leg_w(slope)
     return ([rect(x1 - s, bottom, x1, top)]
             + bowl
             + [diag(leg_in - hw / 2.0, leg_top, x0 + hw / 2.0, bottom, hw)])

@@ -66,6 +66,16 @@ CLONES = {"Ze-cy": "three"}
 # noise. The two faults that prompted the check were 4.3% and 21% out.
 BOWL_END = 0.02
 BOWL_WEIGHT = 0.02
+# ь and ъ: the bowl stands at least at SOFT_SHAPE of b's own proportion, tall
+# over wide, at every weight -- 0.88 at Thin, 0.77 at ExtraBold. One-sided,
+# like the recipe, which narrows a flat bowl and never widens a tall one: ъ at
+# ExtraBold already stood at 0.80 and was left alone. Its ceiling is b itself,
+# since a soft sign's bowl taller for its width than b's has become a b. The
+# tolerance is for the weights in between, where b and the letter both
+# interpolate and the ratio of the two need not stay exactly linear.
+SHAPE_PAIRS = ("ь", "ъ")
+SHAPE_SHARE = 0.74
+SHAPE_TOL = 0.03
 # ...and never tighter than this many units, whatever the percentage works out
 # to. The probe reads a bowl at its widest point, and where the widest point
 # falls depends on the construction: в's stepped one-contour outer reaches it
@@ -139,7 +149,7 @@ CAPS = Case(
     # and none descends, so the rule for Д Ц Щ can only be that they agree
     # with each other
     desc=(),
-    bowls=(("Ь", "В"), ("Ъ", "В"), ("Б", "В")),
+    bowls=(("Ь", "В", True), ("Ъ", "В", True), ("Б", "В", True)),
     # Q is left out of the self-test for the same reason f g i j t are below:
     # its descending part is a broad flag merged into the bowl rather than a
     # distinct stroke, so "an appendage must not outweigh the stem it hangs
@@ -174,7 +184,12 @@ LOWER = Case(
     # 25 units further right than о does at Thin, so the check flagged б for
     # being о. What guards б's bowl instead is stronger than this check: it IS
     # о's outline, so the donor check covers it.
-    bowls=(("ь", "в"), ("ъ", "в")),
+    # ...and since 2026-09-17 only their STROKE is held to в's. Their bowls
+    # end where b's proportion puts them -- see SHAPE_PAIRS -- and no longer
+    # where в's lobe ends: the user rejected the lowercase bowl drawn to the
+    # capital's width, 0.60 as tall as it was wide against a face that draws
+    # nothing under 0.87.
+    bowls=(("ь", "в", False), ("ъ", "в", False)),
     # f g i j t are left out of the self-test on purpose: each ends at a
     # height that is its own business -- f's hook, g's ear, i and j's dot, t's
     # short ascender -- and no Cyrillic letter reproduces any of them, so the
@@ -335,7 +350,13 @@ TAIL_PAIRS = (("ц", "Ц"), ("щ", "Щ"), ("д", "Д"), ("џ", "Џ"))
 # -- and therefore occupies a bigger fraction of a shorter letter, so a single
 # sample can land above the arm in Г and inside it in г and jump by 0.8 on its
 # own. That is physical, not a defect.
-PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЬьЪъЫыДдЖжЛлЧчЭэЯя"
+#
+# Ь ь and Ъ ъ are no longer here, since 2026-09-17. The lowercase soft bowl is
+# lifted at the light end and narrowed to b's proportion (recipes.SOFT_SHAPE),
+# so it is deliberately NOT the capital's silhouette at Thin -- the capital's
+# construction at x-height is exactly what the user rejected. SHAPE_PAIRS below
+# guards those two instead, against b.
+PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЫыДдЖжЛлЧчЭэЯя"
 PROFILE_TOL = 0.08
 
 # KNOWN HOLE, left open deliberately. The silhouette check divides every letter
@@ -566,6 +587,22 @@ def swallowed_curves(paths, polys):
             pend = []
             prev = n
     return out
+
+
+def _shape(gs, name):
+    """A stem-and-bowl letter's bowl, tall over wide.
+
+    The width runs from the stem's own left edge -- read in the lower half,
+    below ъ's shoulder -- to the bowl's right. The bowl's top is the highest
+    ink right of the middle of that, where b's ascender does not reach.
+    """
+    pts = [q for po in contours(gs, name) for q in po]
+    bot = min(q[1] for q in pts)
+    mid_y = (bot + max(q[1] for q in pts)) / 2.0
+    x0 = min(q[0] for q in pts if q[1] < mid_y)
+    x1 = max(q[0] for q in pts)
+    top = max(q[1] for q in pts if q[0] > (x0 + x1) / 2.0)
+    return (top - bot) / (x1 - x0)
 
 
 def _bowl(gs, name, top):
@@ -1053,14 +1090,15 @@ def main():
 
         for case in CASES:
             top = getattr(f["OS/2"], case.metric)
-            for ch, host in case.bowls:
+            for ch, host, ends in case.bowls:
                 if ord(ch) not in cmap or ord(host) not in cmap:
                     continue
                 ref = _bowl(gs, cmap[ord(host)], top)
                 got = _bowl(gs, cmap[ord(ch)], top)
                 if not ref or not got:
                     continue
-                if abs(got[0] - ref[0]) > max(BOWL_END * ref[0], BOWL_UNIT):
+                if ends and abs(got[0] - ref[0]) > max(BOWL_END * ref[0],
+                                                       BOWL_UNIT):
                     findings.append(
                         f"{weight:9} {ch} bowl ends at {got[0]:.0f} where "
                         f"{host} ends at {ref[0]:.0f}")
@@ -1069,6 +1107,21 @@ def main():
                     findings.append(
                         f"{weight:9} {ch} bowl stroke {got[1]:.0f} against "
                         f"{host}'s own {ref[1]:.0f}")
+
+        if ord("b") in cmap:
+            want = SHAPE_SHARE * _shape(gs, cmap[ord("b")])
+            for ch in SHAPE_PAIRS:
+                if ord(ch) not in cmap:
+                    continue
+                got = _shape(gs, cmap[ord(ch)])
+                if got < want - SHAPE_TOL:
+                    findings.append(
+                        f"{weight:9} {ch} bowl stands {got:.2f} tall for its "
+                        f"width where b's proportion puts it at {want:.2f}")
+                elif got > want / SHAPE_SHARE:
+                    findings.append(
+                        f"{weight:9} {ch} bowl stands {got:.2f} tall for its "
+                        f"width, taller than b's own {want / SHAPE_SHARE:.2f}")
 
     if not findings:
         print("audit clean")

@@ -116,6 +116,15 @@ output — findings have been hidden that way, including a broken interpolation.
    transfers where the donor's OUTER is the same shape — b's bowl is 1.23–1.43
    tall for its width, в's lobes are 0.56.
 
+11. **Read a lowercase bowl as a whole, tall over wide, against b.** A
+   capital's construction run at x-height keeps the capital's heights and a
+   lowercase cell's width, so every bowl in it comes out flat -- ь stood 0.60
+   and я 0.71 where the face draws nothing under 0.87, while every edge
+   reading passed. And an italic letter built upright and slanted reads its
+   donor figures off the ROMAN (`recipes.sloped`): this face's italic b is a
+   different drawing, and its figures overweighted ь's bowl and cut its stem.
+   `docs/METHOD.md` F26, F27.
+
 ## Reporting
 
 - **Always show a rendered sheet, and always as SVG.** Text-only progress is

@@ -158,6 +158,16 @@ class Latin:
         # for both is the same fault in the other direction.
         self.lcBowlInset = self._inset(pr, "b", xh)
         self.lcBowlInsetStem = self.lcBowlInset / float(pr.lcStem)
+        # b's bowl, tall over wide: its outer top on the bowl side down to its
+        # overshoot, over the whole letter. 1.19 at Thin and 1.04 at
+        # ExtraBold -- the face's bowls get wider for their height as they get
+        # bolder, and every bowl it draws stands at 0.87 or more.
+        _mid = (min(n.position.x for n in _lc.nodes)
+                + max(n.position.x for n in _lc.nodes)) / 2.0
+        _on = [n.position for n in _lo.nodes if n.type != "offcurve"]
+        self.lcBowlShape = ((max(q.y for q in _on if q.x > _mid)
+                             - min(q.y for q in _on))
+                            / (max(q.x for q in _on) - min(q.x for q in _on)))
 
         # How far the bowl SWEEPS: the horizontal reach of its outer arcs, as
         # a share of its own width. This is the face's roundness, and it is the

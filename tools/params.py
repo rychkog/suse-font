@@ -8,8 +8,20 @@ that look right at one end of the axis and wrong at the other.
 
 
 import math                                                  # noqa: E402
+from pathlib import Path                                     # noqa: E402
 
 from geom import slant                                       # noqa: E402
+
+ROMAN_SOURCE = Path(__file__).resolve().parent.parent / "sources" / "SUSEMono.glyphs"
+_ROMAN = {}
+_ROMAN_FONT = []
+
+
+def _roman_font():
+    if not _ROMAN_FONT:
+        import glyphsLib
+        _ROMAN_FONT.append(glyphsLib.load(str(ROMAN_SOURCE)))
+    return _ROMAN_FONT[0]
 
 
 class Params:
@@ -36,7 +48,8 @@ class Params:
         # every approved drawing rather than re-deriving it -- rule 1 -- and it
         # picks up the italic's OWN redrawn round capitals and its true-italic
         # lowercase for nothing, because a recipe reads `pr.paths(donor)` and
-        # never the upright file.
+        # never the upright file -- with one exception, `roman`, for the
+        # lowercase that is a sloped roman rather than a true italic.
         #
         # The pivot is the face's own and it is NOT the baseline: solved
         # against the eleven capitals that are a pure slant, it comes out at
@@ -106,6 +119,27 @@ class Params:
         """
         ps = list(self.G[name].layers[self.mi].paths)
         return slant(ps, -self.italic, self.pivot) if self.italic else ps
+
+    def roman(self):
+        """The upright master this italic master slopes -- the one exception to
+        "a recipe never reads the upright file".
+
+        This face's italic lowercase is a TRUE italic: its b is a different
+        drawing, not a sloped roman b, and un-shearing it does not give the
+        roman back -- its bowl reads 32.5 against a 29 stem at Thin and 170
+        against 150 at ExtraBold, and its counter cuts 6.4 units into the stem
+        where the roman's cuts 0.8. A letter built as a sloped roman (ь ы ъ я)
+        takes those figures from the letter it is actually sloping. Matched by
+        master index, and checked by name.
+        """
+        if not self.italic:
+            return self
+        if self.mi not in _ROMAN:
+            font = _roman_font()
+            assert self.master.name == font.masters[self.mi].name + " Italic", \
+                (self.master.name, font.masters[self.mi].name)
+            _ROMAN[self.mi] = Params(font, self.mi)
+        return _ROMAN[self.mi]
 
     def layer(self, name):
         return self.G[name].layers[self.mi]

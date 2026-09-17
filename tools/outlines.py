@@ -45,7 +45,8 @@ FACE = "fonts/ttf/SUSEMono-Regular.ttf"
 # т and п joined the list on 2026-08-24: they are no longer the Latin m and
 # n borrowed whole but those outlines with the exit tail cut off and a flat
 # foot grafted on, and a cut is exactly what this probe exists to check.
-NAMES = {"г": "ge-cy", "д": "de-cy", "т": "te-cy", "п": "pe-cy", "в": "ve-cy"}
+NAMES = {"г": "ge-cy", "д": "de-cy", "т": "te-cy", "п": "pe-cy", "в": "ve-cy",
+         "ь": "softsign-cy", "ы": "yeru-cy", "ъ": "hardsign-cy", "я": "ya-cy"}
 EM = 1000.0
 
 

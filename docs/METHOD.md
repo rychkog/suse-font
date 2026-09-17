@@ -1949,6 +1949,74 @@ first build got wrong, both read by `outlines.py --built`:
 The built outline matched the approved picture to within 4 units at both
 masters (`Ve_pen`).
 
+### F26 · A capital's construction at x-height flattens every bowl it carries
+
+ь ы ъ and я (2026-09-17) passed every gate for a month, and the user rejected
+them on sight: *"their bowls don't fit the fontface aesthetic"*. **The heights
+came from the capital, scaled to x-height, and the width stayed a full
+lowercase cell.** So each bowl came out flatter by the ratio of x-height to cap
+height:
+
+| bowl, tall over wide | Thin | ExtraBold |
+| --- | --- | --- |
+| b | 1.19 | 1.04 |
+| P | 0.92 | 0.87 |
+| Ь | 0.88 | 0.95 |
+| ь, before | 0.60 | 0.68 |
+| я, before | 0.71 | 0.71 |
+
+The face draws no bowl under 0.87. **The reading that sees it is a proportion
+of the whole bowl.** Every earlier reading compared one edge with a host's
+edge: where the bowl ends against в, its stroke against в's. Each came out
+right while the bowl was the wrong shape.
+
+What was tried, in order:
+
+1. **b's own bowl, lowered.** Rejected as "alien": a bowl pressed to half the
+   x-height is flat whoever drew it.
+2. **Taller only.** At ExtraBold the bowl reaches the x-height and ь reads as D.
+3. **One shape at every weight.** Made ExtraBold ь "prominently narrower". The
+   face's bowls get wider for their height as they get bolder.
+4. **What held.** Lift the bowl 18 % at the Thin stem and not at all at
+   ExtraBold. Then narrow it to 0.74 of b's proportion, recentred.
+   `SOFT_RAISE`, `SOFT_SHAPE`.
+
+The lift stops at ExtraBold because that bowl already stands higher: it grows
+with its stroke. Lifting it there too left "a short leg at the top". The stem
+left above it then shortens across the axis at P's own rate.
+
+**What would have caught it: the family's proportion, read off the Latin, as a
+gate.** `audit.py` now holds ь ъ at 0.74 of b's proportion at four weights. The
+two checks it replaced asserted the fault: "ь is Ь's silhouette" and "ь's bowl
+ends where в's does".
+
+### F27 · A sloped roman takes its figures from the roman
+
+The italic lowercase here is built upright and slanted. This face's own italic
+b is a true italic: a different drawing, not a slanted roman b.
+`Params.paths` removes the slant before reading, but that does not turn it back
+into the roman. So every figure read off it describes a letter the recipe is
+not drawing. At Thin italic:
+
+* b's bowl stroke read 32.5 against a 29 stem. Slanted again, ь's top-right
+  turn came out 1.30 of the stem, against the italic b's 1.09.
+* b's counter cut read 6.4 units into the stem, where the roman's is 0.8. ь's
+  stem beside the counter came out 0.76, against b's 0.86.
+
+The user marked both spots on a screenshot before any reading found them.
+`Params.roman()` now hands a sloped-roman lowercase the roman master's
+figures. It is used through `recipes.sloped()` in `Soft` and `Ya` only, so б,
+which reads the same figures, is unchanged and still open.
+
+**The slant also thins one stroke by itself.** Slanting keeps area. So a stroke
+running down to the left, along (m, 1), keeps hypot(1, m) / hypot(1, m + k) of
+its width, while the stem keeps 1 / hypot(1, k). я's italic leg came out 0.92
+of the stem. It is now drawn wider by that ratio and lands at 1.00.
+
+**A reading that fails is a probe fault until shown otherwise.** One sector
+reading put я's italic leg at 0.61 of the stem. Read row by row, across the
+leg and the stem at the same height, it was 0.92–0.94.
+
 
 ## 4 · Probe inventory
 
