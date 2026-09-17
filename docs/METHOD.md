@@ -8,82 +8,31 @@ that lives nowhere else.
 Each rule is tagged with what enforces it. **prose only** means nothing checks
 it; it survives because it is written here.
 
+`AGENTS.md` holds the rules as statements, the commands and the reporting
+conventions; this file holds why. Where both touch a topic, one carries the
+text and the other a pointer. `tools/docs_check.py` holds the two to the code.
+
 ---
 
 ## The objective
 
-**The Cyrillic must read as SUSE Mono — not as Cyrillic added to SUSE Mono.**
-A reader should not be able to tell which letters came later. This is the goal
-every rule below serves, and when a rule and this goal disagree, this goal
-wins.
+Stated once, in `AGENTS.md`: the Cyrillic must read as SUSE Mono, not as
+Cyrillic added to it. The signature it has to carry is listed there under
+*Design rules*.
 
 Review comes from a fluent reader of the script rather than a type designer,
 so the reports that matter arrive in those terms — a letter "doesn't belong",
 or "drops the SUSE Mono signature". Such reports have been consistently right,
 and typically describe something no measurement running at the time could
-see.
+see. When one arrives, a design rule is usually missing: г's corner had been
+halved by a reduction meant for short strokes; ґ's notch had been squared by a
+subtraction that went negative; ю's join had been made too short to read.
 
-### The signature is concrete
-
-It is not a feeling. It can be enumerated, and every item is readable off the
-Latin:
-
-- **Where one stroke turns, it rounds. Where two cross, it stays square.**
-  This is the single most characteristic thing about the face.
-- **A corner's radius tracks stroke weight, not letter height** — L's outer
-  turn runs 103 at Thin and 122 at ExtraBold while its inner runs 78 and 20.
-- **A short stroke takes the reduced corner** (`RADIUS`), because a bend is
-  bounded by the shorter of the two strokes it joins.
-- **Terminals are cut square and flat**, on the cap line, the baseline and the
-  x-height alike.
-- **A lowercase turn is never tighter than the capital's.** At ExtraBold this
-  face turns *wider* in t and f (168) than in E, F and L (122).
-- Everything sits in a **600-unit cell** that the Latin has already been
-  condensed and optically fitted to.
-
-When a letter "doesn't belong", one of those is usually missing. г's corner had
-been halved by a reduction meant for short strokes; ґ's notch had been squared
-by a subtraction that went negative; ю's join had been made too short to read.
-
-### The host is the authority, the panel is not
-
-This is why **host before panel** (§1) is the first rule of method, and it is
-worth being blunt about the asymmetry:
-
-- The **panel** can only tell you **which relations exist** across monospace
-  design generally — that ф widens with weight, that г's arm is shorter than
-  Г's, that a tick rises about 0.21 of the cap.
-- The **host** tells you **what the value is** in *this* face, and what the
-  shape must look like.
-
-A panel median is never a reason to change something the face already does
-consistently, and never a reason to change a letter the user has approved.
-Sixty other faces are evidence about typefaces in general; they are not
-evidence about this one.
-
-### Derived beats drawn, for this reason
-
-The tier system (§5) is not an efficiency measure. The Latin has already been
-condensed, fitted and optically corrected inside its cell. A glyph derived from
-it — a component, or a construction reading its corners and stems off it —
-**inherits that work**. A glyph drawn fresh throws it away and has to re-earn
-it, and will not fully succeed. Take the highest tier the letter honestly
-allows.
-
-### How to test it
-
-Not by looking at the letter alone:
-
-- **`checkpoint.py`'s "vs Latin" row** — each new lowercase beside the Latin
-  lowercase it shares a line with.
-- **The mixed Latin/Cyrillic line** — `git commit -m 'юність' v2.1
-  build/ґрунт-єднати.log`. A bolted-on script shows here before anywhere else,
-  because the eye compares scripts directly across a word boundary.
-- **The JetBrains rows** are for calibration, not imitation. They answer
-  "is this within the range a professional Cyrillic occupies", not "does this
-  belong to SUSE Mono".
-- **Reading sizes, 12px and 14px.** Signature failures that survive at display
-  size often vanish or invert at text size, which is where the face is used.
+The host is the authority on values and the panel only on relations — §1,
+*Host before panel*. Derived beats drawn because a derived glyph inherits the
+Latin's fitting — §7, *Tiers*. The JetBrains rows on a sheet answer "is this
+within the range a professional Cyrillic occupies", never "does this belong
+to SUSE Mono".
 
 ---
 
@@ -2331,94 +2280,29 @@ usually visible without running anything.
 
 ## 5 · Rendering for review
 
-Every report is a picture. Text-only progress is useless when review is by
-eye rather than by number — the render *is* the finding, and a bad render
-wastes the round.
+The rules are in `AGENTS.md`, *Reporting*. Why they are what they are:
 
-### Quality is not optional — *prose only*
+Every report is a picture, because review is by eye and the render *is* the
+finding. Sheets were PNG until 2026-09: a 1-bit fill once shipped a sheet with
+hard-aliased edges the user called unreadable, and the cure — supersample ×4,
+Lanczos down to twice the layout, reading-size rows drawn at true pixel size
+and enlarged nearest-neighbour — cost a page of rules and still pixelated when
+zoomed. An SVG carries the font's own path data, so the viewer rasterises the
+12px row the way a screen will and the reader zooms without loss. That is what
+let ten per-letter PNG sheets become one `specimen.py`, and it retired every
+one of those rules.
 
-A sheet was shipped this session with hard-aliased edges because the outlines
-were filled into **1-bit masks**. Every edge was thresholded, nothing was
-antialiased, and the user's response was that it was unreadable. The
-requirements:
-
-- **Supersample ×4, then downsample with Lanczos — to *twice* the layout, not
-  to the layout.** Fill into an oversized mask and resize; never draw at
-  final size. Downsampling all the way to 1 gives away the resolution the
-  render already paid for and the sheet pixelates the moment it is zoomed,
-  which is what a review sheet is for. Two samples per delivered pixel is as
-  much antialiasing as a screen at this density shows. `preview.py` was worse
-  than that — it drew 1-bit masks straight at the delivered size, so its edges
-  were a hard staircase with no grey in them at all.
-- **A reading-size row is the exception and must not be enlarged.** 14px set
-  at 28px is a different rasterization — different hinting, a different
-  stem-to-pixel fit — and that fit is the whole point of the row. Draw those
-  at their true pixel size and enlarge afterwards with **nearest-neighbour**,
-  so one rendered pixel becomes one block and the row stays an honest picture
-  of what the rasterizer produced. `checkpoint.py: line_block(real=True)`.
-- **Even-odd fill per contour** — XOR each contour into the accumulator so
-  counters punch through. Filling contours independently makes every bowl
-  solid.
-- **Flatten curves to at least 24 steps.** Control points are not vertices;
-  see F6.
-- **Real TrueType labels** at a readable size, not PIL's default bitmap font.
-- **Check for collisions** before sending. Glyphs that overshoot their box
-  will sit on top of their own captions.
-- **Write to `tools/out/`.** The session scratchpad under `/tmp` is not
-  reachable by the user; images left there cannot be looked at.
-
-### Never show a glyph alone — *prose only*
-
-A letter judged in isolation tells you almost nothing. The failures in this
-project were all visible only in company:
-
-- **Beside its own capital or lowercase** — the case pair.
-- **Beside the Latin it shares a line with.** The `vs Latin` row.
-- **In words**, so the eye reads rhythm and colour rather than shape.
-- **At 12px and 14px as well as display size.** Faults at display size often
-  invert or vanish at the size the face is used at.
-- **Beside JetBrains** for calibration — is this within the range a
-  professional Cyrillic occupies — never for imitation.
-
-### Comparing two candidates — *prose only*
-
-Put them **side by side, adjacent, per weight** — not one block above another.
-Stacked variants force the eye across a gap and the difference stops being
-legible. Label which is which under each, and include the same comparison in
-a word at reading size.
-
-State plainly which candidate is on disk. A rendered alternative that has
-never been built has not been through the gates, and the user should be told
-that rather than left to assume.
-
-### Regenerate after every change — *`tools/review.sh`*
-
-`review.sh` rebuilds **every** review image from the current build. Reviewing a
-sheet made before the last fix wastes a round, and it has happened.
+Two findings from that period still hold: labels must be the face's own
+outlines, because live text falls back to another font; and candidates are
+compared side by side, because stacked variants force the eye across a gap
+and the difference stops being legible.
 
 ---
 
 ## 6 · Approval
 
-**Every glyph needs the user's explicit approval, per glyph.** Not per batch,
-not implied by a checkpoint sheet having been shown.
-
-The loop:
-
-1. Draw or change the glyph.
-2. Build, and run `tools/verify.sh` **unfiltered**. Every gate passes before
-   anything is shown — objective quality is not the user's job.
-3. Regenerate the preview (`review.sh`) and show it, in context and in
-   comparison.
-4. Wait for the user's verdict. A glyph is *in review* until they say
-   otherwise.
-5. On approval, record it in `docs/APPROVALS.md`.
-6. **Write down what the round taught** — into this file, before starting the
-   next glyph. See below.
-
-After **any** change to a glyph, however small, the preview is regenerated and
-shown again. The user judges from the picture, so a stale picture is a false
-report.
+The loop and the recording duty are in `AGENTS.md`, *Approval* and *Write
+down what the round taught*. This section is why.
 
 ### Why the ledger exists
 
@@ -2434,53 +2318,32 @@ approved one, **copy the approved construction** rather than generalising it
 into a shared helper and re-deriving it — that is precisely how ґ's work
 destroyed Ґ's.
 
-### Step 6 — what the round taught, into this file
+### Why the lessons are written down
 
-**A glyph is finished when what it taught is written down, not when it is
-approved.** Do it while the measurements are still on screen; a day later only
-the conclusion survives, and the conclusion without the numbers behind it is
-the kind of note nobody trusts enough to act on.
-
-Every entry in this document exists because it was written at this point in
-some earlier round, and every one of them has since saved a round:
+Every entry in this document exists because it was written at the end of some
+earlier round, and each has since saved one:
 
 | written after | saved |
 | --- | --- |
 | ф's weight fits (§2) | Ф, drawn from the same three relations, first try |
 | the stem trap (F5) | о, which would otherwise have been "fixed" |
 | Я's donor fault (F8) | every remaining letter that reads a figure off a donor |
-| the diagonal rule (§8) | к, ж, у, х, џ — all still to be drawn |
+| the diagonal rule (§8) | к, ж, у, х, џ |
 
-Where things go:
+A conclusion without its numbers is a note nobody trusts enough to act on,
+which is why the readings go in with it. "Я's bowl floor was wrong" helps
+nobody; "a donor holds two figures that coincide at the light master" stops
+the next glyph making the same mistake elsewhere.
 
-- a **fault** → §3, as an instance of an existing class or as a new one
-- a **relation between parts** → §2
-- a **settled question** → §8, and take the thread out of §9
-- a **new instrument** → §4, and if a probe was fixed, stop listing it as broken
-- **what would have caught it sooner** → `CLAUDE.md`, which is the short list
-  read before touching anything
+Two ledger duties, and the rounds that made them duties:
 
-Write the class, not the letter. "Я's bowl floor was wrong" helps nobody; "a
-donor holds two figures that coincide at the light master" is what stops the
-next glyph making the same mistake in a different place. And keep the numbers
-— the readings, both masters, and the panel band they were compared against.
-A finding stated without them cannot be re-checked, and everything in this
-document has to survive being doubted.
-
-The test of whether a line is worth writing: **would it change what the next
-glyph does?** If not, leave it out. This file is read in full at the start of
-every round and its length is a cost.
-
-Two things the ledger has to carry that are easy to leave out:
-
-- **Approval does not cross the case pair**, even when both cases come out of
-  one recipe. Я and я were shown together and share all three of their
-  constructions; я was approved on its own and the capital had no verdict for
-  another round. Record the case that was named and no other.
+- **Approval does not cross the case pair.** Я and я were shown together and
+  share all three of their constructions; я was approved on its own and the
+  capital had no verdict for another round.
 - **Record what was still outside the panel when the glyph was approved.** я
   was frozen with three readings marginally out at the heavy end. Written down
-  they are a decision; left out, the next measuring pass finds them, reports
-  them as a defect, and changes a frozen glyph to chase them.
+  they are a decision; left out, the next measuring pass reports them as a
+  defect and changes a frozen glyph to chase them.
 
 ---
 
@@ -2523,10 +2386,9 @@ will silently carry that proportion down into the lowercase. `getattr(pr,
 
 ### Outline algebra — *`tools/geom.py`*
 
-`node` / `path` / `rect` / `bbox` / `reverse` / `translate` / `mirror_x` /
-`scale_x` / `slant` / `piecewise_y`, plus `corner_radius` and `inner_radius`,
-which read the face's own turns off L. Recipes are written in these, not in
-raw coordinates.
+The primitives recipes are written in, rather than raw coordinates — the
+module is the list. `corner_radius` and `inner_radius` read the face's own
+turns off L.
 
 ---
 
