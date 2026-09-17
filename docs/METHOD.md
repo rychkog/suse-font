@@ -2515,6 +2515,40 @@ turns off L.
 
 Things established by measurement that are not method and not a fault.
 
+### Ь Ъ's bowl stands right of В's by exactly its lean correction
+
+Reported for weeks as a defect and measured out on 2026-09-17. It is not one.
+
+Un-sheared, in the drawing itself, Ь's bowl reaches **546.0 at Thin and 593.1
+at ExtraBold** where B's lower bowl reaches 518.0 and 558.3. Ъ is the same to
+half a unit. The excess is 28.0 and 34.8.
+
+That excess is `BOWL_LEAN`. The round end takes back 0.75 of the shear — F28,
+the fix for the knotted top-right turn the user reported — and taking back the
+shear means pre-pushing the drawn edge right by `0.75 × tan(14°) × height`.
+Ь's bowl is widest at y=147 at Thin and y=187 at ExtraBold, which gives
+**27.5 and 35.0**. The correction accounts for the whole gap at both masters,
+to the unit. Nothing is left over to be a fault.
+
+Three readings confirm the letters are right:
+
+- **Б lands on B exactly.** Once it read the roman like its siblings, its bowl
+  reaches 518.0 and 557.0 — B's own figures. Same code path, no lean on that
+  part, exact match. So the construction is sound and Ь Ъ's excess is the lean
+  alone.
+- **Nothing is too wide.** Ь's rightmost ink sits 4 to 35 units LEFT of B's.
+  The bowl outreaches B's LOWER bowl; the letter does not outreach the letter.
+- **Upright, all four end at one number** — 518, 535, 551, 557 — because there
+  is no shear to take back.
+
+**And the reading that was blamed first was not the cause.** It looked like the
+probe comparing two curves at one altitude, since it reads both at В's widest
+row. Read at each letter's OWN widest row the gap is +24, +32, +41, +43 —
+within two units of the shared-row figures. The row was never it. A correction
+of this size hides in plain sight because it is applied in the un-sheared space
+and read in the sheared one; look for it in the drawing before blaming the
+instrument.
+
 ### ю Ю at the heavy end: the gap gives way, the walls do not
 
 Read a quarter up the letter, among heavy faces whose stem is a fifth of the
@@ -3465,25 +3499,15 @@ finding to §8 or to a fault entry, its approval to the ledger.
   `signature --italic` 20. One of the 57 it read before was д's coincident
   nodes, which was a real defect and is fixed — F32; two were the г turns
   below, exempted since. Three classes are known and unresolved:
-  1. **Ь Ъ Б's bowl ends right of В's in the italic** — measured 2026-09-17,
-     and it splits in two. Upright, В Б Ь Ъ end at one number at every weight
-     (518, 535, 551, 557) and В is the face's own B to the unit in both
-     styles, so the comparison is honest and the construction is right.
-     - **Б was a different fault and is fixed.** It had never been given the
-       F27 correction its siblings got; see F27 for the readings and the
-       ledger for the verdict. What is left of Б here is a 5% wall against
-       В's at Bold and ExtraBold, at the gate's own limit.
-     - **Ь Ъ's 23–41 units are not a reach and may be a mis-posed reading.**
-       At the peak the two agree: Ь is drawn to the roman's 518 and the italic
-       B's own un-sheared widest is 517.7. Un-sheared at matching heights the
-       italic B's lower bowl is 8–14 units FULLER below a fifth of the cap and
-       7–25 units NARROWER above a third of it — it peaks lower and falls away
-       faster. The gap opens above the peak, and the row it is read at is
-       where **В** is widest, which the shear moves upward. Two curves at one
-       altitude is not two widths. **Settle what row means the same thing in
-       both letters before redrawing four approved letters for it.**
-     - `shear_fit` is eliminated: it only narrows a letter that overshoots B's
-       footprint, and Ь's rightmost ink is 4–35 units LEFT of B's.
+  1. **The audit compares a leaned bowl to an unleaned one.** Ь Ъ's bowl ends
+     23–41 units right of В's in the italic, and §8 settles WHY: it is
+     `BOWL_LEAN` and it accounts for the gap to the unit at both masters. The
+     letters are right and Б is fixed. What is unresolved is the gate. В is
+     the foundry's own italic B and has no lean correction, so the bowl-end
+     rule is comparing two things that were not drawn to the same rule.
+     Either the rule exempts a bowl whose lean was corrected, or it reads both
+     in a space where the correction is undone. Until then the finding fires
+     every run and means nothing, which is how a real one gets missed.
   5. **г turns nothing like Г**, [120,121,140,144] against [82,103] at Thin
      Italic. The corner pair is now exempt for cursive letters, so this no
      longer fires — recorded because it was read once and is true: the
