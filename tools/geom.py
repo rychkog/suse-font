@@ -508,6 +508,10 @@ def area(p):
     pts = [(n.position.x, n.position.y) for n in p.nodes]
     return 0.5 * sum(x0 * y1 - x1 * y0
                      for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]))
+
+
+# L's corner is a circular quarter-arc: its control points sit at 0.43 of the
+# radius from the corner, against 0.448 for a true circle. So the face's
 # corner can be regenerated at any radius without inventing its curvature.
 KAPPA = 0.5523
 

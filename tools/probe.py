@@ -153,6 +153,7 @@ def lc_stem_of(f, cm=None, gs=None):
             return r[0][1] - r[0][0]
     return None
 
+
 def panel(measure):
     """Run `measure(TTFont) -> value|None` over every panel face.
 

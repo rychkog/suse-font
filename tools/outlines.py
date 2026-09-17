@@ -100,7 +100,7 @@ def contours(pr, ch):
         # plain recipe and lets the shear do the work -- so fall through to the
         # normal table rather than raising.
         name = NAMES[ch]
-        fn = R.ITALIC.get(name) or R.RECIPES.get(name)
+        fn = R.drawn(bool(pr.italic)).get(name)
         ps = fn(pr) if fn else pr.paths(ch)
     else:
         ps = pr.paths(ch)

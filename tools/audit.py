@@ -31,7 +31,7 @@ from fontTools.ttLib import TTFont
 from fontTools.pens.basePen import BasePen
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
-from classify import TIERS          # noqa: E402
+from classify import TIERS, ITALIC as ITALIC_TIERS  # noqa: E402
 from params import Params, _flatten  # noqa: E402
 import recipes                     # noqa: E402
 
@@ -356,7 +356,29 @@ TAIL_PAIRS = (("ц", "Ц"), ("щ", "Щ"), ("д", "Д"), ("џ", "Џ"))
 # so it is deliberately NOT the capital's silhouette at Thin -- the capital's
 # construction at x-height is exactly what the user rejected. SHAPE_PAIRS below
 # guards those two instead, against b.
+WEIGHTS = ("Thin", "Regular", "Bold", "ExtraBold")
+
+# How many findings per glyph the report prints. The rest are counted, never
+# dropped silently -- a report that hides a finding is a stale picture.
+SHOW = 4
+
 PROFILE_PAIRS = "ВвГгНнТтПпШшЩщЦцИиЫыДдЖжЛлЧчЭэЯя"
+
+# letter -> recipe name, for asking whether the italic redraws it
+NAME_OF = {chr(cp): name for cp, name, _, _ in TIERS}
+
+
+def italic_differs(*names):
+    """Does the italic answer differently for any of these glyph names?
+
+    Two ways it can: a recipe of its own (`recipes.ITALIC`), or a different
+    tier (`classify.ITALIC`) -- и is the Latin u donated whole there. Both
+    count, because every rule that asks this is a rule about the letter's
+    construction: a lowercase that the cursive redraws does not repeat its
+    capital, and neither does one the italic donates from elsewhere.
+    """
+    return any(n in recipes.ITALIC or ITALIC_TIERS.get(n, (0, ""))[0] == 1
+               for n in names if n)
 PROFILE_TOL = 0.08
 
 # KNOWN HOLE, left open deliberately. The silhouette check divides every letter
@@ -605,8 +627,20 @@ def _shape(gs, name):
     return (top - bot) / (x1 - x0)
 
 
-def _bowl(gs, name, top):
+def _bowl(gs, name, top, at=None):
     """Where the lower bowl ends, and the weight of its own right-hand stroke.
+
+    `at` reads one named row instead of searching the band, which is how a
+    PAIR is compared. Each letter at its own widest row is a position read in
+    two places, and under the italic's shear x grows with height, so the two
+    are not comparable at all. The WEIGHT still comes from each letter's own
+    widest row, where its wall is vertical and the cut is true.
+
+    How much this explains is small and worth writing down: Ь read at В's own
+    row moves 529 to 528 at Thin and 586 to 584 at ExtraBold, against gaps of
+    24 and 43 to В's 505 and 543. So the row was never the cause here -- it
+    makes the reading well posed, and the difference it leaves is the letters.
+    METHOD section 9.
 
     The rightmost ink run IS that stroke, in В as in Ь: the scanline crosses
     the spine, the counter, then the bowl's wall. But only where the bowl is
@@ -622,15 +656,19 @@ def _bowl(gs, name, top):
     polys = contours(gs, name)
     rows = []
     lo, hi = BOWL_BAND
-    for i in range(BOWL_STEPS + 1):
-        xs = runs(polys, top * (lo + (hi - lo) * i / float(BOWL_STEPS)))
+    heights = ([at] if at is not None else
+               [top * (lo + (hi - lo) * i / float(BOWL_STEPS))
+                for i in range(BOWL_STEPS + 1)])
+    for y in heights:
+        xs = runs(polys, y)
         # under four crossings means the counter has not opened at this height
         if len(xs) >= 4:
-            rows.append((xs[-1], xs[-1] - xs[-2]))
+            rows.append((xs[-1], xs[-1] - xs[-2], y))
     if not rows:
         return None
     end = max(r[0] for r in rows)
-    return end, min(r[1] for r in rows if r[0] > end - 1.0)
+    wall = min(r[1] for r in rows if r[0] > end - 1.0)
+    return end, wall, next(r[2] for r in rows if r[0] == end)
 
 
 def self_crossings(poly):
@@ -683,13 +721,18 @@ def _bowl_left(gs, name, top):
     polys = contours(gs, name)
     rows = []
     for i in range(BOWL_STEPS + 1):
-        xs = runs(polys, top * (0.60 + 0.35 * i / float(BOWL_STEPS)))
+        y = top * (0.60 + 0.35 * i / float(BOWL_STEPS))
+        xs = runs(polys, y)
         if len(xs) >= 4:
-            rows.append((xs[0], xs[1] - xs[0]))
+            rows.append((xs[0], xs[1] - xs[0], y))
     if not rows:
         return None
     end = min(r[0] for r in rows)
-    return end, min(r[1] for r in rows if r[0] < end + 1.0)
+    # the row is returned like _bowl's, so this can serve as a pair's
+    # reference. None would read there as "find your own row", which is the
+    # fault the `at` argument was added to remove
+    return (end, min(r[1] for r in rows if r[0] < end + 1.0),
+            next(r[2] for r in rows if r[0] == end))
 
 
 def _signed(poly):
@@ -869,12 +912,20 @@ def sweep(gs, subjects, ref, weight):
 
 def main():
     import glyphsLib
-    present = {g.name for g in glyphsLib.load("sources/SUSEMono.glyphs").glyphs}
+    # --italic reads the italic source and the italic statics. Without it the
+    # gate reads the upright's answer for every letter, and says nothing about
+    # the seven the cursive redraws -- г д в ґ т і ї had no reading at all.
+    italic = "--italic" in sys.argv
+    src = glyphsLib.load("sources/SUSEMono%s.glyphs" % ("-Italic" if italic else ""))
+    present = {g.name for g in src.glyphs}
+    drawn = recipes.drawn(italic)
+    ttf = ("fonts/ttf/SUSEMono-%sItalic.ttf" if italic
+           else "fonts/ttf/SUSEMono-%s.ttf")
     selftest = "--selftest" in sys.argv
     findings = []
 
-    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
-        f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
+    for weight in WEIGHTS:
+        f = TTFont(ttf % weight)
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
 
@@ -891,7 +942,7 @@ def main():
                 # neither is mine.
                 if not case.holds(cp) or cp not in cmap:
                     continue
-                if name not in present or name not in recipes.RECIPES:
+                if name not in present or name not in drawn:
                     continue
                 if name in CLONES:
                     mine = contours(gs, cmap[cp])
@@ -924,11 +975,9 @@ def main():
     # points, which sit close together by design -- that gave five glyphs of
     # false positives. Two points on top of each other leave a nick where a
     # curve meets a straight, which is invisible in the filled shape.
-    import glyphsLib as _gl
-    src = _gl.load("sources/SUSEMono.glyphs")
     prs = [Params(src, mi) for mi in range(len(src.masters))]
     for cp, name, _, _ in TIERS:
-        fn = recipes.RECIPES.get(name)
+        fn = drawn.get(name)
         if not fn:
             continue
         for pr in prs:
@@ -952,8 +1001,12 @@ def main():
 
     # a lowercase letter turns the way its own capital does -- see CORNER_PAIRS
     for upper, lower in CORNER_PAIRS:
-        fu, fl = recipes.RECIPES.get(upper), recipes.RECIPES.get(lower)
+        fu, fl = drawn.get(upper), drawn.get(lower)
         if not fu or not fl:
+            continue
+        # the cursive redraws г and д, so neither turns the way its capital
+        # does -- the same upright-only rule as the profile and tail pairs
+        if italic and italic_differs(upper, lower):
             continue
         ch = next((chr(cp) for cp, n, _, _ in TIERS if n == lower), lower)
         for pr in prs:
@@ -970,22 +1023,24 @@ def main():
     # a mark sitting on top of its base, off-centre, or pushed outside the
     # cell. And a donor pointing at the wrong Latin letter renders perfectly
     # and is still wrong.
-    import glyphsLib as _gl2
-    from classify import TIERS as _T
-    src2 = _gl2.load("sources/SUSEMono.glyphs")
-    byname = {g.name: g for g in src2.glyphs}
-    donors = {n: note for cp, n, t, note in _T if t == 1}
+    byname = {g.name: g for g in src.glyphs}
 
-    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
-        f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
+    for weight in WEIGHTS:
+        f = TTFont(ttf % weight)
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
         asc = f["OS/2"].sTypoAscender
         desc = f["OS/2"].sTypoDescender
 
-        for cp, name, tier, note in _T:
+        for cp, name, tier, note in TIERS:
             if name not in byname or cp not in cmap:
                 continue
+            # the italic answers the TIER differently too: и is the Latin u
+            # donated whole there, and і is drawn where the upright donates
+            # it. Read from the upright table, this block checked и against
+            # nothing and compared the cursive і to the Latin i it no longer is
+            if italic:
+                tier, note = ITALIC_TIERS.get(name, (tier, note))
             g = byname[name]
             comps = [c.name for c in g.layers[0].components]
             polys = contours(gs, cmap[cp])
@@ -1042,8 +1097,8 @@ def main():
     # Left out on purpose: Ы, which carries a third stroke and shaves for it,
     # as every drawn face does; and Ф and Ю, which hang O's bowl rather than
     # B's and take the same shave.
-    for weight in ("Thin", "Regular", "Bold", "ExtraBold"):
-        f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf")
+    for weight in WEIGHTS:
+        f = TTFont(ttf % weight)
         cmap = f.getBestCmap()
         gs = f.getGlyphSet()
         cap, xh = f["OS/2"].sCapHeight, f["OS/2"].sxHeight
@@ -1051,6 +1106,13 @@ def main():
         for i in range(0, len(PROFILE_PAIRS), 2):
             up, low = PROFILE_PAIRS[i], PROFILE_PAIRS[i + 1]
             if ord(up) not in cmap or ord(low) not in cmap:
+                continue
+            # A lowercase that the CURSIVE redraws does not repeat its
+            # capital -- г is a bar, a descent and a foot where Г is a
+            # corner, and т is П's comb at three stems. The rule is the
+            # upright's, and the exemption is whatever the italic overrides
+            # rather than a list to keep by hand.
+            if italic and italic_differs(NAME_OF.get(low), NAME_OF.get(up)):
                 continue
             pu, pl = profile(gs, cmap[ord(up)]), profile(gs, cmap[ord(low)])
             if not pu or not pl:
@@ -1079,6 +1141,10 @@ def main():
         for low, up in TAIL_PAIRS:
             if ord(low) not in cmap or ord(up) not in cmap:
                 continue
+            # same as the profile pair: the cursive д is the ∂ form and has no
+            # tail at all, where Д stands on a plinth 150 deep
+            if italic and italic_differs(NAME_OF.get(low), NAME_OF.get(up)):
+                continue
             def _floor(ch):
                 polys = contours(gs, cmap[ord(ch)])
                 return min(p[1] for poly in polys for p in poly) if polys else 0
@@ -1097,10 +1163,18 @@ def main():
                 got = _bowl(gs, cmap[ord(ch)], top)
                 if not ref or not got:
                     continue
-                if ends and abs(got[0] - ref[0]) > max(BOWL_END * ref[0],
-                                                       BOWL_UNIT):
+                # the END is compared on the host's own widest row, so the
+                # two are read in one place; the shear moves x with height
+                side = (_bowl(gs, cmap[ord(ch)], top, at=ref[2])
+                        if ends else None)
+                if ends and side is None:
                     findings.append(
-                        f"{weight:9} {ch} bowl ends at {got[0]:.0f} where "
+                        f"{weight:9} {ch} has no open counter at {host}'s "
+                        f"widest row -- its bowl cannot be read against it")
+                elif ends and abs(side[0] - ref[0]) > max(BOWL_END * ref[0],
+                                                          BOWL_UNIT):
+                    findings.append(
+                        f"{weight:9} {ch} bowl ends at {side[0]:.0f} where "
                         f"{host} ends at {ref[0]:.0f}")
                 if abs(got[1] - ref[1]) > max(BOWL_WEIGHT * ref[1],
                                               BOWL_UNIT):
@@ -1126,14 +1200,24 @@ def main():
     if not findings:
         print("audit clean")
         return 0
+    # Group by GLYPH, and find it by taking the weight label off the front.
+    # Taking the second word instead put every source-level italic finding in
+    # one bucket called "Italic" -- the italic masters are named "Thin Italic"
+    # -- and the per-glyph cap then printed four of the ten and dropped the
+    # rest, one of which was a coincident node on д.
+    labels = sorted(set(WEIGHTS) | {m.name for m in src.masters},
+                    key=len, reverse=True)
     seen = {}
     for x in findings:
-        seen.setdefault(x.split()[1], []).append(x)
+        rest = next((x[len(w):] for w in labels if x.startswith(w)), x)
+        seen.setdefault(rest.split()[0], []).append(x)
     print(f"{len(findings)} findings across {len(seen)} glyphs\n")
     for ch in sorted(seen):
         print(f"  {ch}")
-        for x in seen[ch][:4]:
+        for x in seen[ch][:SHOW]:
             print(f"      {x}")
+        if len(seen[ch]) > SHOW:
+            print(f"      ... and {len(seen[ch]) - SHOW} more")
     # A non-zero exit, so verify.sh actually gates on this. It did not: audit
     # returned 0 whether it found anything or not, and the script reported
     # "all gates pass" with findings on the screen above it.

@@ -1404,6 +1404,19 @@ write, which is what lets one recipe serve both sources. The trap is that **a
 shear does not do the same thing to every letter**, so a proportion fitted in
 one space is not the proportion that gets read in the other.
 
+The same trap catches a GATE, not only a recipe. A reading that finds its own
+row — "the bowl at its widest" — finds it at a different height in each
+letter, and under the shear x grows with height, so a pair is compared in two
+places and the comparison means nothing. A pair is read at ONE row, the
+reference's own.
+
+**And measure what the correction is worth before claiming it.** Here it was
+worth almost nothing: Ь read at В's own row moves 529 to 528 at Thin Italic
+and 586 to 584 at ExtraBold, where the gap to В is 24 and 43 units. The
+upright reads both letters at 518 and 557, so the difference is real and the
+row was not hiding it. A fix that makes a reading well posed is not evidence
+about what the reading then says.
+
 г was fitted to 0.97 of o's width standing up and came out **1.20** of o in the
 built font, against a panel of 0.92–1.04. o is an oval whose extremes sit at
 its own middle and it gains four per cent from the shear; г reaches furthest at
@@ -2110,12 +2123,36 @@ The built outline matched the approved picture to within 4 units at both
 masters (`Ve_pen`).
 
 
+### F31 · A report that finds the glyph by counting words
+
+`audit.py` grouped its findings with `x.split()[1]` — the weight label, then
+the glyph. True of "Thin", false of "Thin Italic": the italic masters carry
+two words, so every source-level italic finding was filed under a glyph called
+"Italic", and the per-glyph cap then printed four of the ten and dropped six.
+One of the six was **coincident nodes on д at ExtraBold Italic**, a real
+defect in an approved letter, and the first write-up of the italic run said
+"every letter is approved, so none is to be acted on" — a sentence composed
+from a truncated report.
+
+Two rules come out of it, and they are cheap:
+
+* A report finds its subject by taking the KNOWN prefix off the front, never
+  by counting words. `audit.py` builds the label set from `WEIGHTS` and the
+  source's own master names.
+* **A cap says what it hid.** The cap itself is fine — four findings per glyph
+  is readable where forty is not — but it printed nothing where it truncated.
+  It now prints "and N more", and `SHOW` names the number.
+
+The same class as F3: a reading that finds nothing has not passed, and a
+report that prints nothing has not reported.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
 | --- | --- | --- |
 | `check.py` | mechanical + interpolation compatibility, stroke vs a like-shaped Latin | yes |
-| `audit.py` | defect classes over drawn glyphs | yes |
+| `audit.py` | defect classes over drawn glyphs; `--italic` reads the italic source and statics | yes |
 | `audit.py --selftest` | the same thresholds over the face's own Latin — must stay clean | yes |
 | `panel.py` | ink area vs 60 faces | yes |
 | `strokes.py` | lightest stroke ÷ own stem vs 49 faces | yes |
@@ -2133,7 +2170,7 @@ masters (`Ve_pen`).
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
 | `cell.py` | **how much of its cell each letter's ink takes**, in the x-height band, over the advance — the reading that answers a complaint about RHYTHM rather than about a letter. Asked three ways: ours against the panel's italics, ours at the heavy end where a bold italic still has the same cell, and each family's italic against its own upright. Written after the eye reported the italic as uneven and nothing here could see it, because every other probe reads one letter against one letter | no |
 | `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
-| `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers | yes |
+| `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers; `--italic` reads the italic | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
 | `diagonals.py` | Ж and ж's centre stem against an arm; the face's own X V W K Y measured **perpendicular** to the stroke; and М and м's uprights and diagonals, each over its own case's stem, with the ratio the pair takes across the case. The upright half of that last reading is the probe's own check — it has to land on the 1.000 (0.979–1.035) м's approval already records from a different method | no |
@@ -3349,13 +3386,43 @@ finding to §8 or to a fault entry, its approval to the ledger.
   the signature readings and the audit all passed it, because every one of them
   reads a stem, a terminal or a horizontal. The reading is one line and it
   covers К к Ж ж Х х У у И и Я я Д д Л л — a third of the set. Not written.
-- **No gate reads і or ї.** Both are drawn glyphs in the italic now, and the
-  full run came back byte-identical to the previous one — the drawn-glyph and
-  panel letter lists were written when і was a donor and ї a composite, and
-  neither has been extended. The letters are fine; the hole is that nothing
-  would say so. Any letter that changes tier needs its lists looked at, and
-  this is the second time a change has been invisible to the pipeline (F12 was
-  the first).
+- **The italic's own findings are unjudged, and the gates are not in
+  `verify.sh` yet.** `audit.py` and `signature.py` now take `--italic`, which
+  reads the italic source and the italic statics; the drawn set comes from
+  `recipes.drawn(italic)`, so the seven letters the cursive redraws are in it.
+  Until then no gate read them at all — the thread here used to say "no gate
+  reads і or ї" and named the wrong cause: і's UPRIGHT is still the Latin, so
+  extending a letter list would have changed nothing. What was missing was the
+  style.
+  The italic selftest is clean for `signature.py` and still finds 27 in
+  `audit.py`, so those 27 are the gate. `audit --italic` reads 57 and
+  `signature --italic` 20; every letter in them is approved, so none is to be
+  acted on. Three classes are known and unresolved:
+  1. **Ь Ъ Б's bowl ends 23–43 units right of В's**, at В's own widest row, at
+     every weight, where the upright reads all four at one number. Reading at
+     one row moves Ь by 1 unit at Thin and 2 at ExtraBold, so the row is not
+     the cause. В is the Latin B donated; the soft-sign bowls are built from
+     B's figures read off the ROMAN (F27), which is the candidate.
+  4. **д carries coincident nodes at ExtraBold Italic**, at (271,503) — two
+     points within 0.6 units, which leaves a nick where a curve meets a
+     straight. Found the moment the report stopped bucketing italic findings
+     under the word "Italic" (F31). д's italic is approved, so this is a
+     report, not a change.
+  5. **г turns nothing like Г**, [120,121,140,144] against [82,103] at Thin
+     Italic. The corner pair is now exempt for cursive letters, so this no
+     longer fires — recorded because it was read once and is true: the
+     cursive г has no corner to compare.
+  2. **`_shape`'s aspect reads a sheared bowl flat** — ь 0.75 and ъ 0.76 at
+     Regular against b's 1.10, and only at Regular. The bbox widens by
+     height × tan, so a bowl's aspect is not comparable across a shear. F26's
+     reading needs a shear-aware form before it means anything in the italic.
+  3. **`bars` reads і and ї's dot as a horizontal**, 1.95 of the face's own at
+     Regular Italic. A letter with no horizontal should be read as having
+     none.
+  Two classes were the gate and are fixed: a pair rule compared each letter at
+  its OWN widest row, and the "lowercase repeats its capital" rules (profile
+  and tail) are upright-only — the cursive г т в д answer differently by
+  design, and the exemption keys off `recipes.ITALIC`.
 - **`shoulder_spine`** still carries the F2 subtraction; see F2.
 - **The `HARD_SHOULDER` probe is still broken** (F6): it scans below Ъ's bar at Thin.
 - **в, Я and я are separate call sites with the same disease.** This is why

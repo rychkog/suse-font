@@ -25,6 +25,7 @@ SS = 4
 CELL = CELL_OUT * SS
 PAD = 8 * SS
 
+
 def to_pen(paths, pen):
     """Replay Glyphs contours into a segment pen.
 

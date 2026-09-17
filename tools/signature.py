@@ -218,29 +218,36 @@ def bars(polys, samples=40):
     return sorted(keep)
 
 
-def subjects():
+def subjects(italic=False):
     """The Cyrillic this project draws, per case, as (letter, recipe name).
 
     Only outlines written here. A donor IS the Latin and a composite inherits
     it, so reading either would be reading the face back to itself.
+
+    Under `italic` the seven letters the cursive redraws answer with their own
+    recipe. Read from `RECIPES` alone they were not in the set at all: г д в
+    ґ т і ї had no terminal and no horizontal reading anywhere.
     """
+    drawn = recipes.drawn(italic)
     out = {CAPS.label: [], LOWER.label: []}
     for cp, name, _tier, _note in TIERS:
-        if name not in recipes.RECIPES:
+        if name not in drawn:
             continue
         case = LOWER if LOWER.holds(cp) else CAPS
         out[case.label].append((chr(cp), name))
     return out
 
 
-def cut_pass(selftest, subj):
+def cut_pass(selftest, subj, italic=False):
     """How every drawn stroke ends, against how the Latin ends its own.
 
     On the SOURCE, where a terminal is a real straight segment between two
     real nodes. The build turns the cubics into quadratics and resamples them,
     so the same question asked there is asked of a different drawing.
     """
-    src = glyphsLib.load("sources/SUSEMono.glyphs")
+    src = glyphsLib.load("sources/SUSEMono%s.glyphs"
+                         % ("-Italic" if italic else ""))
+    drawn = recipes.drawn(italic)
     findings = []
     for mi in range(len(src.masters)):
         pr = Params(src, mi)
@@ -257,7 +264,7 @@ def cut_pass(selftest, subj):
                   f"oblique only at {sorted(ref) or 'nothing'}")
             for ch, gname in rows:
                 paths = (pr.paths(ch) if gname is None
-                         else list(recipes.RECIPES[gname](pr)))
+                         else list(drawn[gname](pr)))
                 ob = [a for a in oblique(paths, stem)
                       if not any(abs(a - r) <= 4 for r in ref)]
                 if ob:
@@ -297,7 +304,7 @@ def _median(v):
     return sorted(v)[len(v) // 2]
 
 
-def bar_pass(selftest, subj):
+def bar_pass(selftest, subj, italic=False):
     """How heavy every horizontal is, against the Latin's own for that case.
 
     The reference is H's crossbar for the capitals and t's for the lowercase,
@@ -312,8 +319,12 @@ def bar_pass(selftest, subj):
     can still be wrong in between if it was pinned rather than derived.
     """
     findings, used = [], set()
-    for weight in WEIGHTS:
-        f = TTFont(f"fonts/ttf/SUSEMono-{weight}.ttf", lazy=True)
+    for w in WEIGHTS:
+        # the label carries the style, because a reading accepted at Bold
+        # says nothing about Bold Italic
+        weight = f"{w} Italic" if italic else w
+        f = TTFont("fonts/ttf/SUSEMono-%s%s.ttf"
+                   % (w, "Italic" if italic else ""), lazy=True)
         try:
             cm, gs = f.getBestCmap(), f.getGlyphSet()
             for case in (CAPS, LOWER):
@@ -360,7 +371,9 @@ def bar_pass(selftest, subj):
     # good news and still has to be acted on -- otherwise the table goes on
     # excusing a reading that is not there any more, and the next real drift
     # in that letter is waved through under an obsolete figure.
-    if not selftest:
+    # ACCEPTED holds upright readings, so only an upright run can tell that
+    # one has gone stale; an italic run never uses those keys
+    if not selftest and not italic:
         for key in sorted(set(ACCEPTED) - used):
             print(f"    {key[0]} at {key[1]} is inside the Latin's own range "
                   f"now -- drop it from ACCEPTED")
@@ -368,13 +381,14 @@ def bar_pass(selftest, subj):
     return findings
 
 
-def report(selftest=False):
-    subj = subjects()
-    return cut_pass(selftest, subj) + bar_pass(selftest, subj)
+def report(selftest=False, italic=False):
+    subj = subjects(italic)
+    return (cut_pass(selftest, subj, italic)
+            + bar_pass(selftest, subj, italic))
 
 
 if __name__ == "__main__":
-    out = report("--selftest" in sys.argv)
+    out = report("--selftest" in sys.argv, "--italic" in sys.argv)
     print("=" * 72)
     print(f"{len(out)} findings")
     sys.exit(1 if out else 0)

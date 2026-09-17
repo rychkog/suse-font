@@ -1206,6 +1206,7 @@ def _ink_bowl(pr, ink, x0, x1, y0, y1, crowd, ty_min=0.0):
             + _ink_fit(ink["c"], ink["cbox"], x0 + tx, y0 + ty,
                        x1 - tx, y1 - ty))
 
+
 def _arm_end(body, lo, hi, left):
     """Where a middle arm should die into a curved back.
 
@@ -2022,6 +2023,7 @@ def Yeru(pr, top=None):
     # them stays the one the reference splits by
     out = out + [rect(x1 - s - lost, 0.0, x1 - lost, top)]
     return translate(out, lost / 2.0) if lost else out
+
 
 def E_rev(pr, top=None):
     """Э -- C reflected, plus a middle arm.
@@ -3931,3 +3933,28 @@ ITALIC["yi-cy"] = Yi_cursive
 #
 # `flat_foot` above is kept and wired to nothing. It is the cursive graft this
 # replaced, and putting either letter back is one line here.
+
+
+def drawn(italic=False):
+    """name -> the recipe that draws it in this style.
+
+    The italic answers differently for seven letters and the same for the
+    rest, so a gate reading `RECIPES` alone reads the upright's answer for
+    г д в ґ т і ї and says nothing about what the italic ships.
+
+    It answers with the TIER table as well, which is the half that bites in
+    the other direction: the italic и is the Latin u donated whole
+    (`classify.ITALIC`), so it is not drawn here at all, and a gate handed the
+    upright's и measured a drawing the italic never builds.
+
+    Every reader of the tables asks this: `build_cyrillic.plan` for what to
+    build, `outlines.py` and the gates for what to measure.
+    """
+    import classify
+    out = dict(RECIPES)
+    if italic:
+        out.update(ITALIC)
+        for name, (tier, _note) in classify.ITALIC.items():
+            if tier == 1:
+                out.pop(name, None)
+    return out

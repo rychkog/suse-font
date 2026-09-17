@@ -68,6 +68,7 @@ def plan(font, italic=False):
     the recipe reads the italic's own donors.
     """
     over = ITALIC if italic else {}
+    drawn = recipes.drawn(italic)
     have = {g.name for g in font.glyphs}
     out = []
     for cp, name, tier, note in TIERS:
@@ -86,8 +87,7 @@ def plan(font, italic=False):
             if note in have:
                 out.append((cp, name, "donor", note))
         else:
-            # an italic override was taken above, so this is the shared recipe
-            fn = recipes.RECIPES.get(name)
+            fn = drawn.get(name)
             if fn:
                 out.append((cp, name, "draw", fn))
     return out
