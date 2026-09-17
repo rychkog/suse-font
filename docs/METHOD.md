@@ -573,7 +573,17 @@ Every one of these was announced as a defect before being caught:
   — 221 units against a true 125, reported as a +52% error that did not exist.
   **Fixed**; it had been mis-measuring every round letter it touched.
 - The `HARD_SHOULDER` probe scanned at 0.93 of cap, *below* Ъ's 28-unit bar at
-  Thin, and read 0.000. **Still broken.**
+  Thin, and read 0.000. **Corrected 2026-09-18**, and the fix is a definition
+  rather than a row: the shoulder's tip and the spine's edge are at two
+  different heights, so no single cut can hold both. `soft.py` reads the
+  letter's leftmost ink against its leftmost ink in the lower half, which is
+  where `audit._shape` already reads a spine. Ours comes back 0.199, 0.199,
+  0.200, 0.199 for Ъ and 0.201, 0.199, 0.200, 0.201 for ъ against a drawn
+  0.200 — and **every shoulderless letter in the set reads exactly 0.000**,
+  which is the part that makes the reading checkable. The panel puts us inside
+  its bracket at Thin, Regular and ExtraBold and 0.002 under it at Bold
+  (0.202–0.209), which is a flat share of the cell meeting a panel figure that
+  falls with weight. Ъ is approved: a record, not a licence.
 - The `EF_OVERHANG` probe measured the stem above the **cap line** rather than
   above the **bowl**, read 0.000, and was reported as "the constant is lying
   about itself". It was not. **Corrected.**
@@ -1806,7 +1816,32 @@ sources rebuild bit-identical — which is the check, not the intention.
 face's own STEM; `signature.py` reads terminals and horizontals; the audit
 reads counts and extremes. A leg at twice its weight passes all of them, and
 did, at four weights. The measurement that finds it is one line — the run
-across the stroke, divided by its lean — and it is not yet a gate.
+across the stroke, divided by its lean.
+
+**It exists now: `diagonals.py --drawn`, 2026-09-18.** Every drawn letter, read
+across its own straight diagonals, against the range the face's own A K M N V W
+X Y Z occupy at that weight and in that case — the tolerance `bar_pass` already
+takes, which is what the face does rather than a number picked here. Three
+things it needed that were not obvious:
+
+1. **A diagonal is a stroke that does not lean like the STEM, not one that does
+   not stand up.** Under the shear every upright leans 0.249, so a test against
+   vertical called И's two stems diagonals and padded the reference with them.
+2. **Read where the letter shows the MOST runs.** Anywhere else the diagonal is
+   merged with a stem, and a merged run is wider than either — N's reads 1.42
+   of the stem where its own diagonal is 0.83. Rejecting a run for being too
+   wide would hide a leg at twice its weight, which is the fault this reads
+   for, so the window is chosen by the shape and never by the answer.
+3. **A curve is told from a stroke by its lean holding still.** The face's own
+   straight diagonals hold slope to 0.000 and every round letter came back
+   above 0.69. Nothing sits in between.
+
+**And it is not a gate, for a reason its own output states.** The reference
+cannot read K at Regular, Z at any weight, or M at ExtraBold, and и's diagonal
+never parts from its two stems at ExtraBold — it reads 1.46 across 2 runs. A
+threshold hung on that reports the probe, which is F3, and F6 before it. The
+run count is printed beside every reading so a merged pair is visible without
+a width cutoff having to exist.
 
 ### F23 · A terminal cut is not a base for a stroke leaving in its own direction
 
@@ -2232,14 +2267,14 @@ they are different instruments, and a finding has to name which one saw it.
 | `marks.py` | **where a mark sits over its letter**, off the built fonts at every weight: its middle less the base's, and the gap under it, against the face's own Ë Ï Ü ë ï ü Ă ă Ŭ ŭ É é È è carrying the same mark. The only reading that sees a composite's placement — no gate does | no |
 | `wrap.py` | **how evenly the ink runs where a stroke wraps a bowl's end** — the widest disc that fits in the ink there, over the stroke straight out from the counter's middle. A single bowl in this face holds 1.00–1.03 at both masters; a two-lobe letter carries the junction as well, and B reads 1.22 at Thin. `--draw` lays the counter an even stroke would leave over the one the letter has. The one reading that separates a counter drawn as the outer's offset from one given a share of its own box | no |
 | `round.py` | **how round a bowl is** — the share of its outer edge standing still, within half a unit of the letter's widest, over the bowl's own band. The one thing no gate measured; the face's own o b p d c and O B D P C all hold 0.09–0.11 and that agreement is the bar | no |
-| `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout | no |
+| `soft.py` | §2 step 0 for the soft-bowl family — Б Ь Ы Ъ and their lowercase: the bowl's span, the two strokes bounding it, and what is left as counter, each also as a ratio to the face's **own Latin donor**. Its selftest is В/B, which must read 1.000 throughout. Also **Ъ's shoulder**, as the letter's leftmost ink less its spine's own edge below it — two heights, which is why the first probe read 0.000; a shoulderless letter in the set reads exactly 0.000 and that is the reading's own check. F6 | no |
 | `gd_band.py` | **what a cursive г and д measure**, over the face's own o, across the eleven monospace italics that actually draw them — the other eighteen slope their upright and are not evidence about a letter they do not draw, and the probe says which is which off the ink. г's stroke, width and height; д's hook, junction swell, height and width. This is what the donated outlines were fitted to, and it was read BEFORE anything was fitted | no |
 | `cell.py` | **how much of its cell each letter's ink takes**, in the x-height band, over the advance — the reading that answers a complaint about RHYTHM rather than about a letter. Asked three ways: ours against the panel's italics, ours at the heavy end where a bold italic still has the same cell, and each family's italic against its own upright. Written after the eye reported the italic as uneven and nothing here could see it, because every other probe reads one letter against one letter | no |
 | `de_bowl.py` | **whether a face draws д's bowl and counter to the same size as its own o, and whether б agrees** -- the counter read as enclosed white, the bowl read BELOW the x-height so the arm cannot widen it, each against that face's own o. Answers a question the eye asks often and a size reading cannot: not "is the counter right" but "is it right FOR THIS FAMILY'S o". The eight ∂-form italics shrink д's counter to a median 0.957 of their o's area and б's to 0.961 -- the same number, so the two letters are drawn to one relation | no |
 | `signature.py` | how a stroke ends and how heavy a horizontal is, against the Latin's own answers; `--italic` reads the italic | yes |
 | `signature.py --selftest` | the same two readings over the Latin itself — must stay clean | yes |
 | `signature_sheet.py` | the picture that goes with it: each reading beside the Latin it was measured against | — |
-| `diagonals.py` | Ж and ж's centre stem against an arm; the face's own X V W K Y measured **perpendicular** to the stroke; and М and м's uprights and diagonals, each over its own case's stem, with the ratio the pair takes across the case. The upright half of that last reading is the probe's own check — it has to land on the 1.000 (0.979–1.035) м's approval already records from a different method | no |
+| `diagonals.py` | Ж and ж's centre stem against an arm; the face's own X V W K Y measured **perpendicular** to the stroke; and М and м's uprights and diagonals, each over its own case's stem, with the ratio the pair takes across the case. The upright half of that last reading is the probe's own check — it has to land on the 1.000 (0.979–1.035) м's approval already records from a different method. **`--drawn`** is F22's answer: every letter this project draws, read across its own straight diagonals, against the range the face's own A K M N V W X Y Z occupy at that weight and in that case. A diagonal is measured against the STEM's lean, not against vertical, and read where the letter shows the most runs; the run count prints beside each reading so a merged pair is visible. Not a gate — the reference goes silent on K, Z and M at some weights | no |
 | `params.py` | per-master figures measured off the Latin | — |
 | `latin_metrics.py` | what the Latin says about the face | — |
 | `preview.py` | rasterise from recipes without a build; `wrap.py` and `weights.py` import it | — |
@@ -3524,7 +3559,26 @@ finding to §8 or to a fault entry, its approval to the ledger.
   and tail) are upright-only — the cursive г т в д answer differently by
   design, and the exemption keys off `recipes.ITALIC`.
 - **`shoulder_spine`** still carries the F2 subtraction; see F2.
-- **The `HARD_SHOULDER` probe is still broken** (F6): it scans below Ъ's bar at Thin.
+- **A drawn diagonal splits under the shear where the face's own does not.**
+  Measured 2026-09-18 by `diagonals.py --drawn`, at every italic weight. Ж's
+  four arms are level upright — 0.94 0.94 0.96 0.96 of the stem at Thin, 0.83
+  four times at ExtraBold — and in the italic they come apart: **0.90 and 1.12
+  at Thin Italic, a 24% split**, ж 0.91 and 1.15, У 0.88 and 1.04 against a
+  level 0.96 and 0.96 upright. The face's own X, sheared through the same
+  angle, holds 0.94 to 0.99.
+  - **The arithmetic says a pure slant must do this.** A shear keeps a
+    stroke's horizontal run and changes its lean, so perpendicular width goes
+    as `run / sqrt(1 + s²)`: arms at ±0.6 become +0.85 and −0.35, which is a
+    24% split by itself. Ж reads 24%. The face's own X is *corrected* — 
+    `italic.py` puts it in "within 0.040" rather than a pure slant, and it
+    comes out level.
+  - So this is **F28's class in a diagonal**: the face redraws where a shear
+    would distort, and a sloped roman inherits the distortion. К splits upright
+    already (0.99 / 0.85) and splits further in the italic (1.03 / 0.77).
+  - **Ж ж У К are approved.** This is a record and the user's to pull, not a
+    licence. What is NOT yet known is whether a 24% split is visible at reading
+    size in a letter whose arms are this short — that is the eye's answer, not
+    the probe's.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,

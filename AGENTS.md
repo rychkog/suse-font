@@ -136,6 +136,14 @@ Each rule is one statement; the story behind it is at the pointer.
     - A collapsed pair also hides the corner it sits on: a probe whose arms
       reach 25 units either way reads the junction as flat. Read the corner
       angle at every master, before and after. F32, F3.
+13. **A diagonal is read ACROSS itself, and in the italic against the stem's
+    lean rather than against vertical.** `tools/diagonals.py --drawn`. Nothing
+    else measures one: the panel divides by the stem, `signature.py` reads
+    terminals and horizontals, the audit reads counts and extremes — and к's
+    italic leg shipped at twice its own weight through all of them. F22.
+    - A shear keeps a stroke's horizontal run and changes its lean, so a
+      sloped roman splits a symmetric pair of diagonals by up to a quarter.
+      The face redraws its own X to stop that. F28's class, in a diagonal.
 
 ## Reporting
 

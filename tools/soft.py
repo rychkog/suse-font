@@ -26,6 +26,11 @@ readings say what this face does with this bowl, and any reading where В sits
 outside the panel alongside Б Ь Ы is a reading about SUSE Mono rather than
 about the three drawn letters. That is the whole reason it is measured here.
 
+Ъ's shoulder rides along here because it is the same letter and the same
+render, and because nothing else ever read it: `HARD_SHOULDER` was set from
+six faces counted by hand and the probe written to check it reported 0.000 --
+F6. It is the one reading in this file that is not about the counter.
+
 One lens for ours and theirs -- `weights.py`'s render, each face scaled so its
 own o stands XH high -- and one render per letter per face.
 """
@@ -54,7 +59,8 @@ GLYPHS = (("Б", False), ("Ь", False), ("Ы", False),
 LIVE = ("Б", "Ь", "Ы", "ь", "ы")
 
 KEYS = ("span/adv", "counter w/span", "counter w/stem",
-        "spine/stem", "wall/stem", "counter h/xh", "reach/adv")
+        "spine/stem", "wall/stem", "counter h/xh", "reach/adv",
+        "shoulder/adv")
 
 # Each drawn letter against the face's own LATIN, per face -- the form that
 # settled м's diagonals. Every reading above is absolute, and this face's B is
@@ -128,8 +134,22 @@ def read_mask(m, adv_px, stem):
     spine = left[-1]
     wall = right[0]
 
+    # The shoulder, as the letter's leftmost ink less the spine's own left edge
+    # below it. Two heights, and that is the whole point: the first probe read
+    # one row, got the tip and the spine off the same cut, and reported 0.000
+    # for a 120-unit stroke -- F6. The spine's edge is read in the lower half,
+    # the way `audit._shape` reads it, so the elbow's inner radius is not in
+    # the way. Every letter here answers: a shoulderless one reads 0.000, which
+    # is what makes the reading checkable. Upright fonts only -- the panel's
+    # own sweep drops italics, and under a shear two edges at different heights
+    # are not subtractable.
+    ys, xs = np.where(m)
+    y0, h = ys.min(), ys.max() - ys.min()
+    shoulder = float(xs[ys > y0 + 0.55 * h].min() - xs.min())
+
     span = float(wall[1] - spine[0] + 1)
     return {"span/adv": span / adv_px,
+            "shoulder/adv": shoulder / adv_px,
             "counter w/span": counter_w / span,
             "counter w/stem": counter_w / stem if stem else 0.0,
             "spine/stem": (spine[1] - spine[0] + 1) / stem if stem else 0.0,
