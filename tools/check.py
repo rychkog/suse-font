@@ -95,7 +95,9 @@ def stem_at(polys, y, last=False, pair=0):
     xs = []
     for poly in polys:
         for (x0, y0), (x1, y1) in zip(poly, poly[1:] + poly[:1]):
-            if (y0 - y) * (y1 - y) < 0:
+            # half-open, so a vertex ON the line counts once: Ф's counters
+            # each put one exactly there and both crossings vanished
+            if (y0 <= y) != (y1 <= y):
                 xs.append((x0 + (x1 - x0) * (y - y0) / (y1 - y0),
                            1 if y1 > y0 else -1))
     xs.sort()

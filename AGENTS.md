@@ -82,7 +82,9 @@ output — findings have been hidden that way, including a broken interpolation.
    crowded roof went unread until its bowl was wide enough to count
    (`docs/METHOD.md` F3).
 4. **A flat proportion constant is suspect** until the panel has been bucketed
-   by weight. That is how ф was found.
+   by weight. That is how ф was found. Where this face is heavier than the
+   bucket, bucket by stem share and compare in advance units: Ф's heavy wall
+   was 0.87 of the stem on an all-heavy line and is 0.83 among equal stems.
 5. **Two constants that justify each other are one decision.** If a constant's
    reason names another step of the pipeline — "nothing moves here, because
    the next step would drag it back" — the pair has to be judged, and usually
@@ -97,6 +99,9 @@ output — findings have been hidden that way, including a broken interpolation.
    and a tenth of the cap apart at ExtraBold — Я took R's leg top for R's bowl
    floor on exactly that basis, and only came apart at the heavy end. See
    `docs/METHOD.md` F8.
+   A constant that compensates one source's figure is only as right as that
+   figure: `EF_BOWL_SHARE` paid for an italic O read off its handles (184,
+   where the ink is 164), and thinned the italic Ф ф for a month (F17).
 8. **A glyph that is assembled has a third decision in it, and no gate reads
    it.** Two correct parts placed wrongly pass everything: node parity, panel
    ink, every signature reading. Sixteen marked letters carried their mark on

@@ -158,9 +158,15 @@ CHE_COUNTER = 0.48
 # ф's bowl, over the height the face's own о is drawn at -- see Ef.
 EF_BOWL_TALLER = 1.05
 
+# Ф's wall: the line's heavy end is the panel's ratio among faces whose stem is
+# as heavy as this one's -- 0.83 of the stem across the twelve drawing it at a
+# quarter of the advance or more. Fitted across all weights the line asked
+# 0.87 there, and at this face's heavy stem those units came out of the
+# counter: Ф's stood at 0.128 of the advance against their 0.143. The light
+# end is unchanged, capped at the stem.
 EF_FIT = {
     "cap": {"width": (0.8444, 0.6314),
-            "wall": (1.1431, -1.6746),
+            "wall": (1.1431, -1.9323),
             "mid": (1.1072, -1.7645)},
     "lc": {"width": (0.7892, 0.7754),
            "wall": (1.1279, -1.7705),
@@ -222,18 +228,16 @@ def ef_edge(pr, draw):
     return (lo + hi) / 2.0
 
 
-def ef_crowd(pr):
+def ef_crowd(pr, ink):
     """The bowl's wall as a share of what the round letter draws it at.
 
-    Upright, the share is derived from the stem. Under the italic it is taken
-    from `EF_BOWL_SHARE` instead, which is the share the upright's own
-    construction arrives at -- see that constant for why the derivation cannot
-    cross to a master whose O is heavier for the same stem.
+    Derived from the stem in both styles, over the round letter's INK side.
+    The italic once took a separate share (`EF_BOWL_SHARE`), because its O
+    read twelve per cent heavier than the upright's for the same stem -- 184
+    against 164 at ExtraBold. That was the un-sheared O's handles, not its
+    ink (F17): read off the ink the two sides are the same 164.
     """
-    if pr.italic:
-        a, b = EF_BOWL_SHARE
-        return a + b * (pr.stem / 1000.0)
-    return ef_fit(pr, "wall") * pr.stem / bowl_stroke(pr)[0]
+    return ef_fit(pr, "wall") * pr.stem / ink["tx"]
 # ...and its total height over the x-height, the panel's median across the same
 # 51 faces.
 EF_HEIGHT = 1.781
@@ -257,8 +261,9 @@ YU_COUNTER = {"lc": 0.476, "cap": 0.448}
 # The least the bowl's roof and floor weigh, over the case's bar: the lightest
 # horizontal the face draws in that case -- t's bar itself, and B's 0.90-0.96
 # of H's. Floored at H's full bar, Ю's roof matched its walls at ExtraBold and
-# the italic's shear knotted the turn (1.09 against O's 1.01).
-YU_ROOF = {"lc": 1.00, "cap": 0.90}
+# the italic's shear knotted the turn (1.09 against O's 1.01). Ф's capital
+# takes it too: with its heavy wall thinned, its roof read 0.90 at Regular.
+BOWL_ROOF = {"lc": 1.00, "cap": 0.90}
 # Ф: how far the stem projects past the bowl, in cap heights. Borrowed for the
 # same reason -- see Ef.
 #
@@ -271,20 +276,6 @@ YU_ROOF = {"lc": 1.00, "cap": 0.90}
 # Too much stem showing and not enough bowl. At 0.07 the bowl grows 7.5%, the
 # aspect lands at 0.995 and the projection still measures inside the panel.
 EF_OVERHANG = 0.07
-# Ф's bowl wall as a share of what the round letter draws its own wall at.
-# The upright's approved construction comes out at 1.000 at Thin and 0.8575 at
-# ExtraBold, and this line reproduces both exactly; it is not a new fit.
-#
-# It exists because `ef_crowd` derives that share from the STEM, through lines
-# fitted standing up, and the italic master defeats them: its stem has barely
-# moved (161.0 against the upright's 161.0, 29.5 against 29.0) while it draws
-# its own O twelve per cent heavier for it -- 184.2 against 164.0 at
-# ExtraBold, 32.5 against 29.0 at Thin. Fed the same stem the line returns the
-# same wall, and the letter lands at 0.765 of its own O where the upright
-# stands at 0.857. F17 again: the SHARE is the design decision and it
-# transfers between the two sources; the line is an upright measurement and
-# does not.
-EF_BOWL_SHARE = (1.0313, -1.0795)
 
 _METRICS = {}
 
@@ -1044,7 +1035,8 @@ def Ef(pr):
         # its bowl crosses three strokes -- wall, stem, wall -- which is what
         # m's figure is for. The capital escapes it by being the widest letter
         # the face allows; at x-height there is no such room to buy.
-        ob = bbox(pr.paths(round_of(pr)))
+        ink = _ink_round(pr, round_of(pr))
+        ob = ink["box"]
         # ф's bowl is NOT о. Drawn at о's exact height it measured 0.97 of the
         # x-height where the panel runs 0.99 to 1.03, and 1.13 wide for its
         # height where the panel stops at 1.08 -- a squashed oval. The panel
@@ -1074,13 +1066,13 @@ def Ef(pr):
         # wall at 0.78 of the stem where the panel wants 0.82-0.93, which is
         # what made the counters read airy once the bowl had been widened.
         st = ef_fit(pr, "mid") * pr.stem
-        crowd = ef_crowd(pr)
+        crowd = ef_crowd(pr, ink)
 
         def draw(e):
             # `half` and the sidebearing are the same number read from the two
             # ends of the cell, so the bisection has one thing to solve for in
             # both cases.
-            return (bowl(pr, e, 600.0 - e, ob[1], ob[3], crowd=crowd)
+            return (_ink_bowl(pr, ink, e, 600.0 - e, ob[1], ob[3], crowd)
                     + [rect(300.0 - st / 2.0, foot,
                             300.0 + st / 2.0, foot + EF_HEIGHT * pr.cap)])
         return draw(ef_edge(pr, draw))
@@ -1092,10 +1084,12 @@ def Ef(pr):
     # JetBrains 0.100, Consolas 0.100, Monotional 0.083, DejaVu 0.083.
     oh = EF_OVERHANG * pr.cap
     st = ef_fit(pr, "mid") * pr.stem
-    crowd = ef_crowd(pr)
+    ink = _ink_round(pr, round_of(pr))
+    crowd = ef_crowd(pr, ink)
 
     def draw(e):
-        return (bowl(pr, e, 600.0 - e, oh, pr.cap - oh, crowd=crowd)
+        return (_ink_bowl(pr, ink, e, 600.0 - e, oh, pr.cap - oh, crowd,
+                          BOWL_ROOF["cap"] * pr.bar)
                 + [rect(mid - st / 2.0, 0.0, mid + st / 2.0, pr.cap)])
     return draw(ef_edge(pr, draw))
 
@@ -1162,7 +1156,7 @@ def Yu(pr):
             # bar grazed the sheared counter and left a step at ExtraBold
             rect(x0, bary, bx0 + tx / 2.0, bary + pr.bar)]
             + _ink_bowl(pr, ink, bx0, x1, min(ys), max(ys), crowd,
-                        YU_ROOF[case] * pr.bar))
+                        BOWL_ROOF[case] * pr.bar))
 
 
 def _round_share(pr, donor):
@@ -1178,7 +1172,7 @@ def _ink_round(pr, donor):
     which swings its handles out past the curve (F17): the node box read o 62
     units wider than its ink and its side 16 heavier at ExtraBold, so ю's
     italic bowl came out narrower and heavier than its own numbers. Upright
-    the two readings agree to the unit. Ф keeps `bowl`; it is approved.
+    the two readings agree to the unit. Ф ф took it on 2026-09-17.
     """
     o, c = pr.paths(donor)[0], pr.paths(donor)[1]
     fo, fc = _flatten(o, 48), _flatten(c, 48)

@@ -124,6 +124,13 @@ This is the single most productive question to ask of any flat constant: *does
 the panel hold this steady across weight, or did I average a slope into a
 point?*
 
+**Bucket by stem share, and read in advance units, when this face is heavier
+than the bucket.** SUSE's ExtraBold capital stem is 0.268 of the advance, more
+than most panel faces' heaviest cut. A stem-relative median taken over all
+heavy faces then compares our walls with those of lighter letters. Among
+faces whose stem is 0.24 of the advance or more (n=12), Ф's wall is 0.83 of
+the stem, not the 0.87 the all-weights line gave. See §8.
+
 ### Compare nearest-neighbour, not by band — *`tools/probe.py: compare`*
 
 Bands put a face sitting at its own band edge next to faces two steps away.
@@ -503,6 +510,13 @@ case, not the bar: floored at H's full bar, Ю's roof matched its walls at
 ExtraBold and the italic's shear knotted the turn (mass 1.09 against O's
 1.01). A floor that removes a letter's contrast is a new fault.
 
+**Through a shared crowd.** Ф's `crowd` is its wall share over the round
+letter's side, and `_ink_bowl` applies the same crowd to the roof. Thinning
+Ф's heavy wall (0.87 → 0.83 of the stem) therefore thinned its roof too, and
+the capital gate read it at 0.90 of H's bar at Regular, under the band's 0.91.
+A change meant for the walls must not travel to the horizontals: Ф's roof now
+takes the same floor as Ю's (`BOWL_ROOF["cap"]`, 0.90 of H's bar).
+
 ### F4 · A median across a mixed population hiding a relation
 
 See `EF_WIDTH` above. **Tell:** any constant whose comment reads "the panel's
@@ -725,6 +739,17 @@ A newer one, and it produced two wrong findings before it was caught:
   And a gate that reports one artefact failing while its siblings pass is
   making a claim about the build, not about the drawing — check which before
   touching a glyph, because all four of these were approved and frozen.
+
+- **A vertex exactly on the scanline, 2026-09-17.** `check.py` counted a
+  crossing when `(y0 - y) * (y1 - y) < 0`. After Ф's walls were thinned, one
+  flattened point of each counter landed exactly on the 0.62-cap row. Both
+  edges meeting at that point gave zero, both crossings vanished, and the
+  whole letter read as one 553-unit stroke against O's 163. The raster showed
+  two open counters and walls of 136. The test is now half-open,
+  `(y0 <= y) != (y1 <= y)`, which counts such a vertex once. Of 1080
+  readings over every static and variable, that one moved and nothing else.
+  **An impossible figure from a gate is the probe until a raster says
+  otherwise.**
 
 
 ### F6b · A reference set that cannot express the answer
@@ -1479,6 +1504,16 @@ arrives at, and reproduces both its masters exactly, so it is not a new fit.
 This is F1 inside one file: a
 constant fitted under one condition, read under another that looks identical
 because the number it keys on has not moved.
+
+**Superseded 2026-09-17: the 184 was itself a node reading.** The italic O's
+ink side is 164, the same as the upright's — 184 came off `pr.paths()`, whose
+handles overshoot the ink once un-sheared. `EF_BOWL_SHARE` was therefore a
+correct compensation for a wrong figure, and it thinned the italic bowl:
+ExtraBold Italic Ф's counter stood at 0.116 of the advance against the
+upright's 0.128. The bowl is now fitted by its ink box (`_ink_bowl`), as ю Ю
+are, and every italic Ф ф figure equals the upright's. **A per-source
+constant that compensates a figure is only as good as that figure; re-read it
+by ink before keeping the constant.**
 
 ---
 
@@ -2452,6 +2487,17 @@ cell edge than a stem: b keeps 0.56 (ExtraBold) to 0.65 (Thin) of its stem
 side's margin on its round side, D 0.50. A letter fitted as three stems keeps
 them equal, and the heavy panel's ю runs a median 3% wider than its m. ю takes
 b's share and Ю D's (0.50–0.58), both since 2026-09-17.
+
+### Ф ф at the heavy end: the wall gives way, the width does not
+
+Among heavy faces whose stem is at least 0.24 of the advance (n=12), Ф reads,
+in shares of the advance: stem 0.250, wall 0.208, middle stem 0.203, counter
+0.143, width 0.917. Ours before 2026-09-17: 0.268, 0.235, 0.220, 0.128, 0.947.
+The width is already wider than theirs; the counter was what was short, and
+the wall is where it came from — 0.83 of the stem is their ratio, and our Ф
+now holds it, counter 0.140. ф (n=12: wall 0.213, mid 0.198, counter 0.132,
+width 0.906) already sat on those figures at 0.217, 0.207, 0.133, 0.907, and
+was not moved.
 
 ### Node parity says nothing about size
 
