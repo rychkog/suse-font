@@ -64,12 +64,19 @@ DIM = "#80848c"
 COMMENT = "#6e7680"
 STR = "#963c28"
 
-# Alphabetical order is not the point of this row; adjacency is. Every letter
-# that is a base plus a mark sits next to the base it is built from -- Е Ё,
-# И Й, І Ї, У Ў -- so a mark placed one unit off reads against the letter it
-# was placed on. That is why І Ї follow Й rather than preceding it.
-CAPS = "АБВГҐДЕЁЄЖЗИЙІЇКЛМНОПРСТУЎФХЦЧШЩЬЮЯЭЫЪ"
-LOWER = "абвгґдеёєжзийіїклмнопрстуўфхцчшщьюяэыъ"
+# EVERY drawn letter is here. The list was hand-written and stood at 33 of
+# the 99 in classify.TIERS, so letters shipped and were approved without ever
+# reaching this sheet; only the nine Serbian letters are absent now, and they
+# are absent because they are not built. Check it against classify.TIERS when
+# a letter is added.
+#
+# Alphabetical order is not the point of this row; adjacency is. A letter
+# built from another sits in its cluster -- Г Ґ Ѓ, Е Ё Ѐ, И Й Ѝ, І Ї, К Ќ,
+# У Ў, Ц Џ -- so a mark placed a unit off reads against the letter it was
+# placed on. Ѕ and Ј come from Latin S and J, so they take the slots
+# Macedonian order gives them instead.
+CAPS = "АБВГҐЃДЕЁЀЄЖЗЅИЙЍІЇЈКЌЛМНОПРСТУЎФХЦЏЧШЩЬЮЯЭЫЪ"
+LOWER = "абвгґѓдеёѐєжзѕийѝіїјкќлмнопрстуўфхцчшщьюяэыъ"
 PAIRS = "Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя Зз Бб Кк Мм"
 VS_LATIN = "oф oю cє rґ vд nл oз ob кk мm"
 
@@ -79,7 +86,7 @@ RU = "юность, борьба, тёщи"
 # і -- and its apostrophe is a letter of the word, not punctuation around it.
 # All four are in this line, so a Belarusian reader's own text is what judges
 # them rather than a row of bare letters.
-BE = "зноў, аўтар, сям’я, лёс, ідэя"
+BE = "зноў, аўтар, сямʼя, лёс, ідэя"
 MIXED = "git commit -m 'юність' v2.1 build/ґрунт-єднати.log"
 SENTENCE = "ПОЛЕ ЦВІТЕ, ВІТЕР ДМЕ"
 RUSSIAN = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРИ, ЭХО".replace("ВЫБОРИ", "ВЫБОРЫ")
@@ -175,8 +182,8 @@ def letter_sheet(sh, up, it, letters):
 
     sh.heading("Among the whole set, where it has to keep the rhythm")
     for f in (up("Regular"), it("Regular"), up("Bold")):
-        sh.grid(f, CAPS, 46, cols=19, lx=PADX)
-        sh.grid(f, LOWER, 46, cols=19, lx=PADX)
+        sh.grid(f, CAPS, 46, cols=23, lx=PADX)
+        sh.grid(f, LOWER, 46, cols=23, lx=PADX)
         sh.gap(6)
     sh.rule()
     sh.heading("In words, and in a line that mixes the scripts")
@@ -320,8 +327,8 @@ def full_sheet(sh, up, it, jb):
 
     sh.heading("The set — Regular, then Bold, then Italic")
     for f in (reg, bold, it("Regular")):
-        sh.grid(f, guard(reg, CAPS), 62, cols=19, lx=PADX)
-        sh.grid(f, guard(reg, LOWER), 62, cols=19, lx=PADX)
+        sh.grid(f, guard(reg, CAPS), 62, cols=23, lx=PADX)
+        sh.grid(f, guard(reg, LOWER), 62, cols=23, lx=PADX)
         sh.gap(8)
     sh.rule()
 
