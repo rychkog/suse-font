@@ -2147,6 +2147,48 @@ The same class as F3: a reading that finds nothing has not passed, and a
 report that prints nothing has not reported.
 
 
+### F32 · A node that draws nothing here draws a corner there
+
+д's notch between bowl and arm ends in a cusp. At Thin it reads 19 degrees,
+at Regular 14, at Bold 23. By ExtraBold the arm has thickened, the notch has
+closed, and the node that draws that cusp has nothing left to do — so the
+donor fit parked it on its neighbour. Four nodes within 0.3 units of one
+point, and a 0.9-unit segment between them.
+
+It cannot come out. Node counts must match between the masters or nothing
+interpolates. **And it must not be moved**, which is the part that is easy to
+get wrong: the node is idle at ExtraBold and load-bearing everywhere else.
+Walking it back along ExtraBold's own curve — a de Casteljau split, exact at
+ExtraBold to 0.9 units — drags the cusp **16 to 44 units at Regular and 27 at
+Bold**, because every intermediate weight averages the two masters node by
+node. A repair that is exact at the master it was made on is not exact at the
+weights between.
+
+The fix is to reparameterise the **neighbour**, along the neighbour's own
+curve. ExtraBold's next on-curve node moved about 17 units down segment 2→5.
+The idle node keeps its coordinates, so the cusp does not move at any weight,
+and the leftover segment gains real length. Cost, measured against the
+previous build: 0.17 units at ExtraBold, 1.59 at Regular, 2.56 at Bold.
+
+**The sharper half of the finding is F3 again: a collapsed pair reads as no
+corner.** `audit.corner_angles` takes its arms 25 units back and on along the
+outline. With the junction squeezed into 0.9 units, both arms landed on the
+same flat run and the probe reported ExtraBold's notch at **174 degrees** —
+that is, no corner there at all. It now reads 48 at the junction, against a
+limit of 26. Regular's 14-degree finding was the only thing pointing at the
+letter, and it was pointing at a different weight.
+
+So a coincident-node report is not a tidiness complaint. Any node pair inside
+a probe's REACH hides the corner it is sitting on.
+
+One more distinction this round clarified. `outlines.py` on the **recipe**
+reads the source cubics and found no kink in д at any weight. The same tool
+with `--built` reads the shipped TrueType and reports a 99–104 degree kink at
+every weight, plus zero-length segments at Thin and Regular that the source
+does not have. The quadratic conversion makes them. Both readings are right;
+they are different instruments, and a finding has to name which one saw it.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
@@ -3395,19 +3437,15 @@ finding to §8 or to a fault entry, its approval to the ledger.
   extending a letter list would have changed nothing. What was missing was the
   style.
   The italic selftest is clean for `signature.py` and still finds 27 in
-  `audit.py`, so those 27 are the gate. `audit --italic` reads 57 and
-  `signature --italic` 20; every letter in them is approved, so none is to be
-  acted on. Three classes are known and unresolved:
+  `audit.py`, so those 27 are the gate. `audit --italic` reads 53 and
+  `signature --italic` 20. One of the 57 it read before was д's coincident
+  nodes, which was a real defect and is fixed — F32; two were the г turns
+  below, exempted since. Three classes are known and unresolved:
   1. **Ь Ъ Б's bowl ends 23–43 units right of В's**, at В's own widest row, at
      every weight, where the upright reads all four at one number. Reading at
      one row moves Ь by 1 unit at Thin and 2 at ExtraBold, so the row is not
      the cause. В is the Latin B donated; the soft-sign bowls are built from
      B's figures read off the ROMAN (F27), which is the candidate.
-  4. **д carries coincident nodes at ExtraBold Italic**, at (271,503) — two
-     points within 0.6 units, which leaves a nick where a curve meets a
-     straight. Found the moment the report stopped bucketing italic findings
-     under the word "Italic" (F31). д's italic is approved, so this is a
-     report, not a change.
   5. **г turns nothing like Г**, [120,121,140,144] against [82,103] at Thin
      Italic. The corner pair is now exempt for cursive letters, so this no
      longer fires — recorded because it was read once and is true: the

@@ -14,6 +14,11 @@ right-hand wall, spliced so the wall carries on into it without
 a seam. Nothing of the donor's own outline survives -- only the
 line its arm travels along.
 
+The notch between bowl and arm has a cusp at Thin, and closes at
+ExtraBold. The node that draws its tip is still needed there for
+node parity, so ExtraBold's next on-curve sits a little further
+along its own curve and leaves that node a segment with length.
+
 UN-SHEARED, like every outline a recipe sees. One entry per
 master, in source order: contours of (x, y, type, smooth).
 """
@@ -52,11 +57,11 @@ DE = [
     # the donor's own Thin to Bold at +0.000
     [
         [
-            (270.6, 503.0, 'offcurve', False),
-            (270.3, 503.0, 'offcurve', False),
-            (270.0, 503.0, 'curve', True),
-            (113.0, 503.0, 'offcurve', False),
-            (26.7, 372.0, 'offcurve', False),
+            (264.5, 503.0, 'offcurve', False),
+            (259.1, 502.8, 'offcurve', False),
+            (253.8, 502.5, 'curve', True),
+            (107.1, 493.8, 'offcurve', False),
+            (28.2, 366.1, 'offcurve', False),
             (68.8, 203.0, 'curve', True),
             (107.7, 47.0, 'offcurve', False),
             (230.0, -10.0, 'offcurve', False),

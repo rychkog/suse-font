@@ -128,6 +128,14 @@ Each rule is one statement; the story behind it is at the pointer.
       same construction and take its answer. F28.
     - A sloped bowl that is a shortened o tips further than o: read its long
       axis against o at every weight. F29.
+12. **A node that sits on its neighbour at one master draws a corner at
+    another.** It cannot be removed — node counts must match — and it must
+    not be moved, however idle it looks: the weights between average the
+    masters node by node, so moving it walks a cusp across them.
+    Reparameterise the NEIGHBOUR along the neighbour's own curve. F32.
+    - A collapsed pair also hides the corner it sits on: a probe whose arms
+      reach 25 units either way reads the junction as flat. Read the corner
+      angle at every master, before and after. F32, F3.
 
 ## Reporting
 
