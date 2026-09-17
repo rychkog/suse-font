@@ -93,7 +93,7 @@ def main():
     for p in sorted(glob.glob("tools/*.py") + glob.glob("tools/*.sh")
                     + glob.glob("tools/*/")):
         name = p.split("tools/", 1)[1].rstrip("/")
-        if name.endswith("/") or name in ("__pycache__", "out"):
+        if name in ("__pycache__", "out"):
             continue
         if not any(x == name or x.startswith(name + "/") for x in listed) \
                 and name not in retired:

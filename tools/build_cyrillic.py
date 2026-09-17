@@ -58,7 +58,7 @@ def plan(font, italic=False):
     A glyph is buildable when every part it needs is present -- so composites
     wait for their base, and the set grows as tiers land.
 
-    Under an italic source, four letters answer differently. `classify.ITALIC`
+    Under an italic source, seven letters answer differently. `classify.ITALIC`
     says which and why: г and д are the cursive forms, which have no
     counterpart in either script and are drawn; и is the italic's own u,
     borrowed whole; and т takes П's comb with three stems rather than the
@@ -86,8 +86,8 @@ def plan(font, italic=False):
             if note in have:
                 out.append((cp, name, "donor", note))
         else:
-            fn = (recipes.ITALIC.get(name) if italic else None) \
-                or recipes.RECIPES.get(name)
+            # an italic override was taken above, so this is the shared recipe
+            fn = recipes.RECIPES.get(name)
             if fn:
                 out.append((cp, name, "draw", fn))
     return out

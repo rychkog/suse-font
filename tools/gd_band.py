@@ -103,7 +103,7 @@ def main():
               % (fam, s, gs, gw, gh,
                  "  .  " if dh is None else "%5.2f" % dh, dj, dt, dw))
 
-    def band(i, lo=0.0):
+    def band(i):
         v = sorted(r[i] for r in rows if r[i] is not None)
         return st.median(v), v[1], v[-2]
 

@@ -20,7 +20,7 @@ Design rules this file obeys, from the brief:
 
 from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
-                  area, LINE, OFFCURVE, CURVE, KAPPA,
+                  area, LINE, OFFCURVE, KAPPA,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
                   squash_x, piecewise_y, scale_x, fit, slant, taper,
                   cut_at_y, cut_along, meets_line, seg_at,
@@ -952,7 +952,6 @@ def De(pr, top=None):
     Л cannot move without giving up its leg.
     """
     top = pr.cap if top is None else top
-    m = L(pr)
     foot = descent(pr)
     x0, x1, s = fit_stems(pr, 2)
     # How far the plinth juts past the body, which is what makes the legs read
@@ -1206,15 +1205,6 @@ def _ink_bowl(pr, ink, x0, x1, y0, y1, crowd, ty_min=0.0):
     return (_ink_fit(ink["o"], ink["box"], x0, y0, x1, y1)
             + _ink_fit(ink["c"], ink["cbox"], x0 + tx, y0 + ty,
                        x1 - tx, y1 - ty))
-
-
-def _mid_arm(pr, y=None):
-    """E's middle arm, reused by Є and Э."""
-    y = pr.midY if y is None else y
-    e = pr.paths("E")[1]
-    xs = [n.position.x for n in e.nodes]
-    return rect(min(xs), y, max(xs), y + pr.bar)
-
 
 def _arm_end(body, lo, hi, left):
     """Where a middle arm should die into a curved back.
@@ -1505,7 +1495,6 @@ def Be(pr):
     94%, Consolas 91%, Iosevka 90%; Г's full arm reaches 98% and reads
     top-heavy).
     """
-    m = L(pr)
     arm = Ghe(pr)
     x0 = min(n.position.x for n in arm[0].nodes)
     # The bowl reaches where B's does -- Б, Ь and Ъ all hang the same bowl,
@@ -2034,39 +2023,6 @@ def Yeru(pr, top=None):
     out = out + [rect(x1 - s - lost, 0.0, x1 - lost, top)]
     return translate(out, lost / 2.0) if lost else out
 
-
-def c_shape(pr, x0, x1, y0, y1, t, open_left):
-    """A C, drawn -- not a mirrored Latin C.
-
-    Traced as one closed contour: out along the top, round the closed side,
-    back along the bottom, then in along the counter and back. `open_left`
-    puts the aperture on the left for Э, on the right for Є's lowercase mate.
-    Mirroring the Latin C would reverse its terminal cuts, which a Slavic
-    reader sees immediately -- so the shape is built rather than flipped.
-    """
-    r = min((y1 - y0) / 2.0, (x1 - x0) * 0.5)
-    ri = max(r - t, 1.0)
-    sgn = 1.0 if open_left else -1.0
-    # closed side is the right when the aperture is on the left
-    cx0, cx1 = (x0, x1) if open_left else (x1, x0)
-    ap = x0 + (x1 - x0) * 0.42 if open_left else x1 - (x1 - x0) * 0.42
-
-    ns = [node(ap, y1), node(cx1 - sgn * r, y1)]
-    ns += arc_to(cx1 - sgn * r, y1, cx1, y1 - r, cx1, y1)
-    ns += [node(cx1, y0 + r)]
-    ns += arc_to(cx1, y0 + r, cx1 - sgn * r, y0, cx1, y0)
-    ns += [node(ap, y0), node(ap, y0 + t),
-           node(cx1 - sgn * (ri + t), y0 + t)]
-    ns += arc_to(cx1 - sgn * (ri + t), y0 + t, cx1 - sgn * t, y0 + t + ri,
-                 cx1 - sgn * t, y0 + t)
-    ns += [node(cx1 - sgn * t, y1 - t - ri)]
-    ns += arc_to(cx1 - sgn * t, y1 - t - ri, cx1 - sgn * (ri + t), y1 - t,
-                 cx1 - sgn * t, y1 - t)
-    ns += [node(ap, y1 - t)]
-    p = path(ns)
-    return [p if area(p) > 0 else reverse(p)]
-
-
 def E_rev(pr, top=None):
     """Э -- C reflected, plus a middle arm.
 
@@ -2445,7 +2401,6 @@ def U(pr, top=None, bottom=0.0):
     descender -- their Д and Ц drop 283 and 294 for comparison.
     """
     top = pr.cap if top is None else top
-    m = L(pr)
     h = top - bottom
 
     # This was a Latin Y with a Cyrillic name: two arms meeting a VERTICAL
@@ -3336,7 +3291,7 @@ def Ghe_upturn_cursive(pr):
     # dropped: this is г, with a detour inserted into one straight edge.
     if str(ns[0].type) != LINE:
         raise ValueError("ghe-upturn: г's mouth is not where it closes")
-    a, b = ns[-1].position, ns[0].position
+    a = ns[-1].position
 
     lean = GHE_LEAN[getattr(pr, "_pr", pr).mi]
     t = math.tan(math.radians(pr.italic))
@@ -3365,7 +3320,7 @@ def Ghe_upturn_cursive(pr):
     # took up to 68 units out of the letter's upper left. As its own contour
     # the same geometry only ADDS: the notch is where the tick stops, not
     # where the bar does.
-    segs, on = _segments(p)
+    segs, _ = _segments(p)
     x_in = lambda y: a.x + w * hyp / (1.0 + t * (lean + t)) + (y - a.y) * lean
     k, ts = len(segs) - 2, []
     for back in range(3):
@@ -3800,8 +3755,8 @@ def flat_foot(pr, donor):
                 i = (i + step) % len(ns)
                 if str(ns[i].type) != "line":
                     continue
-                x1, y1 = xy((i - 1) % len(ns))
-                x2, y2 = xy(i)
+                _, y1 = xy((i - 1) % len(ns))
+                _, y2 = xy(i)
                 if abs(y2 - y1) > 0.20 * xh:
                     return i
             return None

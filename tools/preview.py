@@ -25,46 +25,6 @@ SS = 4
 CELL = CELL_OUT * SS
 PAD = 8 * SS
 
-
-def flatten(p, steps=16):
-    """Bezier -> polygon. Winding is resolved by even-odd fill below, so the
-    only thing that matters here is that the outline is closed."""
-    pts = []
-    ns = list(p.nodes)
-    if not ns:
-        return pts
-    # rotate so the contour starts on an on-curve node
-    start = next((i for i, n in enumerate(ns) if n.type != "offcurve"), 0)
-    ns = ns[start:] + ns[:start]
-    cur = (ns[0].position.x, ns[0].position.y)
-    pts.append(cur)
-    i = 1
-    ring = ns[1:] + [ns[0]]
-    while i <= len(ring):
-        n = ring[i - 1]
-        if n.type == "offcurve":
-            c1 = (n.position.x, n.position.y)
-            c2n = ring[i]
-            c2 = (c2n.position.x, c2n.position.y)
-            endn = ring[i + 1]
-            end = (endn.position.x, endn.position.y)
-            for s in range(1, steps + 1):
-                t = s / steps
-                mt = 1 - t
-                x = (mt ** 3 * cur[0] + 3 * mt * mt * t * c1[0]
-                     + 3 * mt * t * t * c2[0] + t ** 3 * end[0])
-                y = (mt ** 3 * cur[1] + 3 * mt * mt * t * c1[1]
-                     + 3 * mt * t * t * c2[1] + t ** 3 * end[1])
-                pts.append((x, y))
-            cur = end
-            i += 3
-        else:
-            cur = (n.position.x, n.position.y)
-            pts.append(cur)
-            i += 1
-    return pts
-
-
 def to_pen(paths, pen):
     """Replay Glyphs contours into a segment pen.
 

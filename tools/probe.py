@@ -153,27 +153,6 @@ def lc_stem_of(f, cm=None, gs=None):
             return r[0][1] - r[0][0]
     return None
 
-
-def widest_run_set(f, ch, ref, n, cm=None, gs=None):
-    """The scanline through `ch` giving exactly n ink runs at its widest.
-
-    Sweeping the height rather than fixing it is what makes one probe work
-    across sixty designs: the bowl's middle is not at the same fraction of the
-    x-height in every face.
-    """
-    ps = contours(f, ch, cm, gs)
-    if not ps:
-        return None
-    best = None
-    for k in range(25, 76):
-        r = runs(ps, ref * k / 100.0)
-        if len(r) == n:
-            w = r[-1][1] - r[0][0]
-            if best is None or w > best[1]:
-                best = (r, w, ref * k / 100.0)
-    return best
-
-
 def panel(measure):
     """Run `measure(TTFont) -> value|None` over every panel face.
 

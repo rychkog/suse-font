@@ -185,42 +185,6 @@ def mask_of(polys, k):
         img = ImageChops.logical_xor(img, lay)
     return np.asarray(img) > 0
 
-
-def from_recipe(ch, mi, xh=XH):
-    """The same mask, straight from the recipes, so the loop is seconds.
-
-    A build takes minutes and this reading has to be taken after every change
-    to the outline; the built font is still what the report quotes.
-    """
-    import glyphsLib
-    from params import Params, Lower, _flatten
-    from classify import TIERS
-    import recipes as RU
-    import preview as PV
-    font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
-    names = {chr(cp): n for cp, n, _t, _n in TIERS if n in RU.RECIPES}
-    pr = Lower(Params(font, mi))
-    fn = RU.RECIPES.get(names.get(ch, ""))
-    out = []
-    for paths in (fn(pr._pr) if fn else pr.paths(ch), pr.paths("o")):
-        polys = [[(x, y) for x, y in _flatten(p, 96)] for p in paths]
-        ys = [q[1] for p in polys for q in p]
-        xs = [q[0] for p in polys for q in p]
-        k = xh / float(pr.cap)
-        w = int((max(xs) - min(xs)) * k) + 8
-        h = int((max(ys) - min(ys)) * k) + 8
-        img = Image.new("1", (w, h), 0)
-        from PIL import ImageChops
-        for poly in polys:
-            lay = Image.new("1", (w, h), 0)
-            ImageDraw.Draw(lay).polygon(
-                [(4 + (x - min(xs)) * k, h - 4 - (y - min(ys)) * k)
-                 for x, y in poly], fill=1)
-            img = ImageChops.logical_xor(img, lay)
-        out.append(np.asarray(img) > 0)
-    return out
-
-
 # --- the instrument's own test -------------------------------------------
 
 def _known(coords, w, px=12.0, taper=None):

@@ -107,7 +107,7 @@ def strokes(solid, counter, T):
     return t, th
 
 
-def mass(ink, D, counter, T):
+def mass(D, counter, T):
     """(the stroke at the extreme, the widest disc at the end, their ratio)."""
     top, bot = counter[:, 1].max(), counter[:, 1].min()
     cx = (counter[:, 0].min() + counter[:, 0].max()) / 2.0
@@ -171,7 +171,7 @@ def main():
             ink = fill([outer] + cs, w, h, T)
             D = edt(ink)
             for i, c in enumerate(cs):
-                at, thick, r = mass(ink, D, c, T)
+                at, thick, r = mass(D, c, T)
                 print("   %-3s bowl %d   at the extreme %5.1f  thickest %5.1f"
                       "   MASS %.2f" % (ch, i, at, thick, r))
             if "--draw" in sys.argv:

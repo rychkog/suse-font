@@ -508,26 +508,6 @@ def area(p):
     pts = [(n.position.x, n.position.y) for n in p.nodes]
     return 0.5 * sum(x0 * y1 - x1 * y0
                      for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]))
-
-
-def stretch_right(paths, x):
-    """Move the rightmost vertical edge out to x, lengthening an arm.
-
-    L's arm is drawn for L's own width; reused as the foot of Ш or the bar of
-    Ч it has to reach the letter's own right edge. Moving the end nodes keeps
-    the rounded corner at the other end untouched.
-    """
-    b = bbox(paths)
-    out = clone_all(paths)
-    for p in out:
-        for n in p.nodes:
-            if abs(n.position.x - b[2]) < 1.0:
-                n.position = Point(x, n.position.y)
-    return out
-
-
-# L's corner is a circular quarter-arc: its control points sit at 0.43 of the
-# radius from the corner, against 0.448 for a true circle. So the face's
 # corner can be regenerated at any radius without inventing its curvature.
 KAPPA = 0.5523
 
@@ -543,7 +523,6 @@ def corner_radius(pr):
     """The face's own outer corner radius, read off L."""
     ns = list(pr.paths("L")[0].nodes)
     ys = [n.position.y for n in ns]
-    xs = [n.position.x for n in ns]
     # L's outer corner runs from its lowest-left node up the spine
     return max(ys[8] - min(ys), 1.0) if len(ns) > 8 else 0.15 * pr.cap
 

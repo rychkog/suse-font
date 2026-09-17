@@ -142,23 +142,26 @@ def check_font(path, present):
     # obliquely, so a round letter always measures wider than a flat-sided
     # one; comparing Ф to H flags a 28% error that is not there.
     cap = f["OS/2"].sCapHeight
-    for ch, latin, frac in (("П", "H", .25), ("Ц", "H", .25), ("Ш", "H", .25),
-                            ("Щ", "H", .25), ("Ч", "H", .25), ("Г", "E", .25),
-                            ("Б", "B", .25), ("Ь", "B", .25), ("Ы", "B", .25),
-                            ("Ъ", "B", .25), ("Л", "H", .25), ("Д", "H", .25),
-                            # Round letters are read at 0.62 cap: high enough
-                            # to clear Ю's and Є's crossbars, near enough the
-                            # bowl's widest point that the cut is close to the
-                            # true stroke. Ю leads with its stem, so its bowl
-                            # is the SECOND stroke across.
-                            ("Ф", "O", .62), ("Ю", "O", .62), ("Є", "C", .62)):
+    # `last` takes the LAST run across instead of the first: Л and Д lead with
+    # a slanted leg, which a horizontal cut always measures wide, so their
+    # vertical right stem is read instead. `pair` picks a later run: Ю leads
+    # with its stem, so its bowl is the second stroke across.
+    #
+    # Round letters are read at 0.62 cap: high enough to clear Ю's and Є's
+    # crossbars, near enough the bowl's widest point that the cut is close to
+    # the true stroke.
+    for ch, latin, frac, last, pair in (
+            ("П", "H", .25, False, 0), ("Ц", "H", .25, False, 0),
+            ("Ш", "H", .25, False, 0), ("Щ", "H", .25, False, 0),
+            ("Ч", "H", .25, False, 0), ("Г", "E", .25, False, 0),
+            ("Б", "B", .25, False, 0), ("Ь", "B", .25, False, 0),
+            ("Ы", "B", .25, False, 0), ("Ъ", "B", .25, False, 0),
+            ("Л", "H", .25, True, 0), ("Д", "H", .25, True, 0),
+            ("Ф", "O", .62, False, 0), ("Ю", "O", .62, False, 1),
+            ("Є", "C", .62, False, 0)):
         y = cap * frac
         if ord(ch) not in cmap or latin not in gs:
             continue
-        # Л and Д lead with a SLANTED leg, which a horizontal cut always
-        # measures wide, so their vertical right stem is checked instead
-        last = ch in "ЛД"
-        pair = 1 if ch == "Ю" else 0
         ref = stem_at(flat(gs, latin), y, last)
         v = stem_at(flat(gs, cmap[ord(ch)]), y, last, pair)
         if v and ref and abs(v - ref) / ref > 0.20:
@@ -201,7 +204,8 @@ def pinned_toolchain():
 # does NOT match the upright everywhere: D is [10,12] upright but [9,11]
 # italic, O is [14,14] vs [12,12], C is [28] vs [26]. E happens to match,
 # which is the only reason Ghe() works -- nothing guaranteed it.
-NODE_INDEXED = {"E": "Ghe() takes E's nodes 6..15 for the rounded corner"}
+NODE_INDEXED = {"E": "Ghe() takes E's nodes 6..15 for the rounded corner",
+                "R": "Ya() takes R's node 11 for the bowl floor"}
 
 
 def donor_structure():

@@ -36,7 +36,6 @@ from fontTools.ttLib import TTFont                               # noqa: E402
 from probe import contours                                       # noqa: E402
 
 CYR = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
-LAT = "abcdefghijklmnopqrstuvwxyz"
 SIZE = 200
 
 
