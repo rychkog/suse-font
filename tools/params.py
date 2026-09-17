@@ -49,7 +49,7 @@ class Params:
         # picks up the italic's OWN redrawn round capitals and its true-italic
         # lowercase for nothing, because a recipe reads `pr.paths(donor)` and
         # never the upright file -- with one exception, `roman`, for the
-        # lowercase that is a sloped roman rather than a true italic.
+        # letters built as a sloped roman over the true italic (ь ы ъ я Я).
         #
         # The pivot is the face's own and it is NOT the baseline: solved
         # against the eleven capitals that are a pure slant, it comes out at
@@ -128,7 +128,7 @@ class Params:
         drawing, not a sloped roman b, and un-shearing it does not give the
         roman back -- its bowl reads 32.5 against a 29 stem at Thin and 170
         against 150 at ExtraBold, and its counter cuts 6.4 units into the stem
-        where the roman's cuts 0.8. A letter built as a sloped roman (ь ы ъ я)
+        where the roman's cuts 0.8. A letter built as a sloped roman (ь ы ъ я Я)
         takes those figures from the letter it is actually sloping. Matched by
         master index, and checked by name.
         """

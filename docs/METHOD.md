@@ -2015,9 +2015,36 @@ of the stem. It is now drawn wider by that ratio and lands at 1.00.
 
 **The counter's corner is a third figure the italic reads, and no gate reads it.** я's counter kept `r - t` for its corner — F2 — and fell to 0.18 of its width at ExtraBold against b's 0.43; the capital Я, reading B off the italic, fell to 0.28 in ExtraBold italic only. `round.py` reads a bowl's OUTSIDE and passed both. The user saw it as a box in the counter. The reading is the counter's round flank over its width, by scanline (`latin_metrics._counter_sweep`, one flank); it is not yet a gate.
 
+**The capitals carried the same fault, because the italic B and R are true italics too.** Ь Ъ Ы and Я read their bowl figures off the italic master. At ExtraBold italic their counter corners were 0.26, 0.20, 0.25 and 0.28. At Thin they were 0.44, and they sank steadily with weight. Read from the roman (`sloped(pr, caps=True)`), all four hold 0.43–0.45 at every italic weight. Italic Я's leg rose from 0.88–0.93 of the stem to 0.94–1.00 with the same shear compensation as я. The upright capitals did not move. A fault that only the italic shows is found by checking every glyph that shares the donor, not just the one the user circled.
+
 **A reading that fails is a probe fault until shown otherwise.** One sector
 reading put я's italic leg at 0.61 of the stem. Read row by row, across the
 leg and the stem at the same height, it was 0.92–0.94.
+
+### F28 · A sheared bowl turns unevenly
+
+Shearing a round end tightens one turn and slackens the other. On a bowl facing right the top-right turn tightens into a knuckle and its stroke thickens, and the bottom-right thins. Я faces left, so its bottom-left thickens instead. The user saw it in Medium italic ь, then asked about the capitals too.
+
+The reading is the stroke by 45° sector around the counter (scratchpad `vring2.py`/`vgap.py`), taken as the tight turn less the loose one, italic less upright. ь ъ ы я Ь Ъ Ы Я stood +0.10 to +0.21 of a stem. The face's own italic P and R stand +0.03 to +0.06, and D stands +0.00 to +0.10. Their outlines show why: unsheared, their top turn starts earlier than the upright's does, and their extreme nodes sit at the italic's extremes.
+
+`bowl_pair(lean=)` takes back `BOWL_LEAN` = 0.75 of the shear on the round end, about the bowl's middle. The spine side does not move. A full take-back balanced the turns to 0.00, more evenly than the face does. After the change all eight letters stand +0.01 to +0.08 at every weight, and the missed extrema that `outlines.py` reported on these bowls are gone.
+
+Two readings changed meaning with it. The counter-corner probe (`vcsweep`/`vall`) straightens the full slant, so it now over-reads (0.53–0.71). Straightened by the remaining quarter, the corners read 0.40–0.42, and Ы reads 0.34 at ExtraBold. And Я's leg now crosses the first unit of the bowl's bottom arc, which leaves a 19-unit near-flat curve at the join. No gate reads turn balance.
+
+**A narrow bowl took the correction badly, and its counter was the wrong shape.** At ExtraBold, italic Ы's counter end ran 42 by 111 units and ы's 46 by 71. Sloped, each read as a leaf with a point at the top, and the user saw a deformed bowl that got worse with weight. Every heavy italic Ы in the panel draws that counter as a **slot** instead: a flat top, a straight side, small corners, inside a plain sloped D. A first answer capped the counter end's height at 1.3 times its reach, in the italic only. The light master's counters stand 0.99–1.09, so the cap fires at ExtraBold alone. The upright narrow D stays as approved. That slot was then replaced; see below.
+
+The lean then has to know whether the cap fired. Turned about the bowl's middle, a slot's long side leans back into a wedge, so a slotted counter is left as sheared. Its outer takes `TALL_LEAN` = 0.25 of the lean. With none, heavy Ы ы read +0.11 to +0.13 against P's +0.04, the same as the panel's worst (Hack, Monaspace Neon). The fault spread: every weight between the masters inherits a share of the heavy master's missing correction. **A first cut switched the lean off whenever the flag was passed, which is at both masters.** It put Ы ы back at +0.12 to +0.20 at every weight, which is the defect this entry opened with. A flag set per style silently removed a correction set per master. After both fixes Ы ы stand +0.05 to +0.09 at every weight, P and R +0.04 to +0.06.
+
+**Rejected on the way:**
+- The counter end capped at a circle (1.0), as P's is. It left a long straight counter side inside a tall half-oval outer, and the stroke swelled at the lower right at the light weights. The user marked it on sight. A check on the upright recipe passed it, because the cap was italic-only.
+- The shift scaled by the bowl's sweep over its half-height. It made the round end stand more upright than the spine, and it did nothing for the leaf.
+- The counter drawn first, the outer offset from it by the stroke. The outer arc started inside the spine, which gave a sloping shoulder, and the counter kept its point.
+- The lean turned about each corner separately. The joins kinked.
+- Only the flat runs shifted, at a full take-back. The bowls read as leaning boxes with a sharp bottom-right.
+
+**Then the slot was questioned: "shouldn't this be round?"** It should. The face's own D keeps its counter's side curved at every weight, and the approved upright Ы has D's profile exactly. The slot was the PANEL's shape, and the panel does not decide what a SUSE Mono letter looks like. D's counter is the same shape as Ы's, only twice as wide, which is why D does not come to a point when sheared. What ships keeps the curve at full height and draws it fuller: `bowl_pair(tall=)` marks a counter end standing over `YERU_TALL` = 1.3 times its reach, and that end takes `YERU_FULL` = 0.7 as its handle share, where a circle is 0.5523. It reads +0.01 to +0.11 across the weights. Shown beside the slot, it was chosen and italic Ы ы approved on 2026-09-17.
+
+The check that would have caught each of these sooner: turn balance and stroke read on the SHEARED, built letter, at every weight, not at the two masters and not on the upright recipe.
 
 
 ## 4 · Probe inventory

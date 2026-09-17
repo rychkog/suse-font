@@ -123,7 +123,17 @@ output — findings have been hidden that way, including a broken interpolation.
    reading passed. And an italic letter built upright and slanted reads its
    donor figures off the ROMAN (`recipes.sloped`): this face's italic b is a
    different drawing, and its figures overweighted ь's bowl and cut its stem.
-   `docs/METHOD.md` F26, F27.
+   And the shear itself knots one turn of any round end — compare the tight
+   turn to the loose one against the face's italic P and R, at every weight.
+   A stroke check on an italic change reads the SHEARED letter: `wrap.py`
+   reads the upright recipe, and passed a counter that swelled Ы in italic.
+   A correction switched by a flag that is set per style switches it at BOTH
+   masters: gate it on what that master actually does, then re-read the
+   built font at every weight -- Ы's knot came back at all eight unseen.
+   And before taking a shape from the panel, find the Latin letter with the
+   same construction and take ITS answer: Ы's counter went to the panel's
+   straight slot while the face's own D kept the side curved.
+   `docs/METHOD.md` F26, F27, F28.
 
 ## Reporting
 

@@ -20,7 +20,7 @@ Design rules this file obeys, from the brief:
 
 from glyphsLib.types import Point
 from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
-                  area, LINE, OFFCURVE, CURVE,
+                  area, LINE, OFFCURVE, CURVE, KAPPA,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
                   squash_x, piecewise_y, scale_x, fit, slant, taper,
                   cut_at_y, cut_along, meets_line, seg_at,
@@ -1174,7 +1174,7 @@ def E_ukr(pr):
     return clone_all(c) + [rect(end, lo, x0 + (x1 - x0) * 0.73, hi)]
 
 
-def d_shape(left, bot, right, up, r, ry=None):
+def d_shape(left, bot, right, up, r, ry=None, k=KAPPA):
     """Flat on the left, semicircular on the right, as one contour.
 
     The straight run between the two arcs is emitted only when it has length.
@@ -1184,9 +1184,9 @@ def d_shape(left, bot, right, up, r, ry=None):
     """
     ry = r if ry is None else ry
     ns = [node(left, bot), node(right - r, bot)]
-    ns += arc_to(right - r, bot, right, bot + ry, right, bot)
+    ns += arc_to(right - r, bot, right, bot + ry, right, bot, k)
     ns += [node(right, up - ry)]
-    ns += arc_to(right, up - ry, right - r, up, right, up)
+    ns += arc_to(right, up - ry, right - r, up, right, up, k)
     ns += [node(left, up)]
     return path(ns)
 
@@ -1270,7 +1270,7 @@ def bowl_arc(pr, left, right, bot, up):
 
 def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
               th_bot=None, th_top=None, r=None, ry=None, tl=None,
-              csweep=None, cut=None):
+              csweep=None, cut=None, lean=0.0, tall=None):
     """A d_shape and its counter, one even stroke apart, correctly wound.
 
     The stroke is clamped so the counter always has positive width AND
@@ -1363,8 +1363,34 @@ def bowl_pair(left, bot, right, up, t, min_counter=24.0, th=None, rmin=1.0,
     inner_w = (right - t) - cl
     ri = (max(min(csweep * inner_w, inner_w * 0.5), rmin) if csweep
           else max(r - t, rmin))
-    inner = d_shape(cl, bot + th_bot, right - t, up - th_top, ri,
-                    max(ry - (th_bot + th_top) / 2.0, rmin))
+    iry = max(ry - (th_bot + th_top) / 2.0, rmin)
+    # `tall` marks a counter end standing more than `tall` times its reach.
+    # Inset from a tall outer, a narrow counter turns one tall curve from top
+    # to bottom -- Ы's ends run 42 by 111 at ExtraBold -- and sheared plain it
+    # tapers to a point. The face's own D has the same curve at twice the
+    # width. The side stays curved, as D's does, and is drawn fuller instead.
+    # A straight-sided slot, as the panel draws it, was rejected on sight.
+    full = bool(tall) and iry > tall * ri
+    inner = d_shape(cl, bot + th_bot, right - t, up - th_top, ri, iry,
+                    YERU_FULL if full else KAPPA)
+    # `lean` takes back part of the italic's shear on the ROUND end, about the
+    # bowl's own middle, so the turns come out even once sheared. Left alone,
+    # the shear tightens the top-right turn into a knuckle and slackens the
+    # bottom-right one: ь's top-right stroke stood 0.09-0.20 of a stem heavier
+    # than its bottom-right, where the face's own italic P R D hold 0.04-0.06
+    # -- they start the top turn earlier than their upright does. The flat side
+    # stays where the spine is. A mirrored caller passes it negated.
+    # A full counter is left as sheared: turned about the bowl's middle, its
+    # long side leant back into a wedge. Only its outer takes the lean, less.
+    if lean:
+        yc = (bot + up) / 2.0
+        if full:
+            lean *= TALL_LEAN
+        for p, flat in ((outer, left),) if full else ((outer, left), (inner, cl)):
+            for n in p.nodes:
+                if abs(n.position.x - flat) > 1e-6:
+                    n.position = Point(n.position.x - lean * (n.position.y - yc),
+                                       n.position.y)
     if area(outer) < 0:
         outer = reverse(outer)
     if area(inner) > 0:
@@ -1665,19 +1691,47 @@ def Ve(pr, top=None):
 # letter is recentred in its cell.
 SOFT_RAISE = (1.2231, -1.4876)
 SOFT_SHAPE = 0.74
+# How much of the shear a sloped bowl's round end takes back -- see bowl_pair.
+# The face's own italic P R D leave their top turn 0.00-0.10 of a stem heavier
+# than upright, P and R 0.03-0.04. All of it back balances the turns exactly,
+# more evenly than the face does; three quarters leaves ь Ь Ъ я Я 0.01-0.06.
+BOWL_LEAN = 0.75
 
 
-def sloped(pr):
-    """What a sloped-roman lowercase reads its donor figures from.
+# How tall for its reach a sloped Ы/ы counter end stands before it is drawn
+# full. The light master's stand 0.99-1.09 and are left alone; ExtraBold's
+# stand 1.5 and 2.6.
+YERU_TALL = 1.3
+# The share of the lean a full counter's OUTER takes. With none, heavy Ы ы
+# read +0.11-0.13 against P's +0.04, and every weight between inherited it.
+TALL_LEAN = 0.25
+# How full a tall Ы/ы counter end is drawn, as its curve's handle share
+# (a circle is 0.5523). Plain, sheared, it tapers to a point at ExtraBold.
+YERU_FULL = 0.7
+
+
+def bowl_lean(pr):
+    return BOWL_LEAN * math.tan(math.radians(pr.italic))
+
+
+def sloped(pr, caps=False):
+    """What a sloped-roman letter reads its donor figures from.
 
     Under the italic the roman master -- see `Params.roman`. ь ы ъ я are drawn
     upright and sheared, so the letter they slope is the ROMAN b and R; this
     face's italic b is a true italic whose figures overweighted their bowls
     and cut the Thin counter into the stem. Everywhere else, `pr` itself.
+
+    `caps` lets a capital in as well, for Я Ь Ъ Ы: read off the italic B,
+    their stroke came out 185 against the roman's 166 at ExtraBold and their
+    sweep 0.455 against 0.501, and the counter's corner fell to 0.20-0.28 of
+    its width against the upright letters' 0.44-0.46 -- the box the user
+    marked in Я. Б reads B its own way and is not asked.
     """
-    if not (pr.italic and getattr(pr, "lower", False)):
+    lower = getattr(pr, "lower", False)
+    if not pr.italic or not (lower or caps):
         return pr
-    return Lower(pr.roman())
+    return Lower(pr.roman()) if lower else pr.roman()
 
 
 def soft_raise(pr):
@@ -1703,7 +1757,7 @@ def soft_bowl(pr, top=None):
     # Ы does have three strokes and does shave, but it shaves its own stem
     # first and then scaled THIS by the result, so its bowl was reduced twice
     # over. With the double reduction gone it lands on the panel's median.
-    t = bowl_of(sloped(pr))[2]
+    t = bowl_of(sloped(pr, caps=True))[2]
     # The bowl's TOP is not a fixed height -- its COUNTER's top is. Every face
     # measured holds Ь's and Ы's counter top between 0.45 and 0.53 of the cap
     # and barely moves it across the weight axis; the bowl's outer top then
@@ -1748,7 +1802,8 @@ def Soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     return translate(out, lost / 2.0) if lost else out
 
 
-def _soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
+def _soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None,
+          tall=None):
     """Soft's drawing, and how much narrower SOFT_SHAPE made it -- which the
     caller recentres by half, and Ы also takes off its detached stem."""
     top = pr.cap if top is None else top
@@ -1786,11 +1841,16 @@ def _soft(pr, top=None, x0=None, right=None, stem=None, t=None, shoulder=None):
     # wall. Ь Ъ Ы all come through here, so all three take it, and Ы passes its
     # own shaved stem rather than the face's because that IS its spine. See
     # bowl_pair's `tl`.
+    # The capitals take B's sweep off the roman too; the lowercase keeps the
+    # sweep it was approved on.
+    arc_pr = pr if lower else sloped(pr, caps=True)
+
     def bowl_at(r):
-        rx, ry = bowl_arc(pr, x0, r, 0.0, bt)
+        rx, ry = bowl_arc(arc_pr, x0, r, 0.0, bt)
         return bowl_pair(x0, 0.0, r, bt, tt,
                          th=tt * pr.bar / pr.stem, r=rx, ry=ry,
-                         rmin=inner_radius(pr), tl=s, csweep=csweep, cut=cut)
+                         rmin=inner_radius(pr), tl=s, csweep=csweep, cut=cut,
+                         lean=bowl_lean(pr), tall=tall)
 
     if fit:
         right = shear_fit(pr, right, lambda r: _rows(bowl_at(r)))
@@ -1877,8 +1937,11 @@ def Yeru(pr, top=None):
     # all but touched the stem, and at ExtraBold the bowl swallowed the width
     # and its own counter closed to a slit.
     gap = (x1 - x0 - 2.0 * s - t) / (1.0 + YERU_SPLIT)
+    # Ы's bowl is barely wider than its stroke, so in the italic its tall
+    # counter is drawn full -- see bowl_pair's `tall`. Upright, the narrow D
+    # reads as a bowl and was approved as one.
     out, lost = _soft(pr, top, x0=x0, right=x0 + s + YERU_SPLIT * gap + t,
-                      stem=s, t=t)
+                      stem=s, t=t, tall=YERU_TALL if pr.italic else None)
     # a narrowed bowl takes its detached stem in with it, so the gap between
     # them stays the one the reference splits by
     out = out + [rect(x1 - s - lost, 0.0, x1 - lost, top)]
@@ -2373,7 +2436,7 @@ def Ya(pr, top=None, bottom=0.0):
     # Ъ were fixed for; Я was never in the family check to catch it, and the
     # check could not have seen it anyway -- it reads the rightmost run, and
     # Я's bowl bulges LEFT.
-    sp = sloped(pr)
+    sp = sloped(pr, caps=True)
     t = bowl_of(sp)[2]
 
     # R is the letter this face already built with a leg under a bowl, so R
@@ -2459,7 +2522,8 @@ def Ya(pr, top=None, bottom=0.0):
     # -- F2 -- and the user marked the counter as a box.
     csweep = L(sp).lcCounterSweep if getattr(pr, "lower", False) else None
     bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, th=pr.bar, r=rx, ry=ry,
-                              rmin=inner_radius(pr), csweep=csweep), mid)
+                              rmin=inner_radius(pr), csweep=csweep,
+                              lean=-bowl_lean(pr)), mid)
 
     # The leg spans from its top INNER edge, standing off the stem by R's own
     # figure, to its foot's OUTER edge on the letter's left -- R's leg lands
@@ -2483,9 +2547,10 @@ def Ya(pr, top=None, bottom=0.0):
     # stem does -- 0.92 of it at Thin, 0.94 at ExtraBold, where the upright
     # leg is the stem to the unit. The shear keeps area, so a stroke along
     # (m, 1) keeps hypot(1, m) / hypot(1, m + k) of its width and the stem
-    # keeps 1 / hypot(1, k); the lowercase leg is drawn wider by the ratio.
+    # keeps 1 / hypot(1, k); the leg is drawn wider by the ratio -- in Я too,
+    # whose italic leg stood at 0.89-0.93 of the stem.
     leg_in = (x1 - s) - standoff * (x1 - x0)
-    k = math.tan(math.radians(pr.italic)) if getattr(pr, "lower", False) else 0.0
+    k = math.tan(math.radians(pr.italic))
 
     def leg_w(m):
         return pr.stem * math.hypot(1.0, m + k) / math.hypot(1.0, k)

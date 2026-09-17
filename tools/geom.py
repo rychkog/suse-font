@@ -532,10 +532,10 @@ def stretch_right(paths, x):
 KAPPA = 0.5523
 
 
-def arc_to(x0, y0, x1, y1, cx, cy):
+def arc_to(x0, y0, x1, y1, cx, cy, k=KAPPA):
     """Quarter-arc from (x0,y0) to (x1,y1) bending around corner (cx,cy)."""
-    return [node(x0 + (cx - x0) * KAPPA, y0 + (cy - y0) * KAPPA, OFFCURVE),
-            node(x1 + (cx - x1) * KAPPA, y1 + (cy - y1) * KAPPA, OFFCURVE),
+    return [node(x0 + (cx - x0) * k, y0 + (cy - y0) * k, OFFCURVE),
+            node(x1 + (cx - x1) * k, y1 + (cy - y1) * k, OFFCURVE),
             node(x1, y1, CURVE, True)]
 
 
