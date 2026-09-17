@@ -2013,6 +2013,8 @@ running down to the left, along (m, 1), keeps hypot(1, m) / hypot(1, m + k) of
 its width, while the stem keeps 1 / hypot(1, k). я's italic leg came out 0.92
 of the stem. It is now drawn wider by that ratio and lands at 1.00.
 
+**The counter's corner is a third figure the italic reads, and no gate reads it.** я's counter kept `r - t` for its corner — F2 — and fell to 0.18 of its width at ExtraBold against b's 0.43; the capital Я, reading B off the italic, fell to 0.28 in ExtraBold italic only. `round.py` reads a bowl's OUTSIDE and passed both. The user saw it as a box in the counter. The reading is the counter's round flank over its width, by scanline (`latin_metrics._counter_sweep`, one flank); it is not yet a gate.
+
 **A reading that fails is a probe fault until shown otherwise.** One sector
 reading put я's italic leg at 0.61 of the stem. Read row by row, across the
 leg and the stem at the same height, it was 0.92–0.94.

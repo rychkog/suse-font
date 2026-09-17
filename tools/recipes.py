@@ -2454,8 +2454,12 @@ def Ya(pr, top=None, bottom=0.0):
         x0, x1 = c - w / 2.0, c + w / 2.0
     mid = (x0 + x1) / 2.0
     rx, ry = bowl_arc(sp, x0, x1, waist, top)
+    # ...and the lowercase counter turns over b's own share of its width, as
+    # ь's does. Left to `r - t` it fell to 0.18 at ExtraBold against b's 0.43
+    # -- F2 -- and the user marked the counter as a box.
+    csweep = L(sp).lcCounterSweep if getattr(pr, "lower", False) else None
     bowl = mirror_x(bowl_pair(x0, waist, x1, top, t, th=pr.bar, r=rx, ry=ry,
-                              rmin=inner_radius(pr)), mid)
+                              rmin=inner_radius(pr), csweep=csweep), mid)
 
     # The leg spans from its top INNER edge, standing off the stem by R's own
     # figure, to its foot's OUTER edge on the letter's left -- R's leg lands
