@@ -291,6 +291,11 @@ Details: METHOD §7.
   coordinates.
 - **A green mechanical run is not evidence a glyph is right.** Node parity
   cannot see that a glyph is the wrong size — it passed Э drawn at cap height.
+- **The font never depends on another face.** A donated outline is fitted
+  once and committed as data (`be_donor.py`, `ge_donor.py`, `de_donor.py`);
+  its generator is not kept.
+  Other faces are read only to measure — the panel, the `tools/ve` probes.
+  METHOD §4, *Retired*.
 - **Every gate here reads the INK. None of them reads the OUTLINE.** Run
   `tools/outlines.py` on anything donated or newly drawn, and prefer a **CFF**
   donor — a TrueType one arrives as quadratics and expands to a node every few

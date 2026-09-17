@@ -2,7 +2,6 @@
 NAMED rather than searched for -- the reason `cut_at_y` gives."""
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from donor import segments_of, find
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.ttLib import TTFont

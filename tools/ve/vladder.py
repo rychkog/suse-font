@@ -1,7 +1,6 @@
 """One change at a time, so the step that breaks the letter is visible."""
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from verode import load, move, close_bowl, rejoin, LIGHT
 from verender import d_of
 

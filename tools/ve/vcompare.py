@@ -2,7 +2,6 @@
 import sys
 import numpy as np
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 S = ("/tmp/claude-1000/-home-geo-Projects-pets-suse-mono-cyrillic/"
      "f723bc1d-71b6-4ff5-8fc8-7b61e648f507/scratchpad")
 sys.path.insert(0, S)

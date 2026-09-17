@@ -1,9 +1,11 @@
 """Shared machinery for taking an outline from another face and fitting it.
 
-Not a design decision anywhere in here -- the two letters that use it, г and д,
-each make their own, and this is only the plumbing they both need: read a CFF
-glyph as segments, check two weights are the same drawing, blend between them,
-stand the donor up, lean a measurement over, and write the result out.
+Not a design decision anywhere in here: read a CFF glyph as segments, check
+two weights are the same drawing, blend between them, stand the donor up, lean
+a measurement over, and write the result out. It was written for the г and д
+generators, retired 2026-09-17 once their output was frozen as data in
+`tools/ge_donor.py` and `tools/de_donor.py`; the в probes beside it still read
+reference faces through it. The font itself never does.
 
 **CFF and not TrueType**, and that is the one thing in this file worth
 reading. Sudo supplied г first and Sudo is a variable TrueType, so its curves
@@ -338,7 +340,7 @@ def emit(out, name, head, made):
 
 # --- splicing a donated stroke into the host's own bowl ---------------------
 #
-# Copied in spirit from `scripts/be_from_sudo.py`, which solved this for б and
+# Copied in spirit from the retired `be_from_sudo.py`, which solved this for б and
 # is approved: a stroke laid OVER a bowl and a stroke growing OUT of one are
 # not the same letter, and the difference is the swell at the junction, which
 # every reference draws and no overlap can invent. What is different here is

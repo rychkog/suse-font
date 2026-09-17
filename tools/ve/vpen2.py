@@ -10,7 +10,6 @@ import math
 import sys
 import numpy as np
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from PIL import Image
 from vspine import raster, spine, branches, to_units
 from vstroke import smooth

@@ -9,7 +9,6 @@ old corner would push the elbow back out.
 import math
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from PIL import Image
 from verode import _unit, LIGHT
 from vpen import ink

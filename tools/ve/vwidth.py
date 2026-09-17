@@ -9,7 +9,6 @@ as two different strokes however tidy the nodes are.
 import math
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from verode import load, move, rejoin, _flat, across, LIGHT, BOLD
 
 

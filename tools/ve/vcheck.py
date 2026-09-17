@@ -2,7 +2,6 @@
 import sys
 import numpy as np
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from PIL import Image, ImageDraw
 from scipy import ndimage
 from weights import edt, BIAS

@@ -18,7 +18,6 @@ where they are rather than thinned to a stroke.
 import math
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from verode import (load, rejoin, nodes_of, signed_area, _flat, across,
                     _unit, LIGHT, BOLD)
 

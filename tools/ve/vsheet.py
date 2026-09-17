@@ -2,7 +2,6 @@
 import sys
 import numpy as np
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from skimage import measure
 from vpen import paths, ink
 from verode import load, _flat, LIGHT, BOLD

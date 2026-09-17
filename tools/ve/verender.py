@@ -6,7 +6,6 @@ letter arrives weighing what o weighs, which is what г was given too.
 """
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from verode import load, move, rejoin, LIGHT, BOLD
 from donor import find
 from fontTools.ttLib import TTFont

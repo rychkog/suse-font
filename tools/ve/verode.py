@@ -23,7 +23,6 @@ corner actually needs, capped so a near-cusp cannot throw it to infinity.
 import math
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from donor import segments_of, find
 
 LIGHT = "MonaspaceRadon-ExtraLightItalic_1.otf"

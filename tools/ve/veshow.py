@@ -1,7 +1,6 @@
 """The evened letter, drawn from the moved samples."""
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from verode import load, rejoin, _flat, LIGHT, BOLD
 from veven import even
 

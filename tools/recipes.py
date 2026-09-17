@@ -2296,13 +2296,14 @@ def Be_lc(pr):
     because Sudo's б stands 1.34 x-heights and this face's lowercase stands
     1.50 to 1.57; and fitted to o's width, because the cell is not optional.
 
-    `tools/be_donor.py` holds the result, `scripts/be_from_sudo.py`
-    regenerates it, and `tools/bowls.py` is the reading that judges it.
+    `tools/be_donor.py` holds the result as frozen data -- its generator is
+    retired -- and `tools/bowls.py` is the reading that judges it.
     """
     # The italic takes the ITALIC o's bowl, as д does. The roman б sheared
     # leant its counter 38-41 degrees against o's 17-26. At the donor's bowl
     # height Thin still read 37, because a shorter oval tips further under
-    # the same slant (METHOD F29); `RISE_IT` in the script raises the bowl.
+    # the same slant (METHOD F29); `RISE_IT` in the retired generator raised
+    # the bowl.
     base = getattr(pr, "_pr", pr)
     donor = BE_DONOR_IT if base.italic else BE_DONOR
     ps = [path([node(x, y, ty, sm) for x, y, ty, sm in c])
@@ -3206,8 +3207,8 @@ def Ge_cursive(pr):
     this family draws any part of it. c bulges the wrong way and mirroring is
     banned; з's lower terminal exits left where this one has to run right.
     What IS this face's is the height, the width, the cell, the terminal cut
-    and the weight -- `scripts/ge_from_lilex.py` has each of them and where it
-    was measured.
+    and the weight -- the retired `ge_from_lilex.py`, in git history, has each
+    of them and where it was measured.
     """
     base = getattr(pr, "_pr", pr)
     out = []
@@ -3654,7 +3655,7 @@ def De_cursive(pr):
 
     Only the counter is still taken live off o. The outer is per-master data
     because the splice is solved against o at that master; if o is ever
-    redrawn, `scripts/de_from_lilex.py` has to be run again.
+    redrawn, the frozen outer no longer fits it (METHOD §9).
 
     What was here before all of that was a centreline stroked at a constant
     width, and it was rejected: ink laid along a spine has no modulation and no

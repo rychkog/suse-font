@@ -6,7 +6,6 @@
 """
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from donor import segments_of, find
 from fontTools.ttLib import TTFont
 from fontTools.pens.boundsPen import BoundsPen

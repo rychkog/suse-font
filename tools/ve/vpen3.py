@@ -7,7 +7,6 @@ arriving along it, so from there to the crossing the two share one stroke.
 import math
 import sys
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from PIL import Image
 from vspine import raster, spine, branches, to_units
 from vstroke import smooth

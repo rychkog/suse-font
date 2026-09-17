@@ -9,7 +9,6 @@ import math
 import sys
 import numpy as np
 sys.path.insert(0, "tools")
-sys.path.insert(0, "scripts")
 from PIL import Image, ImageDraw
 from vspine import raster, spine, branches, to_units
 from verode import load, LIGHT, BOLD
