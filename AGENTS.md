@@ -133,7 +133,10 @@ output — findings have been hidden that way, including a broken interpolation.
    And before taking a shape from the panel, find the Latin letter with the
    same construction and take ITS answer: Ы's counter went to the panel's
    straight slot while the face's own D kept the side curved.
-   `docs/METHOD.md` F26, F27, F28.
+   A sloped bowl that is a SHORTENED o tips further than o under the same
+   slant: read its long axis against o at every weight. Italic б leant 38-41
+   degrees against o's 17-26 until its bowl took o's full height.
+   `docs/METHOD.md` F26, F27, F28, F29.
 
 ## Reporting
 

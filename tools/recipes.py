@@ -28,7 +28,7 @@ from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
-from be_donor import BE as BE_DONOR
+from be_donor import BE as BE_DONOR, BE_IT as BE_DONOR_IT
 from ge_donor import GE as GE_DONOR
 from de_donor import DE as DE_DONOR
 
@@ -2212,9 +2212,14 @@ def Be_lc(pr):
     `tools/be_donor.py` holds the result, `scripts/be_from_sudo.py`
     regenerates it, and `tools/bowls.py` is the reading that judges it.
     """
+    # The italic takes the ITALIC o's bowl, as д does. The roman б sheared
+    # leant its counter 38-41 degrees against o's 17-26. At the donor's bowl
+    # height Thin still read 37, because a shorter oval tips further under
+    # the same slant (METHOD F29); `RISE_IT` in the script raises the bowl.
     base = getattr(pr, "_pr", pr)
+    donor = BE_DONOR_IT if base.italic else BE_DONOR
     ps = [path([node(x, y, ty, sm) for x, y, ty, sm in c])
-          for c in BE_DONOR[base.mi]]
+          for c in donor[base.mi]]
     ps.sort(key=lambda q: -abs(area(q)))
     return ([ps[0] if area(ps[0]) > 0 else reverse(ps[0])]
             + [q if area(q) < 0 else reverse(q) for q in ps[1:]])

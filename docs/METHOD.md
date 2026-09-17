@@ -2021,6 +2021,18 @@ of the stem. It is now drawn wider by that ratio and lands at 1.00.
 reading put я's italic leg at 0.61 of the stem. Read row by row, across the
 leg and the stem at the same height, it was 0.92–0.94.
 
+### F29 · A shorter bowl tips further under the same slant
+
+The italic б was the upright б sheared. Its counter leant 38–41° from vertical, measured on the counter's long axis. The italic o, b, d and д lean 17–26°. The user saw it as "weird bowl inclination".
+
+1. A shear tips an oval's long axis. The rounder the oval, the further it tips; a circle's axis goes to about 45°.
+2. б's bowl is o squashed to 0.89 (Thin) and 0.82 (ExtraBold) of o's height, so it is rounder than o.
+3. So even the italic o, squashed the same way, reads 37° at Thin. The squash alone accounts for Thin.
+
+`Be_lc` now takes `BE_IT`, which `be_from_sudo.py` builds on the italic o, as д does. б reads 37 / 31 / 22° at Thin / Regular / ExtraBold, against o's 26 / 22 / 17°. Squashing along o's own top-to-bottom line was tried: it moved nothing and was removed. The line from the counter's top to its bottom reads б and o within a degree at both masters, so it is not the gauge the eye uses here; the long axis is.
+
+**What is left is height, not construction.** Thin can only come closer to o with a taller bowl, and `RISE_IT` in the script raises it: at 1.0 the bowl is o's height and leans exactly as o does at all eight weights. `bowls.py` records the panel's б counter at a median 0.95 of o's height, falling to 0.85 at the heavy end.
+
 ### F28 · A sheared bowl turns unevenly
 
 Shearing a round end tightens one turn and slackens the other. On a bowl facing right the top-right turn tightens into a knuckle and its stroke thickens, and the bottom-right thins. Я faces left, so its bottom-left thickens instead. The user saw it in Medium italic ь, then asked about the capitals too.

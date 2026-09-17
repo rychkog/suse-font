@@ -5,7 +5,10 @@ Open Font License 1.1, which is what lets it be an outline donor; SUSE Mono is
 under the same licence. "Sudo" is the donor's trademark and is not a name this
 font may use.
 
-Writes `tools/be_donor.py`. Run it from the repository root:
+Writes `tools/be_donor.py`, twice over: `BE` on the roman o and `BE_IT` on
+the italic o, un-sheared, so the italic б has the italic's own bowl. o's box
+is read off its ink, because an un-sheared italic's handles overshoot it.
+Run it from the repository root:
 
     ./venv/bin/python scripts/be_from_sudo.py
 
@@ -50,7 +53,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
 import glyphsLib
-from geom import area, bbox
+from geom import area
 from params import Params, Lower, _flatten
 from probe import contours, runs, vruns
 
@@ -58,6 +61,24 @@ SUDO = ("/mnt/c/Users/Admin/AppData/Local/Microsoft/Windows/Fonts/"
         "Sudo[YTDE,wght].ttf")
 LO, HI = 200, 700
 OUT = "tools/be_donor.py"
+# How much of the way from the donor's bowl height to o's own the bowl rises,
+# per source. A shorter oval tips further under the slant (METHOD F29), so the
+# italic's is raised; the roman's is the approved letter and stays at 0.
+RISE = 0.0
+RISE_IT = 1.0
+
+
+def ink_box(ps):
+    """The box of the INK, not of the nodes.
+
+    Under the italic `paths` un-shears o, which swings its control points out
+    past the curve (METHOD F17); a node box then reads an o wider than it is.
+    Upright, o's extremes are nodes and the two boxes agree.
+    """
+    pts = [q for p in ps for q in _flatten(p, 48)]
+    xs = [q[0] for q in pts]
+    ys = [q[1] for q in pts]
+    return min(xs), min(ys), max(xs), max(ys)
 
 
 def load(w):
@@ -206,7 +227,7 @@ def fit_segs(sg, work, pr):
     o = contours(work, "o", work.getBestCmap(), work.getGlyphSet())
     sbot = min(q[1] for p in be for q in p)
     stop = max(q[1] for p in o for q in p)
-    ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
+    ox0, oy0, ox1, oy1 = ink_box(pr.paths("o"))
     k = (oy1 - oy0) / (stop - sbot)
     top = max(oy0 + (q[1] - sbot) * k
               for c in sg for _kind, ps in c for q in ps)
@@ -377,7 +398,8 @@ def bowl(pr, top):
     puts that back afterwards by squeezing the counter, which is affine again.
     """
     ps = sorted(pr.paths("o"), key=lambda p: -abs(area(p)))
-    _x0, y0, _x1, y1 = bbox(ps)
+    _x0, y0, _x1, y1 = ink_box(ps)
+    top += RISE * (y1 - top)
     k = (top - y0) / (y1 - y0)
 
     def f(q):
@@ -507,7 +529,7 @@ def shape(a, b, t, work, pr, drop=frozenset()):
     o = contours(work, "o", work.getBestCmap(), work.getGlyphSet())
     sbot = min(q[1] for p in be for q in p)
     stop = max(q[1] for p in o for q in p)
-    ox0, oy0, ox1, oy1 = bbox(pr.paths("o"))
+    ox0, oy0, ox1, oy1 = ink_box(pr.paths("o"))
     return sg, remap(paths, sbot, stop, oy0, oy1, pr.asc, ox0, ox1)
 
 
@@ -721,10 +743,10 @@ def want_wall(pr):
     return floor_and_wall([_flatten(q, 48) for q in pr.paths("o")])[1]
 
 
-def build():
+def build(source):
     lo, hi = load(LO), load(HI)
     a, b = list(be_glyph(lo).coordinates), list(be_glyph(hi).coordinates)
-    font = glyphsLib.load(open("sources/SUSEMono.glyphs"))
+    font = glyphsLib.load(open(source))
     work = load(LO)
     made, landed = [], []
     for mi in range(len(font.masters)):
@@ -767,10 +789,23 @@ def main():
             '\n',
             'One entry per master, in source order: contours of\n',
             '(x, y, type, smooth). Both masters carry the same nodes in the\n',
-            'same order.\n',
-            '"""\n\nBE = [\n']
+            'same order. BE is built on the roman o, BE_IT on the italic o\n',
+            '(un-sheared), so the italic б carries the italic\'s own bowl.\n',
+            '"""\n\n']
     body = []
-    made = build()
+    global RISE
+    for name, source, rise in (("BE", "sources/SUSEMono.glyphs", 0.0),
+                               ("BE_IT", "sources/SUSEMono-Italic.glyphs",
+                                RISE_IT)):
+        RISE = rise
+        body.append("%s = [\n" % name)
+        body += entries(build(source))
+        body.append("]\n\n")
+    open(OUT, "w").write("".join(head) + "".join(body).rstrip("\n") + "\n")
+
+
+def entries(made):
+    body = []
     for t, paths in made:
         body.append("    # the donor's own weight axis at %.3f\n    [\n" % t)
         for p in paths:
@@ -780,8 +815,8 @@ def main():
                             % (x, y, ty, sm))
             body.append("        ],\n")
         body.append("    ],\n")
-    open(OUT, "w").write("".join(head) + "".join(body) + "]\n")
     print("%s  %s" % (OUT, [[len(p) for p in ps] for _, ps in made]))
+    return body
 
 
 if __name__ == "__main__":
