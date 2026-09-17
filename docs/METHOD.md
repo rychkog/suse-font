@@ -1289,6 +1289,12 @@ The spine tools are not deleted — `tools/cursive.py` is a good *judge*, and
 `tools/gd_band.py` is what settled г's proportions before anything was fitted.
 They are not constructors.
 
+**The exception is a letter the user asks to see written with one pen.** The
+cursive в was rejected in every assembled form and accepted only as one stroke
+of even width (F20). There the monoline is the design, not a missing
+modulation. The rule above still holds wherever the letter is meant to carry
+the face's contrast.
+
 **And a donated outline is only as good as the donor's FORMAT.** г came off
 Sudo first, which is a variable TrueType, so its curves arrive as quadratics;
 expanding those segment by segment — the only expansion that keeps the node
@@ -1903,6 +1909,45 @@ spend room the letter does not have. **When four constructions fail at one
 master and none at the other, the constraint is the donor, not the drawing** —
 and the honest fix was to stop the stroke before the pinch (`I_CUT` 0.92 to
 0.30), which buys 0.33 to 0.45 of a stem at the cost of a shorter turn.
+
+### F20 · A two-storey letter's small storey outgrows the big one with weight
+
+The cursive в (2026-09-16/17) was settled at Thin as one pen path and then
+failed five rounds at ExtraBold. **A heavy stroke adds the same amount to
+both storeys, so the small one grows the most relative to its size.** Thin's
+loop is 0.54 of the bowl's width. Carried to ExtraBold with the same knobs,
+the loop's white shut. Shrinking the bowl to give the loop room made the loop
+as wide as the bowl (1.00, "a disaster") and the letter read as 8.
+
+What worked, in the order it was found:
+
+1. **The big storey leads.** The bowl went back to near o's height, and the
+   loop stayed small: 0.79 of the bowl at 502 wide.
+2. **The width is o's, not the tall letters'.** A wider bowl (593) was
+   rejected in words beside о, although d and 8 are that wide.
+3. **Where the loop lands is a distance, not a style knob.** Landed where
+   Thin's does, measured in strokes, it landed inside solid ink and its white
+   came to a point.
+4. **The face does not lighten its upper storey.** 8 and В keep it as heavy as
+   the lower (0.97 and 1.07 at ExtraBold), and a lighter loop was rejected.
+
+**Tuning one construction's numbers read as "they all look the same".** A
+one-line diagnosis from the user ("the loop becomes bigger than the bowl")
+moved it in one round. Ask for it before the third round, not the sixth.
+
+**And the pen path went into the font as outlines, not as a raster.**
+`tools/pen.py` sweeps each stretch of the path analytically and fits one cubic
+per edge per stretch, so both masters carry the same nodes. Two things the
+first build got wrong, both read by `outlines.py --built`:
+
+* Where the loop leaves and lands on the bowl, the bowl needs a node too.
+  Without one, its fitted edge sits about a unit off the exact one, and
+  overlap removal leaves an 18° kink.
+* Split each stretch where it reaches an x or y extreme, or the shipped
+  outline has no node there.
+
+The built outline matched the approved picture to within 4 units at both
+masters (`Ve_pen`).
 
 
 ## 4 · Probe inventory

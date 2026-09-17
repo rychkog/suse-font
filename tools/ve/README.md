@@ -1,8 +1,11 @@
-# Italic в — chosen construction (probe, not yet in the font)
+# Italic в — chosen construction
 
 User picked **L** on 2026-09-16 ("Version L! Looks good"), then asked for it
 wider: **L3**, with the loop's top kept a true circle ("L3 round top").
-Judged at Thin. Not approved in the APPROVALS sense: not built into the font.
+Judged at Thin. Not approved in the APPROVALS sense.
+
+Built into the font on 2026-09-17 by `recipes.Ve_pen`, with `tools/pen.py`
+turning the pen path into outlines. These scripts are the probes it came from.
 
 Construction: `vform.pen_spine` — one pen path swept at constant width.
 

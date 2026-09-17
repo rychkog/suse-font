@@ -3286,6 +3286,112 @@ def Ve_cursive(pr):
     return cup + loop
 
 
+# в in the italic as ONE pen stroke -- `tools/ve/README.md`. Thin is L3 with
+# the round top; ExtraBold is H, kept for now. Per master: the pen (wide,
+# tall), the width the construction measures in, the loop's radius, how far
+# along the bowl's top the loop lands (in those widths), the bowl's width and
+# height against o's, and how much the loop's circle grows.
+VP_PEN = ((28.0, 28.0), (148.0, 112.0))
+VP_W = (28.0, 130.0)
+VP_R = (70.0, 100.0)
+VP_MERGE = (5.0, 1.8)
+VP_WIDE = (1.25, 1.15)
+VP_SCALE = (0.80, 0.92)
+VP_LOOP = (1.35, 1.10)
+VP_LEAN = 18.0      # the loop's axis, off the vertical
+VP_TURN = 0.65      # the descending curve's handles, toward where its ends' directions cross
+VP_STOP = 40.0      # degrees short of half-way round that the top circle ends
+
+
+def Ve_pen(pr):
+    """в in the italic, written as the copybook writes it -- one stroke.
+
+    Rejected as two parts (`Ve_cursive`, two bowls; a leaf on an oval) and
+    accepted as a pen path, 2026-09-16: *"this is a single stroke"*. Up the
+    bowl's own left side and on as a straight line, round a circle at the
+    top, down in one curve onto the bowl's top, and the bowl round once.
+
+    * The bowl is this face's italic o's centreline, shrunk about its foot.
+    * The line leaves the bowl at K, where the bowl already travels at the
+      loop's lean, so the loop's left side IS the bowl's left side run on.
+    * The loop lands on the bowl's top `VP_MERGE` widths past K and shares the
+      bowl's stroke from there. Landing in solid ink at ExtraBold left the
+      loop's white a point; landing late filled the waist Thin has.
+    * ExtraBold's pen is oval, as its o is: 148 across, 112 up and down.
+
+    Worked in italic space -- the top is a circle THERE -- and un-sheared on
+    the way out, since the build shears every drawn glyph.
+    """
+    import pen as P
+    mi = pr.mi
+    stroke, w = VP_PEN[mi], VP_W[mi]
+    o = slant(pr.paths("o"), pr.italic, pr.pivot)
+    polys = sorted((P.flatten(p) for p in o), key=lambda q: -abs(sum(
+        a[0] * b[1] - b[0] * a[1] for a, b in zip(q, q[1:] + q[:1]))))
+    cl = P.centreline(polys[0], polys[1])
+    ring_pts = [cl[0](2.0 * math.pi * i / 720) for i in range(720)]
+    xs = [p[0] for p in ring_pts]
+    foot = ((min(xs) + max(xs)) / 2.0, min(p[1] for p in ring_pts))
+    bowl_c = P.scaled(cl, foot, VP_SCALE[mi] * VP_WIDE[mi], VP_SCALE[mi])
+    at, vel = bowl_c
+
+    th = math.radians(VP_LEAN)
+    ax = (math.sin(th), math.cos(th))
+    nm = (ax[1], -ax[0])
+
+    def up_axis(t):
+        dx, dy = vel(t)
+        m = math.hypot(dx, dy)
+        return -(dx * ax[0] + dy * ax[1]) / m
+    tK = max((math.pi / 2 + (math.pi / 2) * i / 3600.0 for i in range(3601)), key=up_axis)
+    K = at(tK)
+
+    top = bbox(pr.paths("b"))[3] - w / 2.0
+    r = VP_R[mi] * VP_LOOP[mi]
+    s = (top - r - nm[1] * r - K[1]) / ax[1]
+    PL = (K[0] + ax[0] * s, K[1] + ax[1] * s)
+    Cc = (PL[0] + nm[0] * r, PL[1] + nm[1] * r)
+
+    tQ, acc = tK, 0.0
+    while acc < VP_MERGE[mi] * w:
+        a, b = at(tQ), at(tQ - 1e-3)
+        acc += math.hypot(b[0] - a[0], b[1] - a[1])
+        tQ -= 1e-3
+    Q = at(tQ)
+    tq = P._unit(*vel(tQ))
+
+    fE = math.radians(VP_STOP)
+    E = (Cc[0] + r * (math.cos(fE) * nm[0] + math.sin(fE) * ax[0]),
+         Cc[1] + r * (math.cos(fE) * nm[1] + math.sin(fE) * ax[1]))
+    tE = (math.sin(fE) * nm[0] - math.cos(fE) * ax[0],
+          math.sin(fE) * nm[1] - math.cos(fE) * ax[1])
+    den = tE[0] * -tq[1] - tE[1] * -tq[0]
+    u = ((Q[0] - E[0]) * -tq[1] - (Q[1] - E[1]) * -tq[0]) / den
+    X = (E[0] + tE[0] * u, E[1] + tE[1] * u)
+    h1 = (E[0] + (X[0] - E[0]) * VP_TURN, E[1] + (X[1] - E[1]) * VP_TURN)
+    h2 = (Q[0] + (X[0] - Q[0]) * VP_TURN, Q[1] + (X[1] - Q[1]) * VP_TURN)
+
+    down = P.bezier(E, h1, h2, Q)
+    cuts = [0.0] + P.x_turns(down) + [1.0]
+    fTop = math.pi / 2 + th
+    loop = ([P.straight(P.line(K, PL)),
+             P.arc(Cc, r, nm, ax, math.pi, fTop),
+             P.arc(Cc, r, nm, ax, fTop, fE)]
+            + [P.part(down, a, b) for a, b in zip(cuts, cuts[1:])])
+    # the ring carries a node where the loop leaves it and where it lands, so
+    # both parts pass through those points in the same direction
+    ts = sorted(t % (2.0 * math.pi) for t in P.turns(bowl_c) + [tK, tQ])
+    ts = ts + [ts[0] + 2.0 * math.pi]
+    ring = [P.along(bowl_c, a, b) for a, b in zip(ts, ts[1:])]
+
+    out, e1 = P.ring(ring, stroke)
+    rib, e2 = P.ribbon(loop, stroke)
+    out.append(rib)
+    worst = max(e1, e2)
+    Ve_pen.fit_error = worst
+    return slant(out, -pr.italic, pr.pivot)
+
+
 def De_cursive(pr):
     """д -- this face's own o for the bowl, Lilex's hook laid over it.
 
@@ -3617,7 +3723,7 @@ def Yi_cursive(pr):
 
 ITALIC["ge-cy"] = Ge_cursive
 ITALIC["de-cy"] = De_cursive
-ITALIC["ve-cy"] = lc(Ve_cursive)
+ITALIC["ve-cy"] = Ve_pen
 ITALIC["gheupturn-cy"] = lc(Ghe_upturn_cursive)
 ITALIC["te-cy"] = lc(Te_comb)
 ITALIC["i-cy"] = I_cursive
