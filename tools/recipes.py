@@ -24,7 +24,7 @@ from geom import (node, path, rect, clone_all, translate, mirror_x, mirror_y,
                   reverse, arc_to, corner_radius, inner_radius, bbox, squash,
                   squash_x, piecewise_y, scale_x, fit, slant, taper,
                   cut_at_y, cut_along, meets_line, seg_at,
-                  _segments, _split_seg)
+                  _segments, _split_seg, _map_points)
 from latin_metrics import Latin
 from params import Lower, _flatten
 from probe import runs, vruns
@@ -241,6 +241,24 @@ EF_HEIGHT = 1.781
 # lower quartile rather than its median -- at ExtraBold this face's stem is 150
 # units of a 600 cell, and every unit given to the gap comes off the bowl.
 YU_GAP = 0.129
+# ...and the least it gives way to at the heavy end: the lower quartile of the
+# heavy faces whose stem is as heavy as this one's (a fifth of the advance).
+# Read, like theirs, a quarter up the letter, where the bowl has already
+# curved away from the stem -- set at the bowl's extreme instead, it left Ю's
+# gap reading 0.106 and took the counter's room out of the walls.
+YU_GAP_MIN = 0.078
+YU_GAP_ROW = 0.25
+# The bowl's counter, as a share of the face's own o / O counter width: the
+# median of those same faces, ю 0.476 and Ю 0.448. With m's three-stem gap as
+# the only floor, ю closed to 0.35 of o and Ю to 0.32 of O at ExtraBold -- the
+# narrowest of every heavy face measured. Their walls match ours; they spend
+# the gap on the counter instead.
+YU_COUNTER = {"lc": 0.476, "cap": 0.448}
+# The least the bowl's roof and floor weigh, over the case's bar: the lightest
+# horizontal the face draws in that case -- t's bar itself, and B's 0.90-0.96
+# of H's. Floored at H's full bar, Ю's roof matched its walls at ExtraBold and
+# the italic's shear knotted the turn (1.09 against O's 1.01).
+YU_ROOF = {"lc": 1.00, "cap": 0.90}
 # Ф: how far the stem projects past the bowl, in cap heights. Borrowed for the
 # same reason -- see Ef.
 #
@@ -1103,22 +1121,97 @@ def Yu(pr):
     # scanline across this letter crosses a stem and both bowl walls, which is
     # what the figure is for.
     crowd = L(pr).crowd3
-    tx, _ = bowl_stroke(pr)
-    tx *= crowd
+    ink = _ink_round(pr, round_of(pr))
+    tx = ink["tx"] * crowd
+    case = "lc" if getattr(pr, "lower", False) else "cap"
+    # The right side is a bowl, not a stem, and this face sets a round side
+    # nearer the edge: b keeps 0.56-0.65 of its stem side's margin there, D
+    # 0.50-0.58. Fitted as three stems, ю kept 0.94 and Ю 1.00, and the
+    # panel's ю runs 3% wider than its m where ours ran exactly as wide.
+    # The italic takes the roman's gain: its un-sheared margins are not margins.
+    ro = sloped(pr, caps=True)
+    r0, r1, _ = fit_stems(ro, 3)
+    x1 += (600.0 - r1) - r0 * _round_share(ro, "b" if case == "lc" else "D")
     # The clear run between the stem and the bowl. As 0.04 of the span this
     # was 21 units at ExtraBold -- 0.085 of the advance where the panel's
     # median is 0.173 and its lower quartile 0.129 -- and the connecting bar
     # was too short to read as a connection at all.
-    # ...and the gap gives way before the bowl does. The bowl must hold two
-    # strokes and the counter m already accepts between three stems; whatever
-    # is left over is the gap's, up to the panel's figure.
-    room = (x1 - x0 - s) - (2.0 * tx + L(pr).counter3)
-    bx0 = x0 + s + max(0.0, min(YU_GAP * 600.0, room))
+    # ...and the GAP gives way before the counter does, down to YU_GAP_MIN.
+    # With the counter the one giving way, down to m's gap between three
+    # stems, ю read 0.35 of o at ExtraBold, a slit. Only below YU_GAP_MIN
+    # does the gap go further, and then only to keep the counter off m's floor.
+    # The walls never give: the heavy faces' walls are this face's O.
+    room = x1 - x0 - s
+    avail = room - 2.0 * tx
+    # Both panel figures are read on that low row, so both are carried to it
+    # through the bowl's own curve: `curl` for the gap, `narrow` for the counter.
+    bx, by0, bx1, by1 = ink["box"]
+    y = by0 + (YU_GAP_ROW * pr.cap - min(ys)) / (max(ys) - min(ys)) * (by1 - by0)
+    r = runs([_flatten(ink["o"], 48), _flatten(ink["c"], 48)], y)
+    curl = (r[0][0] - bx) / (bx1 - bx)
+    narrow = (r[1][0] - r[0][1]) / ink["cw"]
+    want = max(L(pr).counter3, YU_COUNTER[case] * ink["cw"] / narrow)
+    floor = (YU_GAP_MIN * 600.0 - curl * room) / (1.0 - curl)
+    gap = max(0.0, min(YU_GAP * 600.0, max(floor, avail - want),
+                       avail - L(pr).counter3))
+    bx0 = x0 + s + gap
     # the bar sits on the case's own middle: midY is H's and does not travel
     bary = pr.barCentre * pr.cap - pr.bar / 2.0
     return ([rect(x0, 0.0, x0 + s, pr.cap),
-             rect(x0, bary, bx0 + tx, bary + pr.bar)]
-            + bowl(pr, bx0, x1, min(ys), max(ys), crowd=crowd))
+             # into the middle of the wall: ending on the counter's edge, the
+            # bar grazed the sheared counter and left a step at ExtraBold
+            rect(x0, bary, bx0 + tx / 2.0, bary + pr.bar)]
+            + _ink_bowl(pr, ink, bx0, x1, min(ys), max(ys), crowd,
+                        YU_ROOF[case] * pr.bar))
+
+
+def _round_share(pr, donor):
+    """`donor`'s margin on its round side over its margin on its stem side."""
+    xs = [q[0] for p in pr.paths(donor) for q in _flatten(p, 24)]
+    return (600.0 - max(xs)) / min(xs)
+
+
+def _ink_round(pr, donor):
+    """A round letter's outer, counter and their INK figures.
+
+    `bowl` reads nodes, and under the italic `paths` un-shears a drawn italic,
+    which swings its handles out past the curve (F17): the node box read o 62
+    units wider than its ink and its side 16 heavier at ExtraBold, so ю's
+    italic bowl came out narrower and heavier than its own numbers. Upright
+    the two readings agree to the unit. Ф keeps `bowl`; it is approved.
+    """
+    o, c = pr.paths(donor)[0], pr.paths(donor)[1]
+    fo, fc = _flatten(o, 48), _flatten(c, 48)
+    xs, ys = [q[0] for q in fo], [q[1] for q in fo]
+    mid = (min(ys) + max(ys)) / 2.0
+    r = runs([fo, fc], mid)
+    return {"o": o, "c": c, "box": (min(xs), min(ys), max(xs), max(ys)),
+            "cbox": (min(q[0] for q in fc), min(q[1] for q in fc),
+                     max(q[0] for q in fc), max(q[1] for q in fc)),
+            "tx": r[0][1] - r[0][0], "ty": min(q[1] for q in fc) - min(ys),
+            "cw": r[1][0] - r[0][1]}
+
+
+def _ink_fit(p, box, x0, y0, x1, y1):
+    bx0, by0, bx1, by1 = box
+    sx, sy = (x1 - x0) / (bx1 - bx0), (y1 - y0) / (by1 - by0)
+    return _map_points([p], lambda x, y: (x0 + (x - bx0) * sx,
+                                          y0 + (y - by0) * sy))
+
+
+def _ink_bowl(pr, ink, x0, x1, y0, y1, crowd, ty_min=0.0):
+    """`bowl`, fitted to the ink rather than the nodes.
+
+    `ty_min` floors the roof and floor. `crowd` is a squeeze ACROSS the
+    letter, and this face draws no lowercase horizontal lighter than t's bar,
+    nor a round capital's roof lighter than H's: crowded, ю's read 0.95 of it
+    at Regular once its bowl was wide enough for the signature gate to count
+    them.
+    """
+    tx, ty = ink["tx"] * crowd, max(ink["ty"] * crowd, ty_min)
+    return (_ink_fit(ink["o"], ink["box"], x0, y0, x1, y1)
+            + _ink_fit(ink["c"], ink["cbox"], x0 + tx, y0 + ty,
+                       x1 - tx, y1 - ty))
 
 
 def _mid_arm(pr, y=None):

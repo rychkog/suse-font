@@ -73,6 +73,14 @@ output — findings have been hidden that way, including a broken interpolation.
 3. **Measure the host before blaming the glyph.** SUSE's own Latin is the
    authority on what this face does; the panel is the authority on what
    relation holds. `audit.py --selftest` must stay clean.
+   A panel figure holds only on the row its probe read it on: after using
+   one, read ours back with that same probe, in memory, before building. ю Ю's
+   gap floor was set at the bowl's extreme from a figure read a quarter up,
+   and the first build thinned Ю's walls through the stroke gate.
+   `docs/METHOD.md` F1.
+   A gate that finds nothing to read in a letter has not passed it: ю's
+   crowded roof went unread until its bowl was wide enough to count
+   (`docs/METHOD.md` F3).
 4. **A flat proportion constant is suspect** until the panel has been bucketed
    by weight. That is how ф was found.
 5. **Two constants that justify each other are one decision.** If a constant's

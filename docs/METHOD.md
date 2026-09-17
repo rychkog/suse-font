@@ -377,6 +377,19 @@ outer it sits in. Before carrying one, put the two outers side by side as
 proportions — and afterwards run `tools/wrap.py`, which is the reading that
 caught this and the one no gate takes.
 
+**A panel figure is a constant too, and its condition is the ROW it was read
+on.** ю Ю's heavy split came from a probe that cuts each letter a quarter of the
+way up, under the bar. There the bowl has already curved away from the stem, so
+the gap reads wider and the counter narrower than at the bowl's extreme, where
+`Yu` places them. Applied at the extreme, the panel's gap floor of 0.078 left
+Ю's gap reading 0.106 on the panel's own row — above the panel's median. The
+counter's shortfall then came out of the walls, and the stroke gate against O
+failed at every weight from Medium up. Carried to the extreme through the
+bowl's own curve (`curl` for the gap, `narrow` for the counter), both figures
+landed where the panel has them. **The tell:** after applying a panel figure,
+read ours back with the probe that produced it. If ours does not land where
+the figure says, the figure was applied somewhere else.
+
 ### F2 · `outer − stroke` as an inner radius
 
 Goes negative once the stroke outgrows the corner, floors at its minimum, and
@@ -476,6 +489,19 @@ and, separately, `crowd3` on a figure already read off a crowded donor. A
 ratio taken from М, m or Ж carries that donor's own crowding inside it
 already. See F1: this is the same fault, with the condition hidden in a
 measured ratio rather than in a written constant.
+
+**On a horizontal.** `crowd3` is a squeeze ACROSS the letter, and `Yu` applied
+it to the bowl's roof and floor as well — which nothing crowds. ю's roof read
+0.95 of t's bar at Regular, under every lowercase horizontal the face draws.
+It hid for weeks because the signature gate only counts a horizontal that
+persists across a fifth of the letter, and a slit bowl's roof never did; the
+gate returned nothing for ю, which reads as a pass. Widening the bowl made
+the roof countable and the gate fired. Now floored at the lowercase bar.
+Ю's roof sat at 0.84 of H's bar, under B's 0.90, and the capital gate never
+fired at all. The floor is the lightest horizontal the face draws in the
+case, not the bar: floored at H's full bar, Ю's roof matched its walls at
+ExtraBold and the italic's shear knotted the turn (mass 1.09 against O's
+1.01). A floor that removes a letter's contrast is a new fault.
 
 ### F4 · A median across a mixed population hiding a relation
 
@@ -2408,6 +2434,24 @@ raw coordinates.
 ## 8 · Settled findings
 
 Things established by measurement that are not method and not a fault.
+
+### ю Ю at the heavy end: the gap gives way, the walls do not
+
+Read a quarter up the letter, among heavy faces whose stem is a fifth of the
+advance or more (ю n=12, Ю n=15), the walls are this face's own: 0.20–0.22 of
+the advance, as ours. They spend the width on the counter: 0.148 for ю and
+0.150 for Ю, against 0.094 and 0.108 in ours before 2026-09-17. The gap is
+where they save, median 0.098, lower quartile 0.078. Their counter is as full
+at that row as ours (0.93 both), so a stadium-shaped bowl is not their answer
+— width is. Ю stays at the panel's p10 once its gap reaches 0.078: its walls
+are O's, and the stroke gate allows no thinner. Do not chase it through the
+walls.
+
+The third lever is the round side's margin. This face sets a bowl nearer the
+cell edge than a stem: b keeps 0.56 (ExtraBold) to 0.65 (Thin) of its stem
+side's margin on its round side, D 0.50. A letter fitted as three stems keeps
+them equal, and the heavy panel's ю runs a median 3% wider than its m. ю takes
+b's share and Ю D's (0.50–0.58), both since 2026-09-17.
 
 ### Node parity says nothing about size
 

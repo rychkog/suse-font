@@ -57,7 +57,7 @@ from weights import edt                                       # noqa: E402
 # junction puts mass at a lobe's end that no single bowl has.
 BOWLS = ("в", "ь", "ъ", "ы", "б", "b", "p", "o", "B")
 NAMES = {"в": "ve-cy", "ь": "softsign-cy", "ъ": "hardsign-cy",
-         "ы": "yeru-cy", "б": "be-cy"}
+         "ы": "yeru-cy", "б": "be-cy", "ю": "yu-cy", "Ю": "Yu-cy"}
 
 K = 2.0     # pixels per unit
 
