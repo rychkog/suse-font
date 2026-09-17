@@ -143,7 +143,11 @@ Each rule is one statement; the story behind it is at the pointer.
     italic leg shipped at twice its own weight through all of them. F22.
     - A shear keeps a stroke's horizontal run and changes its lean, so a
       sloped roman splits a symmetric pair of diagonals by up to a quarter.
-      The face redraws its own X to stop that. F28's class, in a diagonal.
+      The face redraws its own X, V and K to stop that. Take each stroke's
+      horizontal width from the lean it will END at — Я, Ж, У and К each
+      carry their own copy of `hypot(1, m + k) / hypot(1, k)`. F33.
+    - **The check is that the ROMAN source rebuilds byte-identical.** An
+      italic-only correction that moves the upright has a sign wrong.
 
 ## Reporting
 

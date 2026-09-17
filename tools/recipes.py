@@ -2430,13 +2430,19 @@ def U(pr, top=None, bottom=0.0):
     xa, xb = 300.0 - (wb[2] - wb[0]) / 2.0, 300.0 + (wb[2] - wb[0]) / 2.0
     foot = 300.0 - U_FOOT * 600.0
 
-    # the right stroke: one straight run, top right corner to the foot
+    # the right stroke: one straight run, top right corner to the foot.
+    # Each width comes from the lean the stroke will END at: the two lean
+    # opposite ways, so the shear thins one and fattens the other, and У read
+    # 1.02 and 0.88 of the stem at Thin Italic where V -- the Latin with this
+    # construction -- holds 1.02 and 1.03 through the same angle. Я's leg
+    # already takes its width this way; copied, not shared.
+    k = math.tan(math.radians(pr.italic))
     sr = 0.45
     for _ in range(8):
-        wr = arm * math.hypot(1.0, sr)
+        wr = arm * math.hypot(1.0, sr + k) / math.hypot(1.0, k)
         sr = (xb - wr / 2.0 - foot) / (top - bottom)
-    wr = arm * math.hypot(1.0, sr)
-    wl = arm * math.hypot(1.0, U_LEAN * sr)
+    wr = arm * math.hypot(1.0, sr + k) / math.hypot(1.0, k)
+    wl = arm * math.hypot(1.0, k - U_LEAN * sr) / math.hypot(1.0, k)
 
     def cr(y):
         return foot + sr * (y - bottom)
@@ -2717,12 +2723,26 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
     # The arm's slope is not chosen: it is whatever gets the inner edge from
     # its flat top cut down to one short step short of the stem. Solved by
     # iteration because widening the arm for its own slant moves the top cut.
+    # Each arm's HORIZONTAL width comes from the lean it will END at, not from
+    # the one it is drawn at. A shear keeps a stroke's horizontal run and
+    # changes its lean, so four arms mirrored about the stem come apart under
+    # it: ours read 0.90 and 1.12 of the stem at Thin Italic where the face's
+    # own X, the Latin with this construction, holds 0.94 to 0.99. Я's leg
+    # already takes its width this way. Copied rather than shared -- the two
+    # letters solve their slopes differently and are not one decision.
+    k = math.tan(math.radians(pr.italic))
+
+    def arm_w(m):
+        return arm * math.hypot(1.0, m + k) / math.hypot(1.0, k)
+
     shelf = max(6.0, ZHE_SHELF * arm if shelf is None else shelf * arm)
     reach = xL - shelf - sb
     s = 0.3
     for _ in range(8):
-        s = (reach - arm * math.sqrt(1.0 + s * s)) / (top - up)
-    width = arm * math.sqrt(1.0 + s * s)
+        # the two slope classes now land either side of the shelf, so the mean
+        # is what keeps them symmetric about it. Upright k is 0, both widths
+        # are arm * hypot(1, s), and this is the line it always was.
+        s = (reach - (arm_w(-s) + arm_w(s)) / 2.0) / (top - up)
 
     # The two arms on a side are reflections of each other in the waist, but
     # each is cut flat at the line it actually meets -- cap or baseline. Taking
@@ -2734,7 +2754,7 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
     def edge_lo(y):
         return edge_up(2.0 * waist - y)
 
-    def arm_at(flat, near, far, edge):
+    def arm_at(flat, near, far, edge, width):
         # Each arm runs past its own landing on to the OPPOSITE one, so the
         # outer edges of the pair cross inside the shape and the notch between
         # them falls out of the overlap instead of having to be cut.
@@ -2746,9 +2766,15 @@ def Zhe(pr, top=None, bottom=0.0, stem=None, sb=None, shelf=None):
                   node(edge(far), far)])
         return q if area(q) > 0 else reverse(q)
 
-    left = [arm_at(top, up, lo, edge_up), arm_at(bottom, lo, up, edge_lo)]
-    return ([rect(xL, bottom, xR, top)] + left
-            + mirror_x(clone_all(left), 300.0))
+    # `edge_up` falls to the right and `edge_lo` rises to it, so the two arms
+    # on a side lean opposite ways and take opposite widths. Mirroring flips
+    # the lean, so the right pair is built from the other width and reflected.
+    def side(wt, wb):
+        return [arm_at(top, up, lo, edge_up, wt),
+                arm_at(bottom, lo, up, edge_lo, wb)]
+
+    return ([rect(xL, bottom, xR, top)] + side(arm_w(-s), arm_w(s))
+            + mirror_x(clone_all(side(arm_w(s), arm_w(-s))), 300.0))
 
 
 # м's vertex, as a fraction of М's own -- each measured against its own line,
@@ -3042,11 +3068,18 @@ def Ka(pr, donor="K", top=None, neck=KA_NECK):
         a stroke for its own lean moves the end it is aimed from.
         """
         wp, R = borrow(p, line)
+        # ...and the lean it ends at is the one the SHEAR leaves it at. The
+        # arm and the leg lean opposite ways, so a shear thins one and fattens
+        # the other: К read 1.03 and 0.77 of the stem at Regular Italic where
+        # it is 0.99 and 0.85 upright. Я's leg already takes its width this
+        # way; copied rather than shared, because К solves its slope from the
+        # donor's own extreme and Я does not.
+        k = math.tan(math.radians(pr.italic))
         s = 1.0 if line > yv else -1.0
         for _ in range(6):
-            h = wp * math.hypot(1.0, s)
+            h = wp * math.hypot(1.0, s + k) / math.hypot(1.0, k)
             s = (R - h - xa) / (line - yv)
-        return s, wp * math.hypot(1.0, s)
+        return s, wp * math.hypot(1.0, s + k) / math.hypot(1.0, k)
 
     s_a, h_a = stroke(arm, top)
     s_l, h_l = stroke(leg, 0.0)

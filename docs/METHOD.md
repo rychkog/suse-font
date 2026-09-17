@@ -2248,6 +2248,52 @@ does not have. The quadratic conversion makes them. Both readings are right;
 they are different instruments, and a finding has to name which one saw it.
 
 
+### F33 · A sloped roman inherits the shear's own change to stroke weight
+
+Ж's four arms are one weight upright — 0.94 0.94 0.96 0.96 of the stem at
+Thin, 0.83 four times at ExtraBold. In the italic they came apart: **0.90 and
+1.12 at Thin Italic, a 24% split**, ж 0.91 and 1.15, У 0.88 and 1.04 against a
+level 0.96 and 0.96 upright.
+
+**A shear keeps a stroke's horizontal run and changes its lean.** Perpendicular
+width is `run / hypot(1, slope)`, so a pair of arms at ±0.61 is left at +0.86
+and −0.36 and their weights part by a quarter — arithmetic, not a drawing
+error. Every sloped-roman diagonal carries it.
+
+**The face does not accept it.** Its own X, V and K are sheared through the
+same 14 degrees and hold 1.03 to 1.11. Measured arm by arm, V's horizontal runs
+change between the two styles — 29.5 to 32.4 on the arm that steepens, 30.0 to
+28.9 on the one that flattens — which is exactly what keeping the perpendicular
+width requires. So the correction is the face's own, read off its own letters
+and not imported.
+
+**The fix is one term, and Я's leg already had it.** Take the horizontal width
+from the lean the stroke will END at:
+
+    w = perpendicular * hypot(1, m + k) / hypot(1, k)
+
+with `m` the un-sheared slope and `k = tan(italic)`. The divisor is the stem's
+own thinning through the same shear, so the stroke comes out the same weight
+as the stem rather than the same weight it had upright. Upright `k` is 0 and
+the term is `hypot(1, m)`, which is the line it always was — the roman source
+rebuilt **byte-identical**, which is the check, not the intention.
+
+Copied into Ж, У and К rather than shared: Ж solves its slope from a shelf, К
+from the donor's own extreme, Я from neither, so the three are not one
+decision. After: Ж 0.98–1.00, ж 0.98–1.00, У 0.93–0.94, and К lands on the
+Latin K it is built from at every weight, upright and italic alike.
+
+**What it cost, measured against a rebuilt baseline rather than assumed.**
+`audit --italic` reads 48 at HEAD and 49 with the fix. The one added is *Thin
+Ж counter 14 < Latin's own 14* — widening two arms by 9% closed that counter
+to a hair under. Ж's other counter findings at Regular and Bold were already
+there. Approved on that basis 2026-09-18.
+
+**The tell, for next time.** The letter looks right at one style and wrong at
+the other, and every upright reading is clean. `diagonals.py --drawn` is what
+sees it; nothing else in the tree reads a diagonal across itself. F22.
+
+
 ## 4 · Probe inventory
 
 | tool | measures | gate? |
@@ -3559,26 +3605,14 @@ finding to §8 or to a fault entry, its approval to the ledger.
   and tail) are upright-only — the cursive г т в д answer differently by
   design, and the exemption keys off `recipes.ITALIC`.
 - **`shoulder_spine`** still carries the F2 subtraction; see F2.
-- **A drawn diagonal splits under the shear where the face's own does not.**
-  Measured 2026-09-18 by `diagonals.py --drawn`, at every italic weight. Ж's
-  four arms are level upright — 0.94 0.94 0.96 0.96 of the stem at Thin, 0.83
-  four times at ExtraBold — and in the italic they come apart: **0.90 and 1.12
-  at Thin Italic, a 24% split**, ж 0.91 and 1.15, У 0.88 and 1.04 against a
-  level 0.96 and 0.96 upright. The face's own X, sheared through the same
-  angle, holds 0.94 to 0.99.
-  - **The arithmetic says a pure slant must do this.** A shear keeps a
-    stroke's horizontal run and changes its lean, so perpendicular width goes
-    as `run / sqrt(1 + s²)`: arms at ±0.6 become +0.85 and −0.35, which is a
-    24% split by itself. Ж reads 24%. The face's own X is *corrected* — 
-    `italic.py` puts it in "within 0.040" rather than a pure slant, and it
-    comes out level.
-  - So this is **F28's class in a diagonal**: the face redraws where a shear
-    would distort, and a sloped roman inherits the distortion. К splits upright
-    already (0.99 / 0.85) and splits further in the italic (1.03 / 0.77).
-  - **Ж ж У К are approved.** This is a record and the user's to pull, not a
-    licence. What is NOT yet known is whether a 24% split is visible at reading
-    size in a letter whose arms are this short — that is the eye's answer, not
-    the probe's.
+- **к's italic split is k's own, and it is the last one not accounted for.**
+  Ж ж У К к are corrected — F33 — and each now lands where the Latin it is
+  built from lands. What is left is that the Latin к is built from splits too:
+  k reads 1.11 at Thin Italic and 1.40 at ExtraBold Italic, ours 1.12 and
+  1.21. Ours is INSIDE the host's, so nothing here is out of character and
+  there is nothing to fix in к. The open question is whether the face's own k
+  and K are meant to split that far in the italic, which is a question about
+  SUSE Mono and not about this project's letters. Do not redraw к for it.
 - **в, Я and я are separate call sites with the same disease.** This is why
   `relations.py` clustered them with Б Ь Ы. All three are approved and were not
   touched on 2026-08-11; the explanation their ledger rows lacked now exists,
