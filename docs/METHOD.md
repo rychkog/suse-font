@@ -168,7 +168,7 @@ from 407 to 383 by interpolation. Say what will actually move.
 ### Ceilings, not assignments — *prose only*
 
 Where the face already does better than the panel's share, keep the face's own
-value: `min(own, panel_target)`. The face is the authority on what it already
+value: the smaller of the two, own and panel. The face is the authority on what it already
 does well; the panel is only the authority on the relation. This is how
 `lc_arm_end` leaves Thin alone and pulls only the heavy end back.
 
@@ -292,8 +292,9 @@ symptom, and going straight at them treats the symptom.
 
 ## 3 · Fault catalogue
 
-Eight classes. Each but the last has recurred at least twice; F8 is here
-because the one time it happened it cost the letter its counter.
+Each entry is a CLASS of mistake, with every instance that found it. IDs are
+permanent: code and the ledger cite them, so a new class takes the next free
+number and an entry is never renumbered.
 
 ### F1 · A constant measured in one condition, carried to another
 
@@ -452,10 +453,10 @@ whether the two agree. `lcCounterSweep` is that share for this one, read off b
 by scanline.
 
 **Legitimate** where the *shorter* stroke bounds the bend — Ґ's tick
-(`recipes.py:483`), ґ's matching tick bend (`:595`), and `comb` (`:241`, where
+(`Ghe_upturn`), ґ's matching tick bend (`Ghe_upturn_lc`), and `comb` (where
 the arc branch must not vanish or node parity breaks).
 
-**Still unreviewed:** `shoulder_spine` (`:1304`). It has not produced a visible
+**Still unreviewed:** `shoulder_spine`. It has not produced a visible
 defect, but it is the same expression in the same position.
 
 **Fix:** `inner_radius(pr)` — the face's own, read off L.
@@ -583,6 +584,23 @@ question is *where something goes* ("how far in does the counter start").
 distinct questions it currently answers. If it is more than one, the fix is to
 split it, not to retune it.
 
+**And a bucket indexed by the wrong width.** `de.py`'s solve divided the stem by 600 where
+`Face.stem_em` — the quantity the panel is indexed by — divides by 1000, the
+em. This face's Thin went in as 0.048 instead of 0.029, so `compare`
+returned the median of faces nearly 1.67 times bolder and every target
+solved against it belonged to the wrong bucket. **The width change rejected
+by eye on 2026-08-09 used it.** At ExtraBold the wrong bucket happened to
+land on the right number, 0.683; at Thin it asked for 0.566 where the
+correct bucket wants 0.538, so Thin was over-widened by five per cent. That
+is part of why it read wrong, and it means the width is worth re-solving
+against the corrected target if that thread is ever reopened. Fixed; nothing
+else in the tree divides a stem by the advance. **Tell: two names for one
+quantity.** The advance is 600 and the em is 1000 and both are "the width of
+something", so `stem/600` looks as plausible as `stem/1000` at the call
+site. The reading it feeds had a correct definition three files away the
+whole time.
+
+
 ### F6 · A broken probe reported as a finding
 
 Every one of these was announced as a defect before being caught:
@@ -610,8 +628,8 @@ Every one of these was announced as a defect before being caught:
 - The `EF_OVERHANG` probe measured the stem above the **cap line** rather than
   above the **bowl**, read 0.000, and was reported as "the constant is lying
   about itself". It was not. **Corrected.**
-- `checkpoint.py`'s red silhouette row scales each lowercase so its x-height
-  equals cap height. Meaningful for ю, є, ґ, д, л; meaningless for ф, which
+- `checkpoint.py`'s red silhouette row (retired with that script) scaled each
+  lowercase so its x-height equalled cap height. Meaningful for ю, є, ґ, д, л; meaningless for ф, which
   runs ascender to descender — and it will misreport б once б exists.
   **Still broken.**
 
@@ -750,7 +768,6 @@ A newer one, and it produced two wrong findings before it was caught:
   readings over every static and variable, that one moved and nothing else.
   **An impossible figure from a gate is the probe until a raster says
   otherwise.**
-
 
 ### F6b · A reference set that cannot express the answer
 
@@ -902,7 +919,7 @@ is not a parameter — it is the geometry.
 **Fix:** stop unioning. Emit the letter as ONE contour, walked: round the
 donor's own wall from where the outer edge leaves it to where the inner edge
 does, out to the terminal and back. There is then no crossing to go wrong.
-`_be_paths` in `recipes.py` is the worked example.
+`walk` in `scripts/be_from_sudo.py`, which generates б, is the worked example.
 
 Two things the walk needs, and both were faults before they were fixed:
 
@@ -1649,6 +1666,33 @@ band came out 0.49–0.97 when the truth is 0.79–1.09. Read an eighth of the
 arm back from the end, clear of the corner, and every face moves. A saturating
 probe does not look broken; it looks like a finding.
 
+**And the knot nobody placed.** д's two masters did not agree on how many nodes the letter has,
+15 against 14, so it could not be built or blended. The fix is the last line
+of this entry, written before it was tried: `DE_SEAM`, a knot on the inner
+edge placed at a fixed HEIGHT in o's own heights rather than at a fraction of
+the run, so `splice` cuts in the same interval at both masters by
+construction. It is a fragile parity, though — it holds at some arm sizes and
+not at others, which is why `DE_SIZE` could not be set freely. The diagnosis
+as it stood: The cause is understood and is F19
+again: the height at which the arm's underside enters the bowl is a quantity
+nobody sets, and it comes out at 0.84 of the x-height at Thin against 0.99 at
+ExtraBold. `splice` therefore cuts in a different segment at each master and
+keeps a different number. **Nine sweeps moved it by nothing** — knot layout
+and count, the root knot's position either way, burial depth, the buried
+width, the arm's weight at both ends, the shoulder's anchor height, and
+`absorb`. Setting the meeting height directly does work as a lever (both
+masters cut in the same segment at a swell of 0.6) but a flat swell wrecks
+ExtraBold, and deriving the swell per master from the gap it has to close —
+the principled version — leaves the counts where they were, because the notch
+can only push a crossing UP and ExtraBold's is already pinned at 0.99 by its
+own thickness. **The next thing to try is the one not yet tried: give the
+inner edge its own knot placed at a fixed HEIGHT rather than at a fraction of
+the run**, so the cut lands in the same interval by construction. Do not pad
+with a subdivision node — equal counts from two different structures pair
+Thin's buried cut with ExtraBold's shoulder cut, and §8 already records that
+node parity says nothing about correspondence.
+
+
 ### F20 · A concavity is not a rough join, and no join can absorb one
 
 The cursive д was rejected five times for the same stretch of its right side,
@@ -1700,7 +1744,6 @@ non-zero count is a defect even when every ink reading is in band. Note also
 that forcing a solve made things far worse (+6 to +44 against +1.7): the
 fallback was hiding a bad target path, not creating one. A fitter refusing to
 draw something is evidence about the path, not about the fitter.
-
 
 ### F21 · Deleting a donor's nodes is not cutting its outline
 
@@ -1771,7 +1814,6 @@ at Thin and about half a stem at ExtraBold, and was shipped anyway on the
 user's call. The point of the reading is not that it must pass — it is that it
 must be taken and recorded, because nothing else in the pipeline takes it.
 
-
 ### F22 · A diagonal measured along the line, not across itself
 
 к's italic leg was built at twice the weight of its own stem at Thin — 59.8
@@ -1802,7 +1844,6 @@ face's own STEM; `signature.py` reads terminals and horizontals; the audit
 reads counts and extremes. A leg at twice its weight passes all of them, and
 did, at four weights. The measurement that finds it is one line — the run
 across the stroke, divided by its lean — and it is not yet a gate.
-
 
 ### F23 · A terminal cut is not a base for a stroke leaving in its own direction
 
@@ -1928,7 +1969,6 @@ including every one this entry fixed. **A corner probe is only valid where the
 run it measures is longer than its own reach**, and that is a condition to
 assert, not to assume.
 
-
 ### F25 · An offset edge is not a dial, and four ways it is not
 
 і's exit thins because и's bowl closes up as it gets heavy and і is cut out of
@@ -1970,45 +2010,6 @@ spend room the letter does not have. **When four constructions fail at one
 master and none at the other, the constraint is the donor, not the drawing** —
 and the honest fix was to stop the stroke before the pinch (`I_CUT` 0.92 to
 0.30), which buys 0.33 to 0.45 of a stem at the cost of a shorter turn.
-
-### F20 · A two-storey letter's small storey outgrows the big one with weight
-
-The cursive в (2026-09-16/17) was settled at Thin as one pen path and then
-failed five rounds at ExtraBold. **A heavy stroke adds the same amount to
-both storeys, so the small one grows the most relative to its size.** Thin's
-loop is 0.54 of the bowl's width. Carried to ExtraBold with the same knobs,
-the loop's white shut. Shrinking the bowl to give the loop room made the loop
-as wide as the bowl (1.00, "a disaster") and the letter read as 8.
-
-What worked, in the order it was found:
-
-1. **The big storey leads.** The bowl went back to near o's height, and the
-   loop stayed small: 0.79 of the bowl at 502 wide.
-2. **The width is o's, not the tall letters'.** A wider bowl (593) was
-   rejected in words beside о, although d and 8 are that wide.
-3. **Where the loop lands is a distance, not a style knob.** Landed where
-   Thin's does, measured in strokes, it landed inside solid ink and its white
-   came to a point.
-4. **The face does not lighten its upper storey.** 8 and В keep it as heavy as
-   the lower (0.97 and 1.07 at ExtraBold), and a lighter loop was rejected.
-
-**Tuning one construction's numbers read as "they all look the same".** A
-one-line diagnosis from the user ("the loop becomes bigger than the bowl")
-moved it in one round. Ask for it before the third round, not the sixth.
-
-**And the pen path went into the font as outlines, not as a raster.**
-`tools/pen.py` sweeps each stretch of the path analytically and fits one cubic
-per edge per stretch, so both masters carry the same nodes. Two things the
-first build got wrong, both read by `outlines.py --built`:
-
-* Where the loop leaves and lands on the bowl, the bowl needs a node too.
-  Without one, its fitted edge sits about a unit off the exact one, and
-  overlap removal leaves an 18° kink.
-* Split each stretch where it reaches an x or y extreme, or the shipped
-  outline has no node there.
-
-The built outline matched the approved picture to within 4 units at both
-masters (`Ve_pen`).
 
 ### F26 · A capital's construction at x-height flattens every bowl it carries
 
@@ -2082,27 +2083,15 @@ of the stem. It is now drawn wider by that ratio and lands at 1.00.
 reading put я's italic leg at 0.61 of the stem. Read row by row, across the
 leg and the stem at the same height, it was 0.92–0.94.
 
-### F29 · A shorter bowl tips further under the same slant
-
-The italic б was the upright б sheared. Its counter leant 38–41° from vertical, measured on the counter's long axis. The italic o, b, d and д lean 17–26°. The user saw it as "weird bowl inclination".
-
-1. A shear tips an oval's long axis. The rounder the oval, the further it tips; a circle's axis goes to about 45°.
-2. б's bowl is o squashed to 0.89 (Thin) and 0.82 (ExtraBold) of o's height, so it is rounder than o.
-3. So even the italic o, squashed the same way, reads 37° at Thin. The squash alone accounts for Thin.
-
-`Be_lc` now takes `BE_IT`, which `be_from_sudo.py` builds on the italic o, as д does. б reads 37 / 31 / 22° at Thin / Regular / ExtraBold, against o's 26 / 22 / 17°. Squashing along o's own top-to-bottom line was tried: it moved nothing and was removed. The line from the counter's top to its bottom reads б and o within a degree at both masters, so it is not the gauge the eye uses here; the long axis is.
-
-**What is left is height, not construction.** Thin can only come closer to o with a taller bowl, and `RISE_IT` in the script raises it: at 1.0 the bowl is o's height and leans exactly as o does at all eight weights. `bowls.py` records the panel's б counter at a median 0.95 of o's height, falling to 0.85 at the heavy end.
-
 ### F28 · A sheared bowl turns unevenly
 
 Shearing a round end tightens one turn and slackens the other. On a bowl facing right the top-right turn tightens into a knuckle and its stroke thickens, and the bottom-right thins. Я faces left, so its bottom-left thickens instead. The user saw it in Medium italic ь, then asked about the capitals too.
 
-The reading is the stroke by 45° sector around the counter (scratchpad `vring2.py`/`vgap.py`), taken as the tight turn less the loose one, italic less upright. ь ъ ы я Ь Ъ Ы Я stood +0.10 to +0.21 of a stem. The face's own italic P and R stand +0.03 to +0.06, and D stands +0.00 to +0.10. Their outlines show why: unsheared, their top turn starts earlier than the upright's does, and their extreme nodes sit at the italic's extremes.
+The reading is the stroke by 45° sector around the counter (a scratch probe, not kept), taken as the tight turn less the loose one, italic less upright. ь ъ ы я Ь Ъ Ы Я stood +0.10 to +0.21 of a stem. The face's own italic P and R stand +0.03 to +0.06, and D stands +0.00 to +0.10. Their outlines show why: unsheared, their top turn starts earlier than the upright's does, and their extreme nodes sit at the italic's extremes.
 
 `bowl_pair(lean=)` takes back `BOWL_LEAN` = 0.75 of the shear on the round end, about the bowl's middle. The spine side does not move. A full take-back balanced the turns to 0.00, more evenly than the face does. After the change all eight letters stand +0.01 to +0.08 at every weight, and the missed extrema that `outlines.py` reported on these bowls are gone.
 
-Two readings changed meaning with it. The counter-corner probe (`vcsweep`/`vall`) straightens the full slant, so it now over-reads (0.53–0.71). Straightened by the remaining quarter, the corners read 0.40–0.42, and Ы reads 0.34 at ExtraBold. And Я's leg now crosses the first unit of the bowl's bottom arc, which leaves a 19-unit near-flat curve at the join. No gate reads turn balance.
+Two readings changed meaning with it. The scratch counter-corner probe straightens the full slant, so it now over-reads (0.53–0.71). Straightened by the remaining quarter, the corners read 0.40–0.42, and Ы reads 0.34 at ExtraBold. And Я's leg now crosses the first unit of the bowl's bottom arc, which leaves a 19-unit near-flat curve at the join. No gate reads turn balance.
 
 **A narrow bowl took the correction badly, and its counter was the wrong shape.** At ExtraBold, italic Ы's counter end ran 42 by 111 units and ы's 46 by 71. Sloped, each read as a leaf with a point at the top, and the user saw a deformed bowl that got worse with weight. Every heavy italic Ы in the panel draws that counter as a **slot** instead: a flat top, a straight side, small corners, inside a plain sloped D. A first answer capped the counter end's height at 1.3 times its reach, in the italic only. The light master's counters stand 0.99–1.09, so the cap fires at ExtraBold alone. The upright narrow D stays as approved. That slot was then replaced; see below.
 
@@ -2118,6 +2107,57 @@ The lean then has to know whether the cap fired. Turned about the bowl's middle,
 **Then the slot was questioned: "shouldn't this be round?"** It should. The face's own D keeps its counter's side curved at every weight, and the approved upright Ы has D's profile exactly. The slot was the PANEL's shape, and the panel does not decide what a SUSE Mono letter looks like. D's counter is the same shape as Ы's, only twice as wide, which is why D does not come to a point when sheared. What ships keeps the curve at full height and draws it fuller: `bowl_pair(tall=)` marks a counter end standing over `YERU_TALL` = 1.3 times its reach, and that end takes `YERU_FULL` = 0.7 as its handle share, where a circle is 0.5523. It reads +0.01 to +0.11 across the weights. Shown beside the slot, it was chosen and italic Ы ы approved on 2026-09-17.
 
 The check that would have caught each of these sooner: turn balance and stroke read on the SHEARED, built letter, at every weight, not at the two masters and not on the upright recipe.
+
+### F29 · A shorter bowl tips further under the same slant
+
+The italic б was the upright б sheared. Its counter leant 38–41° from vertical, measured on the counter's long axis. The italic o, b, d and д lean 17–26°. The user saw it as "weird bowl inclination".
+
+1. A shear tips an oval's long axis. The rounder the oval, the further it tips; a circle's axis goes to about 45°.
+2. б's bowl is o squashed to 0.89 (Thin) and 0.82 (ExtraBold) of o's height, so it is rounder than o.
+3. So even the italic o, squashed the same way, reads 37° at Thin. The squash alone accounts for Thin.
+
+`Be_lc` now takes `BE_IT`, which `be_from_sudo.py` builds on the italic o, as д does. б reads 37 / 31 / 22° at Thin / Regular / ExtraBold, against o's 26 / 22 / 17°. Squashing along o's own top-to-bottom line was tried: it moved nothing and was removed. The line from the counter's top to its bottom reads б and o within a degree at both masters, so it is not the gauge the eye uses here; the long axis is.
+
+**What is left is height, not construction.** Thin can only come closer to o with a taller bowl, and `RISE_IT` in the script raises it: at 1.0 the bowl is o's height and leans exactly as o does at all eight weights. `bowls.py` records the panel's б counter at a median 0.95 of o's height, falling to 0.85 at the heavy end.
+
+### F30 · A two-storey letter's small storey outgrows the big one with weight
+
+The cursive в (2026-09-16/17) was settled at Thin as one pen path and then
+failed five rounds at ExtraBold. **A heavy stroke adds the same amount to
+both storeys, so the small one grows the most relative to its size.** Thin's
+loop is 0.54 of the bowl's width. Carried to ExtraBold with the same knobs,
+the loop's white shut. Shrinking the bowl to give the loop room made the loop
+as wide as the bowl (1.00, "a disaster") and the letter read as 8.
+
+What worked, in the order it was found:
+
+1. **The big storey leads.** The bowl went back to near o's height, and the
+   loop stayed small: 0.79 of the bowl at 502 wide.
+2. **The width is o's, not the tall letters'.** A wider bowl (593) was
+   rejected in words beside о, although d and 8 are that wide.
+3. **Where the loop lands is a distance, not a style knob.** Landed where
+   Thin's does, measured in strokes, it landed inside solid ink and its white
+   came to a point.
+4. **The face does not lighten its upper storey.** 8 and В keep it as heavy as
+   the lower (0.97 and 1.07 at ExtraBold), and a lighter loop was rejected.
+
+**Tuning one construction's numbers read as "they all look the same".** A
+one-line diagnosis from the user ("the loop becomes bigger than the bowl")
+moved it in one round. Ask for it before the third round, not the sixth.
+
+**And the pen path went into the font as outlines, not as a raster.**
+`tools/pen.py` sweeps each stretch of the path analytically and fits one cubic
+per edge per stretch, so both masters carry the same nodes. Two things the
+first build got wrong, both read by `outlines.py --built`:
+
+* Where the loop leaves and lands on the bowl, the bowl needs a node too.
+  Without one, its fitted edge sits about a unit off the exact one, and
+  overlap removal leaves an 18° kink.
+* Split each stretch where it reaches an x or y extreme, or the shipped
+  outline has no node there.
+
+The built outline matched the approved picture to within 4 units at both
+masters (`Ve_pen`).
 
 
 ## 4 · Probe inventory
@@ -2155,6 +2195,16 @@ The check that would have caught each of these sooner: turn balance and stroke r
 | `classify.py` | the tier table — what is derived, and from what | — |
 | `geom.py` | outline algebra over Glyphs paths (22 primitives) | — |
 | `build_cyrillic.py` | writes recipes into the Glyphs source; `--rebuild` drops and redraws | — |
+| `recipes.py` | every glyph's construction, per master, with its constants and their reasons | — |
+| `verify.sh` | runs every gate in order, this docs check first; exits non-zero on any failure | — |
+| `review.sh` | regenerates every review image from the current build | — |
+| `docs_check.py` | the docs against the code: fault IDs unique and in order, every cited F and § present, every cited script and name still in the code or listed as retired, every tool in this table, no line numbers | yes |
+| `outlines.py` | **the outline, not the ink** — node count against o, missing extrema, kinked joins, short and flat segments. `--built` reads the shipped italic. No other probe reads the outline | no |
+| `italic.py` | whether each Latin letter's italic is the upright slanted or a redrawing — the worst distance between the two, in em | no |
+| `donated.py` | whether every donated letter is still a single component of its Latin donor, in both masters | no |
+| `pen.py` | a centreline swept by an oval pen, written as outlines — builds the cursive в | — |
+| `be_donor.py`, `de_donor.py`, `ge_donor.py` | б, cursive д and cursive г as data; generated by the matching `scripts/*_from_*.py`, never edited by hand | — |
+| `ve/` | the cursive в investigation, kept whole; `tools/ve/README.md` says what each script settled | — |
 
 ### Retired — the question is settled and the script came out
 
@@ -2184,9 +2234,23 @@ is here. The code is in git history.
 | `ka_roboto.py` | Roboto Mono's К read as the counter-example | F13 |
 | `italic_forms.py` | the two houses: 10 of 29 monospace italics take и→u, п→n, т→m; 19 slope the upright | §9's closed house thread, with the two rosters written out |
 | `em_sheet.py` | two builds drawn ADJACENT, one line per weight | **folded into `specimen.py --against OLD_DIR`**, not lost |
+| `checkpoint.py` | the PNG review sheet, with the `vs Latin` row | **folded into `specimen.py`** |
+| `be_sheet.py`, `cursive_sheet.py`, `italic_sheet.py`, `ka_company.py`, `ka_sheet.py` | per-letter PNG sheets | **folded into `specimen.py --letters`** |
+
+Names that left the code and are still cited as history. `tools/docs_check.py`
+accepts a retired name only if it is listed in this section:
+
+| retired name | what it was | replaced by |
+| --- | --- | --- |
+| `EF_WIDTH` | ф's flat width, 0.863 | `EF_FIT`, linear in the stem |
+| `EF_BOWL_SHARE` | the italic Ф ф bowl share | `_ink_bowl` (F17) |
+| `DE_WIDE` | д's width target | a band the donated д is checked against |
+| `YU_ROOF` | ю Ю's roof floor | `BOWL_ROOF`, shared with Ф |
+| `_be_paths` | б's walked contour, in `recipes.py` | `scripts/be_from_sudo.py` |
+| `line_block` | `checkpoint.py`'s reading-size row | `specimen.py` |
 
 
-`verify.sh` runs all seven gates in order and exits non-zero on any failure.
+`verify.sh` runs every gate in order and exits non-zero on any failure.
 `review.sh` regenerates **every** review image from the current build — use it
 rather than rendering one sheet, because reviewing an image made before the
 last fix wastes a round.
@@ -3145,16 +3209,268 @@ edge is the italic's growth over our own upright, +0.12 against a panel median
 of +0.08 and a ceiling of +0.11 — and that is explained by the narrow upright,
 not by a wide italic, since the italic itself lands mid-panel in absolute terms.
 
+### The italic: sloped where the Latin is sloped, and the upright house
+
+**The donated set: decide it BEFORE the italic, not after.** Held on
+2026-08-13 to be revisited after the italic, and that was the wrong way
+round — corrected the same day, on the user's question *"we need to solve
+this now then, since italic depends on this, right?"* The dependency runs
+upright → italic and only that way. **A donation is a component**, so the
+italic inherits whatever the upright decides, letter for letter; the italic
+gets no vote and cannot inform the choice. Deferring the decision does not
+gather evidence, it only means the italic is built on an unsettled base.
+
+**The reason the deferral looked sensible was a real fact used backwards**,
+and the fact itself was half wrong. The first reading here was a raster
+overlap over a range of shears, and it reported the capitals A E O P C X Y J
+B K M H T as "a slant" at 0.90-0.97. **Measured properly it is not true of
+the round ones.** `tools/italic.py` shears the upright by the italic's own
+angle and takes the worst distance between the two drawings, both ways round,
+in units of the em -- registration-free in the sense that matters, because a
+missing stroke cannot hide in it the way it hides in an overlap. F6 again:
+an overlap of two similar silhouettes is generous exactly where a bowl has
+been redrawn.
+
+| | worst distance from the sheared upright |
+| --- | --- |
+| capitals **H T V I M F N Z E W A** | under 0.010 em — a pure slant |
+| capitals J X L Y K U | 0.010–0.040 |
+| capitals **B P R S D C G O** | **0.04–0.14 — drawn again** |
+| lowercase l x, and v w z t at Thin | under 0.010 — a slant |
+| lowercase **everything else** | **0.05–0.31 — drawn again** |
+
+**So: sloped roman in the STRAIGHT-SIDED capitals, drawn again in the round
+capitals, and a true italic throughout the lowercase.** A sheared circle is
+an ellipse leaning the wrong way, which is why the round capitals could never
+have been a shear and why the overlap reading flattered them.
+
+**The shear is about the middle of the x-height, not the baseline.** Solved
+by sweeping the pivot against the eleven pure-slant capitals: y = 235 at Thin
+where the x-height is 472, and y = 245 at ExtraBold where it is 493 — xh/2 to
+within a unit at both masters. The advance is 600 in the italic as in the
+upright. Every un-shear and re-shear has to use that pivot, or `mirror_x`'s
+axis at 300, the anchors, and the meaning of "the middle of the cell" are all
+wrong in the space the recipes are written in.
+
+**Which gives the architecture: un-shear, run the existing recipes, re-shear.**
+The recipes read `pr.paths(donor)`, so against the italic source they pick up
+the italic's OWN redrawn B P R S D C G O and its own true-italic lowercase for
+free, while reproducing the face's own pure-slant behaviour for the straight
+capitals. Nothing approved has to be re-derived, which is what rule 1 asks
+for. What `Params` needs is a fully unslanted view — not only `paths()`:
+`__init__` reads H's boxes and `box()` of a slanted stem lies about its width.
+
+What none of this threatens is the donations. It supports them: Latin italic
+a is single-storey and so is Cyrillic italic а; italic y's tail is what
+Cyrillic italic у wants too. **Every donated letter survives the slant as the
+same letter.** К is the exception and it is not a slant question — К left the
+donated set on 2026-08-13, so it has to be built in the italic from the
+italic's own K, and `KA_NECK`/`KA_NECK_LC` were measured on upright panel
+faces and must be re-measured on italic ones before they are carried over.
+
+**The lowercase forms are the italic's own К question, and the panel is
+split.** Cyrillic italic traditionally replaces и with a u, п with an n and т
+with an m. `tools/italic_forms.py` compares each face's italic Cyrillic with
+its OWN italic Latin — one file, no cross-font registration — over the 29
+monospace italics on this machine that carry Cyrillic:
+
+| | takes the cursive form |
+| --- | --- |
+| и → u | 10 of 29 (34%) |
+| п → n | 9 of 29 (31%) |
+| т → m | 10 of 29 (34%) |
+| д → g | 3 of 29 (10%) |
+| **в → b** | **0 of 29** |
+| **г → r** | **0 of 29** |
+
+**Two of those correct what this thread used to claim.** It said "г д в all
+take forms with no upright counterpart"; no monospace italic on this machine
+does that to в or г, and only three do it to д. And every one of the ten
+cursive faces reaches the form by **mapping the Cyrillic codepoint to the
+Latin glyph outright** — the distance is 0.000, not 0.03 — so it is a
+donation, not a redrawing, and it would make the italic donation list longer
+exactly as predicted, but only for и п т й.
+
+The split is not random and it is not a majority to be followed. The cursive
+camp is Consolas, Inconsolata LGC, Ioskeley, Lilex, Lyth, Sudo, Victor Mono
+and Monaspace Xenon/Radon; the upright camp is Geist, JetBrains, Roboto Mono,
+Hack, DejaVu, Liberation, Courier, Maple, Myna and Monaspace Argon/Neon.
+Those are two coherent houses, not a median with outliers, so **the panel
+names the choice and cannot make it.** The decision belongs to the user's
+eye, and it decides roughly forty letters of work; the capitals are unaffected
+either way and can be built first.
+
+**DECIDED 2026-08-27 — the upright house, with three named exceptions. This
+thread is closed; do not reopen it as a measurement.** The user was shown
+both houses and chose *"Upright house — shear т п и"*. Then, having seen it
+built, refined it twice: *"I have another idea. can we have тпи borrowed from
+lating, but redesigned to fit cyrillic?"* and *"let's keep и as direct
+borrowing but rework т and п"*. The ledger the italic actually ships, and
+which a future session must not "correct" into consistency, is:
+
+| letter | italic |
+| --- | --- |
+| **т** | `Te_comb` — П's own comb with three stems. The ONLY letter whose structure differs between the two sources. |
+| **п** | the upright `Pe` sheared. Deliberately absent from `classify.ITALIC` so it falls through. |
+| **и** | the borrowed cursive `u`, a donation. |
+| **г д** | donated cursive, approved 2026-08-18. |
+| everything else | the upright, sheared. |
+
+**The mixture is the decision, not an unfinished state.** и is a borrowing
+where т and п are not, because its bowl lands on the right stem exactly where
+that stem's exit tail begins: cut the tail and the bowl has nothing to meet,
+which is д's fault class (F20) and was rejected five times over a concavity at
+that same handover. `flat_foot` in `recipes.py` is the graft that cuts those
+tails; it is kept on disk and **wired to nothing**, because и is the one
+letter that needed it and и does not take it. The user's instruction on the
+upright и that was fixed along the way: *"Don't dropped fixed upright и, we
+might add variants."* It is still in `Ii` and still correct.
+
+**т is not a mirrored ш, and the never-mirror rule is not touched.** `comb`
+draws n stems standing on a bar; `Pe` is literally that comb flipped about
+its own mid-height. So a three-stem т is Pe's recipe at n=3 — a comb flipped
+on the axis it is symmetric about, which is a different act from И-from-a-
+flipped-N, where cuts drawn to face one way end up facing the other.
+
+**What settled it was not the panel.** The face's italic Latin ends *every*
+lowercase stem with a rightward exit tail — `l i n m u h k d`, the approved
+cursive г carrying the largest. Our Cyrillic is built upright and sheared, so
+it is cut flat throughout, and **a sheared upright cannot invent an exit.**
+That is the real asymmetry between the two houses in this face, and it is why
+the borrowed letters read as borrowed. Recorded here so the next round does
+not rediscover it from a crop.
+
+**Still true and still to do at the italic:** F12's fix reads each base's own
+top anchor, and under a slant that anchor moves with the letter, so
+`ANCHOR_FROM` is right while the numbers behind it are not transferable.
+Re-run `marks.py` against the italic's own accented Latin.
+
+**DONE 2026-08-27, and the prediction was exactly right.** The numbers were
+not transferable, and the reason is that they were being transferred TWICE.
+`anchors` writes in upright space and the caller shears what it writes; the
+donor's anchor, read from the italic master, is **already leaning** -- E
+carries 431 at Thin Italic where it carries 318 upright, because an anchor
+travels with its letter. Written straight and sheared again, the mark landed
+about a fifth of a cell to the right: **Й +118, Ў +119, Ѝ +100 at Thin
+Italic** against the Latin carrying the same mark, and 112, 113 and 86 at
+ExtraBold Italic. The lowercase was out the other way, ѝ by -47 and -51,
+because its correction is the smaller one and the sign of what was missing
+differs.
+
+The fix is to un-shear the donor's reading at the height the mark will sit
+at -- which is the height the donor's own anchor sits at, since `ANCHOR_FROM`
+pairs capital with capital and lowercase with lowercase. Upright the
+correction is zero and nothing moves. **`marks.py` did not need re-running
+and no figure in it was wrong**; the reading was right and the spending of it
+was not, which is F17's whole subject.
+
+**It was invisible because nothing marked was italic-checked.** Ё ё Ї ї come
+out right in the italic and always did, and they are the ones anybody would
+look at -- but they are TIER 1, they carry their host's anchor as a component
+and never go through `anchors` at all. Every glyph that does go through it
+was wrong, and the two groups look the same on a sheet.
+
+
+### Д is narrow on purpose
+
+Every term
+in it has now been read and every lever tried. The counter is 0.244 and
+0.266 of its span at ExtraBold against a panel 0.421 and 0.398, and the
+cause is the body's span, short at every weight. That span was solved,
+drawn and shown **twice** — on 2026-08-09 against a target five per cent
+too wide at Thin, and on 2026-08-11 against the corrected target, a
+visibly smaller move that leaves the plinth alone and takes the lowercase
+counter to 0.348. Both were rejected by eye in favour of the approved
+letter. Ruled out on the way: the arm and the plinth (on the panel or
+lighter), the counter's height (on the panel), the two walls read
+separately (the panel's left wall is *wider* than ours, not lighter), and
+the lean (below). **§8's finding about о, reached a second time by a
+different road: the panel's median width is not this face's target.** A
+width outside the panel is a finding only if the letter it should be
+measured against is inside it, and here the whole face is narrow.
+
+
+### Д's lean is off the panel on purpose
+
+Tried, measured, drawn and
+shown on 2026-08-10; the approved lean was preferred by eye against the
+straightened one at both drawn masters, and it also fails at the thing it
+was tried for. Left here as a finding rather than a thread, because the
+reading itself stays outside the panel and the next pass will find it. Ours
+leans harder at all eight
+readings, 0.182 against 0.122 for the capital at ExtraBold and 0.240 against
+0.191 for the lowercase, and the panel straightens its Д as the face gets
+bolder where ours holds its slant. That departure is real. The claim built
+on it was not: solved to the panel's own lean exactly, per case per master,
+the counter came out **narrower** at all four weights — 0.240 to 0.232 for
+the capital at ExtraBold, 0.262 to 0.257 for the lowercase. The reason is in
+`El`: the leg is drawn with a **fixed horizontal width**, so its footprint
+does not change with the slant at all. The slant moves the leg's top; it
+does not move the row where the counter is widest. **A slant is a lever on a
+counter only if the stroke's width is measured perpendicular to it** — and
+when it is not, the lean can be badly off the panel while contributing
+nothing to the counter, which is exactly this letter. The plumbing was
+reverted; `de.py --solve` keeps the reading and the solved values.
+
+
+### The Cyrillic's expressive terminals belong to the italic
+
+Measured by glyph, the Latin lowercase cuts a terminal obliquely
+in five letters at Thin (a, e, g, k, s) and seven at ExtraBold (a, b, c, g,
+k, p, s). The Cyrillic cuts one at Thin and three at ExtraBold — and к's is
+the Latin k's own outline, inherited rather than chosen, while є's and э's
+are open terminals at the heavy master only. **No Cyrillic letter chooses an
+expressive terminal.** That is a real asymmetry: the Cyrillic is quieter than
+the Latin it stands with, and g is the Latin's loudest moment by a distance.
+The one letter with genuine construction latitude is **д** — seven of eight
+panel faces draw the neutral triangle, and Sudo draws the cursive
+single-storey form, which is structurally g's problem, a bowl with a
+descending tail. Decided on 2026-08-09 not to spend it in the upright: the
+cursive д is a strong statement in a terminal face, and Cyrillic italic
+already takes different cursive forms for д, и, т and п, which is where the
+script's character belongs and costs nothing in legibility. **Do not add
+character to an upright Cyrillic glyph without raising this again.**
+
+
+### в's heavy counters are slots, and that is the letter
+
+The complaint —
+0.09 and 0.10 of the counter's width at ExtraBold against b's 0.43 — was the
+wrong reading of the right letter, and it was the same wrong reading twice:
+a share of the counter's own box. Read as ink, в's lobe ends are even at
+both masters. The widest disc that fits in the ink there, over the stroke:
+**1.09 at Thin and 1.04–1.06 at ExtraBold, against the face's own B — the
+only other two-lobe letter it has — at 1.22 and 1.20 at Thin and 1.03 and
+1.02 at ExtraBold.** в is inside its own donor at every weight, and the
+version that was rejected read 1.55.
+
+**Why the counters are slots at the heavy end, and why that is the letter.**
+At ExtraBold в's lobe sweeps 138 units where the stroke is 150: the sweep is
+narrower than the stroke that has to fit inside it, so the counter's corner
+falls to `inner_radius`, 20 units, which is the face's own smallest interior
+turn. It is not a floored constant standing in for a corner — it IS the
+corner this face draws when a turn has no room. ь's bowl has room for 84
+because a bowl sweeps about half its width; в's lobes sweep B's WAIST,
+0.288, and that is the decision approved on 2026-08-12 after the sweep had
+been drawn and rejected by eye for digging the waist and pointing the
+junction. **The one lever that would open these counters is the one already
+tried and decided.** Nothing further to try.
+
 
 ## 9 · Open threads
+
+Two lists. The first is work nobody has done. The second is approved glyphs
+that sit outside a reading on purpose: each is a record, not a licence, and
+none is to be acted on without asking. A thread that closes moves out — its
+finding to §8 or to a fault entry, its approval to the ledger.
+
+### Open
 
 - **No reading measures a diagonal across itself.** F22: к's italic leg stood
   at twice its own stem for as long as the italic has existed, and the panel,
   the signature readings and the audit all passed it, because every one of them
   reads a stem, a terminal or a horizontal. The reading is one line and it
   covers К к Ж ж Х х У у И и Я я Д д Л л — a third of the set. Not written.
-
-
 - **No gate reads і or ї.** Both are drawn glyphs in the italic now, and the
   full run came back byte-identical to the previous one — the drawn-glyph and
   panel letter lists were written when і was a donor and ї a composite, and
@@ -3162,7 +3478,15 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
   would say so. Any letter that changes tier needs its lists looked at, and
   this is the second time a change has been invisible to the pipeline (F12 was
   the first).
+- **`shoulder_spine`** still carries the F2 subtraction; see F2.
+- **The `HARD_SHOULDER` probe is still broken** (F6): it scans below Ъ's bar at Thin.
+- **в, Я and я are separate call sites with the same disease.** This is why
+  `relations.py` clustered them with Б Ь Ы. All three are approved and were not
+  touched on 2026-08-11; the explanation their ledger rows lacked now exists,
+  which is a fresh-verdict trigger and the user's to pull, not this file's.
+- **The Serbian nine are undrawn** — `docs/APPROVALS.md`, *Not drawn*.
 
+### Recorded departures — approved, do not act without asking
 
 - **б's counter does not hold its relation to o across the weight axis**, and
   the panel says it should. The eight ∂-form italics draw д's counter at a
@@ -3176,33 +3500,6 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
   д, for comparison, is flat at 1.000 at both masters because its counter IS
   o's counter, the same points -- in band, at the ceiling of it, and the only
   face above us is the donor.
-
-- **SOLVED — д's two masters did not agree on how many nodes the letter has**,
-  15 against 14, so it could not be built or blended. The fix is the last line
-  of this entry, written before it was tried: `DE_SEAM`, a knot on the inner
-  edge placed at a fixed HEIGHT in o's own heights rather than at a fraction of
-  the run, so `splice` cuts in the same interval at both masters by
-  construction. It is a fragile parity, though — it holds at some arm sizes and
-  not at others, which is why `DE_SIZE` could not be set freely. The diagnosis
-  as it stood: The cause is understood and is F19
-  again: the height at which the arm's underside enters the bowl is a quantity
-  nobody sets, and it comes out at 0.84 of the x-height at Thin against 0.99 at
-  ExtraBold. `splice` therefore cuts in a different segment at each master and
-  keeps a different number. **Nine sweeps moved it by nothing** — knot layout
-  and count, the root knot's position either way, burial depth, the buried
-  width, the arm's weight at both ends, the shoulder's anchor height, and
-  `absorb`. Setting the meeting height directly does work as a lever (both
-  masters cut in the same segment at a swell of 0.6) but a flat swell wrecks
-  ExtraBold, and deriving the swell per master from the gap it has to close —
-  the principled version — leaves the counts where they were, because the notch
-  can only push a crossing UP and ExtraBold's is already pinned at 0.99 by its
-  own thickness. **The next thing to try is the one not yet tried: give the
-  inner edge its own knot placed at a fixed HEIGHT rather than at a fraction of
-  the run**, so the cut lands in the same interval by construction. Do not pad
-  with a subdivision node — equal counts from two different structures pair
-  Thin's buried cut with ExtraBold's shoulder cut, and §8 already records that
-  node parity says nothing about correspondence.
-
 - **д's arm is sized to this bowl now, and two readings still sit at their
   edges.** Rise and reach were emergent -- they followed the donor's own
   proportion out of `fit`, were not among the readings the recipe printed, and
@@ -3215,344 +3512,20 @@ not by a wide italic, since the italic itself lands mid-panel in absolute terms.
   taper reads 0.97 against a ceiling of 0.91, which is the same reading from
   the other side. Judge the terminal by eye and by a band measured in WALLS
   before moving anything for it.
-
 - **д's junction reads 1.45 at Thin against a panel ceiling of 1.34**, and
-  1.22 at ExtraBold which is in band. It is entangled with the notch above
-  (CLAUDE.md rule 5): every setting that lifts the meeting height fattens the
+  1.22 at ExtraBold which is in band. It is entangled with the notch (F19's knot
+  entry, AGENTS.md rule 5): every setting that lifts the meeting height fattens the
   wedge, up to 2.13 at a notch of 0.98. Judge the pair together, never apart.
   ExtraBold's free end (0.73 against a floor of 0.79) and its taper (0.73
   against 0.81) were already below their floors before this round and were not
   touched by it.
-
-- **The donated set: decide it BEFORE the italic, not after.** Held on
-  2026-08-13 to be revisited after the italic, and that was the wrong way
-  round — corrected the same day, on the user's question *"we need to solve
-  this now then, since italic depends on this, right?"* The dependency runs
-  upright → italic and only that way. **A donation is a component**, so the
-  italic inherits whatever the upright decides, letter for letter; the italic
-  gets no vote and cannot inform the choice. Deferring the decision does not
-  gather evidence, it only means the italic is built on an unsettled base.
-
-  **The reason the deferral looked sensible was a real fact used backwards**,
-  and the fact itself was half wrong. The first reading here was a raster
-  overlap over a range of shears, and it reported the capitals A E O P C X Y J
-  B K M H T as "a slant" at 0.90-0.97. **Measured properly it is not true of
-  the round ones.** `tools/italic.py` shears the upright by the italic's own
-  angle and takes the worst distance between the two drawings, both ways round,
-  in units of the em -- registration-free in the sense that matters, because a
-  missing stroke cannot hide in it the way it hides in an overlap. F6 again:
-  an overlap of two similar silhouettes is generous exactly where a bowl has
-  been redrawn.
-
-  | | worst distance from the sheared upright |
-  | --- | --- |
-  | capitals **H T V I M F N Z E W A** | under 0.010 em — a pure slant |
-  | capitals J X L Y K U | 0.010–0.040 |
-  | capitals **B P R S D C G O** | **0.04–0.14 — drawn again** |
-  | lowercase l x, and v w z t at Thin | under 0.010 — a slant |
-  | lowercase **everything else** | **0.05–0.31 — drawn again** |
-
-  **So: sloped roman in the STRAIGHT-SIDED capitals, drawn again in the round
-  capitals, and a true italic throughout the lowercase.** A sheared circle is
-  an ellipse leaning the wrong way, which is why the round capitals could never
-  have been a shear and why the overlap reading flattered them.
-
-  **The shear is about the middle of the x-height, not the baseline.** Solved
-  by sweeping the pivot against the eleven pure-slant capitals: y = 235 at Thin
-  where the x-height is 472, and y = 245 at ExtraBold where it is 493 — xh/2 to
-  within a unit at both masters. The advance is 600 in the italic as in the
-  upright. Every un-shear and re-shear has to use that pivot, or `mirror_x`'s
-  axis at 300, the anchors, and the meaning of "the middle of the cell" are all
-  wrong in the space the recipes are written in.
-
-  **Which gives the architecture: un-shear, run the existing recipes, re-shear.**
-  The recipes read `pr.paths(donor)`, so against the italic source they pick up
-  the italic's OWN redrawn B P R S D C G O and its own true-italic lowercase for
-  free, while reproducing the face's own pure-slant behaviour for the straight
-  capitals. Nothing approved has to be re-derived, which is what rule 1 asks
-  for. What `Params` needs is a fully unslanted view — not only `paths()`:
-  `__init__` reads H's boxes and `box()` of a slanted stem lies about its width.
-
-  What none of this threatens is the donations. It supports them: Latin italic
-  a is single-storey and so is Cyrillic italic а; italic y's tail is what
-  Cyrillic italic у wants too. **Every donated letter survives the slant as the
-  same letter.** К is the exception and it is not a slant question — К left the
-  donated set on 2026-08-13, so it has to be built in the italic from the
-  italic's own K, and `KA_NECK`/`KA_NECK_LC` were measured on upright panel
-  faces and must be re-measured on italic ones before they are carried over.
-
-  **The lowercase forms are the italic's own К question, and the panel is
-  split.** Cyrillic italic traditionally replaces и with a u, п with an n and т
-  with an m. `tools/italic_forms.py` compares each face's italic Cyrillic with
-  its OWN italic Latin — one file, no cross-font registration — over the 29
-  monospace italics on this machine that carry Cyrillic:
-
-  | | takes the cursive form |
-  | --- | --- |
-  | и → u | 10 of 29 (34%) |
-  | п → n | 9 of 29 (31%) |
-  | т → m | 10 of 29 (34%) |
-  | д → g | 3 of 29 (10%) |
-  | **в → b** | **0 of 29** |
-  | **г → r** | **0 of 29** |
-
-  **Two of those correct what this thread used to claim.** It said "г д в all
-  take forms with no upright counterpart"; no monospace italic on this machine
-  does that to в or г, and only three do it to д. And every one of the ten
-  cursive faces reaches the form by **mapping the Cyrillic codepoint to the
-  Latin glyph outright** — the distance is 0.000, not 0.03 — so it is a
-  donation, not a redrawing, and it would make the italic donation list longer
-  exactly as predicted, but only for и п т й.
-
-  The split is not random and it is not a majority to be followed. The cursive
-  camp is Consolas, Inconsolata LGC, Ioskeley, Lilex, Lyth, Sudo, Victor Mono
-  and Monaspace Xenon/Radon; the upright camp is Geist, JetBrains, Roboto Mono,
-  Hack, DejaVu, Liberation, Courier, Maple, Myna and Monaspace Argon/Neon.
-  Those are two coherent houses, not a median with outliers, so **the panel
-  names the choice and cannot make it.** The decision belongs to the user's
-  eye, and it decides roughly forty letters of work; the capitals are unaffected
-  either way and can be built first.
-
-  **DECIDED 2026-08-27 — the upright house, with three named exceptions. This
-  thread is closed; do not reopen it as a measurement.** The user was shown
-  both houses and chose *"Upright house — shear т п и"*. Then, having seen it
-  built, refined it twice: *"I have another idea. can we have тпи borrowed from
-  lating, but redesigned to fit cyrillic?"* and *"let's keep и as direct
-  borrowing but rework т and п"*. The ledger the italic actually ships, and
-  which a future session must not "correct" into consistency, is:
-
-  | letter | italic |
-  | --- | --- |
-  | **т** | `Te_comb` — П's own comb with three stems. The ONLY letter whose structure differs between the two sources. |
-  | **п** | the upright `Pe` sheared. Deliberately absent from `classify.ITALIC` so it falls through. |
-  | **и** | the borrowed cursive `u`, a donation. |
-  | **г д** | donated cursive, approved 2026-08-18. |
-  | everything else | the upright, sheared. |
-
-  **The mixture is the decision, not an unfinished state.** и is a borrowing
-  where т and п are not, because its bowl lands on the right stem exactly where
-  that stem's exit tail begins: cut the tail and the bowl has nothing to meet,
-  which is д's fault class (F20) and was rejected five times over a concavity at
-  that same handover. `flat_foot` in `recipes.py` is the graft that cuts those
-  tails; it is kept on disk and **wired to nothing**, because и is the one
-  letter that needed it and и does not take it. The user's instruction on the
-  upright и that was fixed along the way: *"Don't dropped fixed upright и, we
-  might add variants."* It is still in `Ii` and still correct.
-
-  **т is not a mirrored ш, and the never-mirror rule is not touched.** `comb`
-  draws n stems standing on a bar; `Pe` is literally that comb flipped about
-  its own mid-height. So a three-stem т is Pe's recipe at n=3 — a comb flipped
-  on the axis it is symmetric about, which is a different act from И-from-a-
-  flipped-N, where cuts drawn to face one way end up facing the other.
-
-  **What settled it was not the panel.** The face's italic Latin ends *every*
-  lowercase stem with a rightward exit tail — `l i n m u h k d`, the approved
-  cursive г carrying the largest. Our Cyrillic is built upright and sheared, so
-  it is cut flat throughout, and **a sheared upright cannot invent an exit.**
-  That is the real asymmetry between the two houses in this face, and it is why
-  the borrowed letters read as borrowed. Recorded here so the next round does
-  not rediscover it from a crop.
-
-  **Still true and still to do at the italic:** F12's fix reads each base's own
-  top anchor, and under a slant that anchor moves with the letter, so
-  `ANCHOR_FROM` is right while the numbers behind it are not transferable.
-  Re-run `marks.py` against the italic's own accented Latin.
-
-  **DONE 2026-08-27, and the prediction was exactly right.** The numbers were
-  not transferable, and the reason is that they were being transferred TWICE.
-  `anchors` writes in upright space and the caller shears what it writes; the
-  donor's anchor, read from the italic master, is **already leaning** -- E
-  carries 431 at Thin Italic where it carries 318 upright, because an anchor
-  travels with its letter. Written straight and sheared again, the mark landed
-  about a fifth of a cell to the right: **Й +118, Ў +119, Ѝ +100 at Thin
-  Italic** against the Latin carrying the same mark, and 112, 113 and 86 at
-  ExtraBold Italic. The lowercase was out the other way, ѝ by -47 and -51,
-  because its correction is the smaller one and the sign of what was missing
-  differs.
-
-  The fix is to un-shear the donor's reading at the height the mark will sit
-  at -- which is the height the donor's own anchor sits at, since `ANCHOR_FROM`
-  pairs capital with capital and lowercase with lowercase. Upright the
-  correction is zero and nothing moves. **`marks.py` did not need re-running
-  and no figure in it was wrong**; the reading was right and the spending of it
-  was not, which is F17's whole subject.
-
-  **It was invisible because nothing marked was italic-checked.** Ё ё Ї ї come
-  out right in the italic and always did, and they are the ones anybody would
-  look at -- but they are TIER 1, they carry their host's anchor as a component
-  and never go through `anchors` at all. Every glyph that does go through it
-  was wrong, and the two groups look the same on a sheet.
-- **`shoulder_spine` (`recipes.py:1304`)** still carries the F2 subtraction.
-- **Three broken probes**: `HARD_SHOULDER`, `ZHE_STEM`, `YU_GAP` (the last two
-  return too few faces to judge — Ж's diagonals and ю's join give variable run
-  counts at a fixed height).
-- **`checkpoint.py`'s red silhouette row** misreports ascender-to-descender
-  letters.
-- **CLOSED, and the letter is finished. Д is narrow on purpose.** Every term
-  in it has now been read and every lever tried. The counter is 0.244 and
-  0.266 of its span at ExtraBold against a panel 0.421 and 0.398, and the
-  cause is the body's span, short at every weight. That span was solved,
-  drawn and shown **twice** — on 2026-08-09 against a target five per cent
-  too wide at Thin, and on 2026-08-11 against the corrected target, a
-  visibly smaller move that leaves the plinth alone and takes the lowercase
-  counter to 0.348. Both were rejected by eye in favour of the approved
-  letter. Ruled out on the way: the arm and the plinth (on the panel or
-  lighter), the counter's height (on the panel), the two walls read
-  separately (the panel's left wall is *wider* than ours, not lighter), and
-  the lean (below). **§8's finding about о, reached a second time by a
-  different road: the panel's median width is not this face's target.** A
-  width outside the panel is a finding only if the letter it should be
-  measured against is inside it, and here the whole face is narrow.
-- **CLOSED. Д's lean is off the panel on purpose.** Tried, measured, drawn and
-  shown on 2026-08-10; the approved lean was preferred by eye against the
-  straightened one at both drawn masters, and it also fails at the thing it
-  was tried for. Left here as a finding rather than a thread, because the
-  reading itself stays outside the panel and the next pass will find it. Ours
-  leans harder at all eight
-  readings, 0.182 against 0.122 for the capital at ExtraBold and 0.240 against
-  0.191 for the lowercase, and the panel straightens its Д as the face gets
-  bolder where ours holds its slant. That departure is real. The claim built
-  on it was not: solved to the panel's own lean exactly, per case per master,
-  the counter came out **narrower** at all four weights — 0.240 to 0.232 for
-  the capital at ExtraBold, 0.262 to 0.257 for the lowercase. The reason is in
-  `El`: the leg is drawn with a **fixed horizontal width**, so its footprint
-  does not change with the slant at all. The slant moves the leg's top; it
-  does not move the row where the counter is widest. **A slant is a lever on a
-  counter only if the stroke's width is measured perpendicular to it** — and
-  when it is not, the lean can be badly off the panel while contributing
-  nothing to the counter, which is exactly this letter. The plumbing was
-  reverted; `de.py --solve` keeps the reading and the solved values.
-- **The panel bucket was indexed by the ADVANCE, not the em, and it changes
-  what a rejected round means.** `de.py`'s solve divided the stem by 600 where
-  `Face.stem_em` — the quantity the panel is indexed by — divides by 1000, the
-  em. This face's Thin went in as 0.048 instead of 0.029, so `compare`
-  returned the median of faces nearly 1.67 times bolder and every target
-  solved against it belonged to the wrong bucket. **The width change rejected
-  by eye on 2026-08-09 used it.** At ExtraBold the wrong bucket happened to
-  land on the right number, 0.683; at Thin it asked for 0.566 where the
-  correct bucket wants 0.538, so Thin was over-widened by five per cent. That
-  is part of why it read wrong, and it means the width is worth re-solving
-  against the corrected target if that thread is ever reopened. Fixed; nothing
-  else in the tree divides a stem by the advance. **Tell: two names for one
-  quantity.** The advance is 600 and the em is 1000 and both are "the width of
-  something", so `stem/600` looks as plausible as `stem/1000` at the call
-  site. The reading it feeds had a correct definition three files away the
-  whole time.
-- **Ь and Б's counters — CLOSED 2026-08-11.** It was one construction fault
-  shared by the family, which is why two unrelated readings kept arriving at
-  the same letters: `bowl_pair` inset the counter by the bowl's *stroke* on
-  both sides where B spends that stroke only on the side it curves. See F5.
-  Б Ь Ы were fixed and approved, and Ъ confirmed, on 2026-08-11. Two parts of
-  the cluster are deliberately **not** closed and are live threads of their
-  own, listed below.
-- **CLOSED 2026-08-12. Э э were square at the heavy end and it was never the
-  bowl — it was the arm.** 0.25 and 0.28 at ExtraBold where the C and c they
-  reverse hold 0.12, in step at Thin, coming apart with weight. **Є є read the
-  identical numbers**, which is what found it: Э is the C mirrored and Є is
-  the C plain, so a figure the two share to two decimals cannot be in the C.
-  The arm ended at the letter's own extreme, which on a curve is the single
-  tangent point, and squared the back over the bar's whole thickness. See F8.
-  All four now hold 0.12–0.13, their donor's own number, at every weight. Ы ы
-  and Ъ ъ were the rest of this thread and were fixed and approved 2026-08-12.
-  The claim in an earlier draft of this line that Э э were "approved
-  2026-08-06" was wrong: the ledger has never carried a row for them.
-- **в, Я and я are separate call sites with the same disease.** This is why
-  `relations.py` clustered them with Б Ь Ы. All three are approved and were not
-  touched on 2026-08-11; the explanation their ledger rows lacked now exists,
-  which is a fresh-verdict trigger and the user's to pull, not this file's.
-- **The lowercase soft bowl, ь ъ ы — still open, and the target moved on
-  2026-08-12.** The thread used to read "b cuts its counter into its own stem
-  and ours does not", which is true — their left wall reads 1.079 of b's at
-  Regular, Bold and ExtraBold where the panel holds 1.000 (bracket
-  1.000–1.009), because `d_shape` is flat down its left side and b's counter
-  is not. **That is the small half of the difference.** Measured properly, at
-  both masters, in units:
-
-  Measured off the counter's own contour, at both masters, as the corner's
-  share of the counter's own width:
-
-  | | counter | corner, before | corner, after | donor |
-  |---|---|---|---|---|
-  | ь Thin | 355 × 194 | 0.45 | 0.41 | b 0.45 |
-  | ь ExtraBold | 194 × 126 | **0.24** | 0.40 | b 0.43 |
-  | ъ ExtraBold | 122 × 126 | **0.17** | 0.40 | — |
-  | ы ExtraBold | 96 × 152 | **0.19** | 0.41 | — |
-
-  **That half is now fixed and is F2 again** — `max(r - t, rmin)`, drifting
-  rather than flooring. `Soft` passes `lcCounterSweep`, b's own share read by
-  scanline, for the lowercase only; the capitals keep `r - t` and are
-  byte-identical. Awaiting a verdict.
-
-  **The other half, the cut into the spine, went in on the second attempt.**
-  b lets its counter run past its own stem's right edge — 140 units of stroke
-  beside it against a stem of 150 at ExtraBold, 28 against 29 at Thin — where
-  B stops flat against it, 157 against 157. The first attempt bought that by
-  rounding the counter's left flank and was rejected by eye; the second moved
-  the left edge left and **left it a line**, which is the whole difference.
-  The left stroke at the counter's widest row now reads 28 / 76 / 124 / 140
-  against b's own 28 / 76 / 124 / 140, where it had been 29 / 81 / 133 / 150.
-
-  **CLOSED 2026-08-12**, both halves, approved.
-
-  **в was taken up the same afternoon, on the same reasoning, and turned
-  down** — the thread does not extend to it and the reason is worth keeping
-  open rather than closed. в's counters DO square off at the heavy end: they
-  turn over 0.09 and 0.10 of their width at ExtraBold where b holds 0.43 and o
-  0.45. But b's share of the counter's own box is not the lever, because в's
-  lobes are 0.56 as tall as they are wide where b's bowl is 1.23 to 1.43, so
-  the outer's corner is a different ellipse and the counter given b's share no
-  longer offsets it: `wrap.py` read the stroke bulging from 29 to 38 at the
-  shoulder at Thin, where the approved letter holds 29 flat. Shown and
-  rejected; see F1.
-
-  **Then asked again, and now answered. CLOSED 2026-08-12.** The complaint —
-  0.09 and 0.10 of the counter's width at ExtraBold against b's 0.43 — was the
-  wrong reading of the right letter, and it was the same wrong reading twice:
-  a share of the counter's own box. Read as ink, в's lobe ends are even at
-  both masters. The widest disc that fits in the ink there, over the stroke:
-  **1.09 at Thin and 1.04–1.06 at ExtraBold, against the face's own B — the
-  only other two-lobe letter it has — at 1.22 and 1.20 at Thin and 1.03 and
-  1.02 at ExtraBold.** в is inside its own donor at every weight, and the
-  version that was rejected read 1.55.
-
-  **Why the counters are slots at the heavy end, and why that is the letter.**
-  At ExtraBold в's lobe sweeps 138 units where the stroke is 150: the sweep is
-  narrower than the stroke that has to fit inside it, so the counter's corner
-  falls to `inner_radius`, 20 units, which is the face's own smallest interior
-  turn. It is not a floored constant standing in for a corner — it IS the
-  corner this face draws when a turn has no room. ь's bowl has room for 84
-  because a bowl sweeps about half its width; в's lobes sweep B's WAIST,
-  0.288, and that is the decision approved on 2026-08-12 after the sweep had
-  been drawn and rejected by eye for digging the waist and pointing the
-  junction. **The one lever that would open these counters is the one already
-  tried and decided.** Nothing further to try.
 - **ф at Regular and Bold** is marginally wide for its height (1.06 against a
   1.02 ceiling; 1.07 against 1.06). Its bowl cannot grow — the height is
   already at the panel's ceiling at ExtraBold — and the residual is the linear
   width fit running generous mid-axis, which two masters cannot bend.
-- **9 glyphs undrawn**, all Serbian: Ђ Љ Њ Ћ ђ љ њ ћ џ. **Ukrainian and
-  Russian are complete, and б — the last of them, and the only glyph in the
-  font whose outline comes from another face — was approved on 2026-08-09.**
 - **б's landing is solved per master and asserted, not chosen.** It lands 41
   degrees apart at the two ends of the axis and happens to fall in the same
   segment of the bowl. If o's outer contour is ever redrawn with different
   extrema, `be_from_sudo.py` will stop rather than emit two masters whose
   nodes do not correspond — that is the intended behaviour, and the fix is to
   re-seat the arc, not to relax the assertion.
-- **The Cyrillic's expressive terminals are deferred to the italic, on
-  purpose.** Measured by glyph, the Latin lowercase cuts a terminal obliquely
-  in five letters at Thin (a, e, g, k, s) and seven at ExtraBold (a, b, c, g,
-  k, p, s). The Cyrillic cuts one at Thin and three at ExtraBold — and к's is
-  the Latin k's own outline, inherited rather than chosen, while є's and э's
-  are open terminals at the heavy master only. **No Cyrillic letter chooses an
-  expressive terminal.** That is a real asymmetry: the Cyrillic is quieter than
-  the Latin it stands with, and g is the Latin's loudest moment by a distance.
-  The one letter with genuine construction latitude is **д** — seven of eight
-  panel faces draw the neutral triangle, and Sudo draws the cursive
-  single-storey form, which is structurally g's problem, a bowl with a
-  descending tail. Decided on 2026-08-09 not to spend it in the upright: the
-  cursive д is a strong statement in a terminal face, and Cyrillic italic
-  already takes different cursive forms for д, и, т and п, which is where the
-  script's character belongs and costs nothing in legibility. **Do not add
-  character to an upright Cyrillic glyph without raising this again.**
-- **Checkpoint C: the italic.**

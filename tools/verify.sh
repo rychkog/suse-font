@@ -9,6 +9,7 @@ run() {
     printf '\n=== %s ===\n' "$1"; shift
     if ! "$@"; then fail=1; fi
 }
+run "docs against the code"      ./venv/bin/python tools/docs_check.py
 run "mechanical + interpolation" ./venv/bin/python tools/check.py
 run "audit: drawn glyphs"        ./venv/bin/python tools/audit.py
 run "audit: the face's own Latin (thresholds must not flag it)" \
