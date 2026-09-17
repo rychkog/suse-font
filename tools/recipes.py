@@ -1499,14 +1499,20 @@ def Be(pr):
     arm = Ghe(pr)
     x0 = min(n.position.x for n in arm[0].nodes)
     # The bowl reaches where B's does -- Б, Ь and Ъ all hang the same bowl,
-    # and the face already draws it.
-    x1 = bowl_of(pr)[1]
+    # and the face already draws it. Off the ROMAN, as Ь Ъ Ы do (F27): in the
+    # italic this figure is the whole letter's rightmost NODE, which the true
+    # italic B puts on its UPPER lobe -- 542.6 un-sheared where its lower bowl
+    # reaches 517.7 -- so read there it sizes a single bowl from the other
+    # lobe of a two-lobe letter.
+    x1 = bowl_of(sloped(pr, caps=True))[1]
     top = 0.59 * pr.cap
     # B's own bowl stroke, not the stem and not the three-stem reduction. Б is
     # a spine and a bowl -- two strokes -- and the face draws that bowl
     # slightly heavier than its stem, 166 against 161 at ExtraBold. Carrying
     # m's crowding reduction here made Б lighter than all sixty panel faces.
-    t = bowl_of(pr)[2]
+    # Off the roman for the same reason as `x1`: read in the italic it came
+    # out 185.4 against В's own 161, and Б's wall measured 188.
+    t = bowl_of(sloped(pr, caps=True))[2]
 
     # ...on the wall it curves, and only there. On the left the counter sits
     # against the spine, exactly as B's does, and the spine here is Г's own --

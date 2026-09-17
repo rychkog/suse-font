@@ -2046,6 +2046,20 @@ of the stem. It is now drawn wider by that ratio and lands at 1.00.
 reading put я's italic leg at 0.61 of the stem. Read row by row, across the
 leg and the stem at the same height, it was 0.92–0.94.
 
+**And Б was missed, for eleven days.** That sweep took Ь Ъ Ы and Я and left
+Б, which hangs the same bowl and reads it the same way — the entry above says
+in as many words that "the upright capitals and Б are untouched", and only the
+first half of that was meant. Fixed 2026-09-17: wall 188 against В's 161 at
+ExtraBold, 94 against 83 at Regular, now 169 and 86; the bowl's end 32–38
+units right of В's, now 6–7.
+
+**The figure it took is worth its own line, because the name does not say
+which lobe.** `bowlRight` is the whole letter's rightmost NODE. In the roman B
+that node sits on the lower bowl, so it means what Ь Ъ Б need. In the true
+italic B it sits on the UPPER lobe — 542.6 un-sheared, where that letter's own
+lower bowl reaches 517.7. A figure whose MEANING changes between the two
+sources reads as a clean number in both and is wrong in one.
+
 ### F28 · A sheared bowl turns unevenly
 
 Shearing a round end tightens one turn and slackens the other. On a bowl facing right the top-right turn tightens into a knuckle and its stroke thickens, and the bottom-right thins. Я faces left, so its bottom-left thickens instead. The user saw it in Medium italic ь, then asked about the capitals too.
@@ -3451,11 +3465,25 @@ finding to §8 or to a fault entry, its approval to the ledger.
   `signature --italic` 20. One of the 57 it read before was д's coincident
   nodes, which was a real defect and is fixed — F32; two were the г turns
   below, exempted since. Three classes are known and unresolved:
-  1. **Ь Ъ Б's bowl ends 23–43 units right of В's**, at В's own widest row, at
-     every weight, where the upright reads all four at one number. Reading at
-     one row moves Ь by 1 unit at Thin and 2 at ExtraBold, so the row is not
-     the cause. В is the Latin B donated; the soft-sign bowls are built from
-     B's figures read off the ROMAN (F27), which is the candidate.
+  1. **Ь Ъ Б's bowl ends right of В's in the italic** — measured 2026-09-17,
+     and it splits in two. Upright, В Б Ь Ъ end at one number at every weight
+     (518, 535, 551, 557) and В is the face's own B to the unit in both
+     styles, so the comparison is honest and the construction is right.
+     - **Б was a different fault and is fixed.** It had never been given the
+       F27 correction its siblings got; see F27 for the readings and the
+       ledger for the verdict. What is left of Б here is a 5% wall against
+       В's at Bold and ExtraBold, at the gate's own limit.
+     - **Ь Ъ's 23–41 units are not a reach and may be a mis-posed reading.**
+       At the peak the two agree: Ь is drawn to the roman's 518 and the italic
+       B's own un-sheared widest is 517.7. Un-sheared at matching heights the
+       italic B's lower bowl is 8–14 units FULLER below a fifth of the cap and
+       7–25 units NARROWER above a third of it — it peaks lower and falls away
+       faster. The gap opens above the peak, and the row it is read at is
+       where **В** is widest, which the shear moves upward. Two curves at one
+       altitude is not two widths. **Settle what row means the same thing in
+       both letters before redrawing four approved letters for it.**
+     - `shear_fit` is eliminated: it only narrows a letter that overshoots B's
+       footprint, and Ь's rightmost ink is 4–35 units LEFT of B's.
   5. **г turns nothing like Г**, [120,121,140,144] against [82,103] at Thin
      Italic. The corner pair is now exempt for cursive letters, so this no
      longer fires — recorded because it was read once and is true: the
