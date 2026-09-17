@@ -64,13 +64,22 @@ DIM = "#80848c"
 COMMENT = "#6e7680"
 STR = "#963c28"
 
-CAPS = "АБВГҐДЕЄЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯЭЫЪ"
-LOWER = "абвгґдеєжзийклмнопрстуфхцчшщьюяэыъії"
+# Alphabetical order is not the point of this row; adjacency is. Every letter
+# that is a base plus a mark sits next to the base it is built from -- Е Ё,
+# И Й, І Ї, У Ў -- so a mark placed one unit off reads against the letter it
+# was placed on. That is why І Ї follow Й rather than preceding it.
+CAPS = "АБВГҐДЕЁЄЖЗИЙІЇКЛМНОПРСТУЎФХЦЧШЩЬЮЯЭЫЪ"
+LOWER = "абвгґдеёєжзийіїклмнопрстуўфхцчшщьюяэыъ"
 PAIRS = "Фф Юю Єє Ґґ Дд Жж Лл Чч Ээ Яя Зз Бб Кк Мм"
 VS_LATIN = "oф oю cє rґ vд nл oз ob кk мm"
 
 UA = "ґанок, аґрус, дзиґа, ґречний"
 RU = "юность, борьба, тёщи"
+# Belarusian needs three pairs the other two do not both supply -- ў, ё and
+# і -- and its apostrophe is a letter of the word, not punctuation around it.
+# All four are in this line, so a Belarusian reader's own text is what judges
+# them rather than a row of bare letters.
+BE = "зноў, аўтар, сям’я, лёс, ідэя"
 MIXED = "git commit -m 'юність' v2.1 build/ґрунт-єднати.log"
 SENTENCE = "ПОЛЕ ЦВІТЕ, ВІТЕР ДМЕ"
 RUSSIAN = "ПОДЪЕЗД, БЫЛЫЕ ВЫБОРИ, ЭХО".replace("ВЫБОРИ", "ВЫБОРЫ")
@@ -166,13 +175,13 @@ def letter_sheet(sh, up, it, letters):
 
     sh.heading("Among the whole set, where it has to keep the rhythm")
     for f in (up("Regular"), it("Regular"), up("Bold")):
-        sh.grid(f, CAPS, 46, cols=18, lx=PADX)
-        sh.grid(f, LOWER, 46, cols=18, lx=PADX)
+        sh.grid(f, CAPS, 46, cols=19, lx=PADX)
+        sh.grid(f, LOWER, 46, cols=19, lx=PADX)
         sh.gap(6)
     sh.rule()
     sh.heading("In words, and in a line that mixes the scripts")
     for w in ("Regular", "Bold"):
-        for t in (UA, RU, MIXED):
+        for t in (UA, RU, BE, MIXED):
             sh.line([(up(w), t, INK)], 34, label=w)
     sh.rule()
     sh.heading("At the sizes it is read at")
@@ -311,8 +320,8 @@ def full_sheet(sh, up, it, jb):
 
     sh.heading("The set — Regular, then Bold, then Italic")
     for f in (reg, bold, it("Regular")):
-        sh.grid(f, guard(reg, CAPS), 62, cols=18, lx=PADX)
-        sh.grid(f, guard(reg, LOWER), 62, cols=18, lx=PADX)
+        sh.grid(f, guard(reg, CAPS), 62, cols=19, lx=PADX)
+        sh.grid(f, guard(reg, LOWER), 62, cols=19, lx=PADX)
         sh.gap(8)
     sh.rule()
 
@@ -354,11 +363,13 @@ def full_sheet(sh, up, it, jb):
 
     sh.heading("At the sizes it is read at")
     for lab, f, t in (("14px UA", reg, UA), ("14px RU", reg, RU),
+                      ("14px BE", reg, BE),
                       ("14px italic", it("Regular"), UA),
                       ("14px caps", reg, SENTENCE),
                       ("14px russian", reg, RUSSIAN)):
         sh.line([(f, guard(reg, t), INK)], 14, label=lab)
     for lab, f, t in (("12px UA", reg, UA), ("12px RU", reg, RU),
+                      ("12px BE", reg, BE),
                       ("12px italic", it("Regular"), UA),
                       ("12px bold", bold, UA)):
         sh.line([(f, t, INK)], 12, label=lab)
@@ -370,6 +381,12 @@ def full_sheet(sh, up, it, jb):
     sh.gap(6)
     for w in ("Thin", "Regular", "Bold", "ExtraBold"):
         sh.line([(it(w), UA + "   " + RU, INK)], 30, label=w + " Italic")
+    # Belarusian on its own line: added to the row above it runs past the page,
+    # and ў is the one letter here whose mark has to clear an open top.
+    sh.gap(6)
+    for w in ("Thin", "Regular", "Bold", "ExtraBold"):
+        sh.line([(up(w), BE, INK)], 30, label=w + " BE")
+        sh.line([(it(w), BE, INK)], 30, label=w + " BE Italic")
 
 
 PADX = 170

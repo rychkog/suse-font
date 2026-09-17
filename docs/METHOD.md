@@ -2146,6 +2146,16 @@ Two rules come out of it, and they are cheap:
 The same class as F3: a reading that finds nothing has not passed, and a
 report that prints nothing has not reported.
 
+**A third instance, found 2026-09-17 when the user asked whether Belarusian
+worked.** It does — all 64 letters and both apostrophes — but `specimen.py`'s
+`CAPS` and `LOWER` are a hardcoded pair of strings, and they held 33 letters
+against the 99 in `classify.TIERS`. Ё І Ї Ў ё ў were drawn, in the audit's
+subject list, and approved on 2026-08-12, and had never appeared on the sheet
+the user reviews. The letters were fine; nothing had shown them. A subject
+list written by hand beside one the code already owns drifts, and the drift is
+silent — `outlines.py` had the same fault with т and п, and its fix was to
+default to everything `NAMES` knows about.
+
 
 ### F32 · A node that draws nothing here draws a corner there
 

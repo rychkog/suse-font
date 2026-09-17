@@ -1,9 +1,9 @@
 # SUSE Mono — Cyrillic
 
-Adding Ukrainian + Russian Cyrillic to SUSE Mono, a Latin-only monospace with
-Glyphs.app sources. Two masters (Thin 100, ExtraBold 800), plus a sloped-roman
-italic source. Glyphs are **generated from recipes**, not drawn by hand — see
-`tools/recipes.py`.
+Adding Ukrainian, Russian and Belarusian Cyrillic to SUSE Mono, a Latin-only
+monospace with Glyphs.app sources. Two masters (Thin 100, ExtraBold 800), plus
+a sloped-roman italic source. Glyphs are **generated from recipes**, not drawn
+by hand — see `tools/recipes.py`.
 
 The project brief is kept outside the repository and is binding.
 
@@ -164,6 +164,11 @@ Each rule is one statement; the story behind it is at the pointer.
   never one block above another, which is what `specimen.py --against OLD_DIR`
   draws against a stashed build. Say which candidate is on disk: one that was
   never built has not been through the gates.
+- **The specimen's letter set is not the font's coverage until it is checked.**
+  `specimen.py`'s `CAPS`/`LOWER` are a hardcoded list, and it stood at 33 of
+  the 99 drawn glyphs: Ё І Ў ё ў shipped, gated and approved without once
+  appearing on the sheet the user reviews. Diff the list against
+  `classify.TIERS` when a letter is added. F31.
 - **Never show coordinates, node counts or point data.**
 - Own the objective quality: every gate passes *before* anything is shown.
 - No `Co-Authored-By` trailer in commits.
